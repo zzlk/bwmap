@@ -1,7 +1,9 @@
 mod chk;
 mod mpq;
-mod test;
 mod util;
+
+#[cfg(test)]
+mod test;
 
 pub use chk::get_parsed_chk;
 pub use chk::merge_rawchunks;

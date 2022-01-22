@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-pub(crate) fn for_all_test_maps<F: Fn(walkdir::DirEntry) + Sync>(func: F) {
+fn for_all_test_maps<F: Fn(walkdir::DirEntry) + Sync>(func: F) {
     let processed_maps =
         walkdir::WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
             .into_iter()
@@ -68,4 +68,26 @@ fn test_constrain_encoding_detection_algorithm() {
     test_vectors
         .into_par_iter()
         .for_each(|(a, b)| assert_eq!(f(a), b));
+}
+
+#[test]
+fn test_get_chk_from_mpq_filename() {
+    crate::test::for_all_test_maps(|e| {
+        assert!(
+            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string())
+                .unwrap()
+                .len()
+                > 0
+        );
+    });
+}
+
+#[test]
+fn test_get_chk_from_mpq_in_memory() {
+    crate::test::for_all_test_maps(|e| {
+        assert_eq!(
+            crate::get_chk_from_mpq_in_memory(std::fs::read(e.path()).unwrap().as_slice()).unwrap(),
+            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
+        );
+    });
 }
