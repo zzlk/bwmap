@@ -1,0 +1,22 @@
+[package]
+name = "bwmap"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+stormlib-bindings = { path = "../stormlib-bindings" }
+
+tempfile = "*"
+serde = { version = "*", features = ["derive"] }
+encoding_rs = "*"
+anyhow = "*"
+uuid = { version = "*", features = ["v4"] }
+walkdir = "*"
+rayon = "*"
+reqwest = "*"
+tokio = { version = "1", features = ["full"] }
+futures = "*"
+scopeguard = "*"
+lazy_static = "*"
