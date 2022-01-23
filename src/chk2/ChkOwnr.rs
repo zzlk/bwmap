@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -18,7 +19,7 @@ use std::cmp::min;
 // 08 - Closed slot
 // Italicized settings denote invalid map options, which may involve a buffer overflow.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkOwnr<'a> {
     pub player_owner: &'a [u8; 12],
 }

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -12,7 +13,7 @@ use std::cmp::min;
 // This section can contain more or less then 1024 string offsests and will work in Starcraft.
 // By default the first byte in Strings is a NUL character, and all unused offsets in the STR section point to this NUL character. Note that STR sections can be stacked in a smiliar fashion as MTXM. The exact mechanisms of this are uncertain.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkStr<'a> {
     pub number_of_strings: &'a u16,
     pub string_offsets: &'a [u16],

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not Required.
@@ -15,7 +16,7 @@ use std::cmp::min;
 // 00 - Doodad is enabled (trap can attack, door is closed, etc)
 // 01 - Doodad is disabled
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkDd2<'a> {
     pub doodad_number: &'a u16,
     pub x: &'a u16,

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -17,7 +18,7 @@ use std::cmp::min;
 // 07 - Inactive, shown as locked "Select Race" option in SC:R lobby
 // Italicized settings denote invalid map options. Note Players 9-11 are defaultly Inactive and Player 12 is defaultly Neutral.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkSide<'a> {
     pub player_side: &'a [u8; 12],
 }

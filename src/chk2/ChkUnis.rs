@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 
 // u8[228]: 1 byte for each unit, in order of Unit ID
 // 00 - Unit does not use default settings
@@ -13,17 +14,27 @@ use crate::util::CursorSlicer;
 // u16[100]: Base weapon damage the weapon does, in weapon ID order (#List of Unit Weapon IDs)
 // u16[100]: Upgrade bonus weapon damage, in weapon ID order
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkUnis<'a> {
+    #[serde(skip_serializing)]
     pub config: &'a [u8; 228],
+    #[serde(skip_serializing)]
     pub hit_points: &'a [u32; 228],
+    #[serde(skip_serializing)]
     pub shield_points: &'a [u16; 228],
+    #[serde(skip_serializing)]
     pub armor_points: &'a [u8; 228],
+    #[serde(skip_serializing)]
     pub build_time: &'a [u16; 228],
+    #[serde(skip_serializing)]
     pub mineral_cost: &'a [u16; 228],
+    #[serde(skip_serializing)]
     pub gas_cost: &'a [u16; 228],
+    #[serde(skip_serializing)]
     pub string_number: &'a [u16; 228],
+    #[serde(skip_serializing)]
     pub base_weapon_damage: &'a [u16; 100],
+    #[serde(skip_serializing)]
     pub upgrade_bonus_weapon_damage: &'a [u16; 100],
 }
 

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -60,7 +61,7 @@ use std::cmp::min;
 // u8: Index of the current action, in StarCraft this is incremented after each action is executed, trigger execution ends when this is 64 (Max Actions) or an action is encountered with Action byte as 0
 // This section can be split. Additional TRIG sections will add more triggers.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTrigCondition<'a> {
     pub location: &'a u32,
     pub group: &'a u32,
@@ -89,7 +90,7 @@ fn parse_trig_condition<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTrigAction<'a> {
     pub location: &'a u32,
     pub string_number: &'a u32,
@@ -125,9 +126,10 @@ fn parse_trig_action<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTrigIndividual<'a> {
     pub conditions: [ChkTrigCondition<'a>; 16],
+    #[serde(skip_serializing)]
     pub actions: [ChkTrigAction<'a>; 64],
     pub execution_flags: &'a u32,
     pub executed_for_player: &'a [u8; 27],
@@ -232,7 +234,7 @@ pub(crate) fn parse_trig_individual<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTrig<'a> {
     pub triggers: Vec<ChkTrigIndividual<'a>>,
 }

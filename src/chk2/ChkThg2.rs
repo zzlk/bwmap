@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -21,7 +22,7 @@ use std::cmp::min;
 // Bit 15 - Disabled (Only valid if Draw as sprite is unchecked, disables the unit)
 // This section can be split. Additional THG2 sections will add more sprites.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkThg2<'a> {
     pub sprite_number: &'a u16,
     pub x: &'a u16,

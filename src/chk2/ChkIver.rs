@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not required.
@@ -10,7 +11,7 @@ use std::cmp::min;
 // 10 - current versions
 // When saving as expansion this section gets removed entirely. Contrary to popular belief, it doesn't get "replaced" by IVE2 in hybrid/Brood War scenarios: both seem to be written by StarEdit but not read by StarCraft.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkIver<'a> {
     pub additional_file_format_version: &'a u16,
 }

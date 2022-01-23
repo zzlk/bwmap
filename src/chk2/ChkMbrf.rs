@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -10,7 +11,7 @@ use std::cmp::min;
 
 // This section can be split. Additional MBRF sections will add more briefing triggers.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMbrfCondition<'a> {
     pub location: &'a u32,
     pub group: &'a u32,
@@ -39,7 +40,7 @@ fn parse_mbrf_condition<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMbrfAction<'a> {
     pub location: &'a u32,
     pub string_number: &'a u32,
@@ -75,9 +76,10 @@ fn parse_mbrf_action<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMbrfIndividual<'a> {
     pub conditions: [ChkMbrfCondition<'a>; 16],
+    #[serde(skip_serializing)]
     pub actions: [ChkMbrfAction<'a>; 64],
     pub execution_flags: &'a u32,
     pub executed_for_player: &'a [u8; 27],

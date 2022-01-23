@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Requirement unknown, but can be in any map type including non-remaster maps.
@@ -13,7 +14,7 @@ use std::cmp::min;
 // 2 - Custom RGB Color (RGB value for the corresponding player defined above)
 // 3 - Use "COLR" selection
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkCrgb<'a> {
     pub rgb: &'a [[u8; 3]; 8],
     pub player_color_option: &'a [u8; 8],

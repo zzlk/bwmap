@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not required.
@@ -9,7 +10,7 @@ use std::cmp::min;
 // 0x53574152 or RAWS - 1.04 StarCraft and above ("hybrid")
 // 0x42574152 or RAWB - Brood War
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkType<'a> {
     pub scenario_type: &'a u32,
 }

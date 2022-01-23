@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for Brood War only and all game types.
@@ -36,7 +37,7 @@ use std::cmp::min;
 // 21 - Grey
 // 22 - Black
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkColr<'a> {
     pub player_color: &'a [u8; 8],
 }

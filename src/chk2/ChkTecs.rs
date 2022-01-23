@@ -1,5 +1,6 @@
 use crate::util::CursorSlicer;
 use std::cmp::min;
+use serde::Serialize;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
 // Validation: Must be size of 216 bytes.
@@ -16,7 +17,7 @@ use std::cmp::min;
 // u16[24]: Energy cost to cast technology/special ability. In order of technology id.
 // See #List of Technology IDs for technology ids.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTecs<'a> {
     pub technology_uses_default_settings: &'a [u8; 24],
     pub mineral_cost: &'a [u16; 24],

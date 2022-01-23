@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -17,7 +18,7 @@ use std::cmp::min;
 // Bit 7 - Player 8's Fog of War. If on, the tile is covered with fog. if off, the tile is visible.
 // Any size greater than width*height will be ignored. Any size less will default missing tiles to 0xFF
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMask<'a> {
     pub fog: &'a [u8],
 }

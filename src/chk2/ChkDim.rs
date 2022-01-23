@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -11,7 +12,7 @@ use std::cmp::min;
 // The Width/Height of the map is measured in the number of square 32x32p tiles.
 // Standard Dimensions are 64, 96, 128, 192, and 256.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkDim<'a> {
     pub width: &'a u16,
     pub height: &'a u16,

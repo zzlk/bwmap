@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not Required.
@@ -9,8 +10,9 @@ use std::cmp::min;
 // 00 - Properties slot is unused
 // 01 - Properties slot is used
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkUpus<'a> {
+    #[serde(skip_serializing)]
     pub cuwp_slot_is_used: &'a [u8; 64],
 }
 
