@@ -1,5 +1,6 @@
 use crate::util::CursorSlicer;
 use std::cmp::min;
+use serde::Serialize;
 
 // Required for all versions and all game types.
 // Validation: Must be size of 2 bytes.
@@ -18,7 +19,7 @@ use std::cmp::min;
 // StarCraft masks the tileset indicator's bit value, so bits after the third place (anything after the value "7") are removed. Thus, 9 (1001 in binary) is interpreted as 1 (0001), 10 (1010) as 2 (0010), etc.
 // Desert, Arctic, and Twilight are Brood War-only tilesets.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkEra<'a> {
     pub tileset: &'a u16,
 }

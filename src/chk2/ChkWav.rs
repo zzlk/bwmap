@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not Required.
@@ -7,8 +8,9 @@ use std::cmp::min;
 
 // u32[512]: 1 long for each WAV. Indicates a string index is used for a WAV path in the MPQ. If the entry is not used, it will be 0.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkSprp<'a> {
+    #[serde(skip_serializing)]
     pub wav_string_number: &'a [u32; 512],
 }
 

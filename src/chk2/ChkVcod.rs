@@ -1,4 +1,5 @@
 use crate::util::{parse_slice2, CursorSlicer};
+use serde::Serialize;
 
 // Required for all versions and all game types.
 // Validation: Must be equal to size of the VCOD data in the EXE resource. Must result in valid checksum.
@@ -19,8 +20,9 @@ use crate::util::{parse_slice2, CursorSlicer};
 // Opcodes and seeds do not have to match those in EXE resource, as long as the same value is produced.
 // The only indexes in the seed table that are referenced are those that correspond individual values of OWNR, SIDE, FORC player assignments, and index 0.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkVcod<'a> {
+    #[serde(skip_serializing)]
     pub seed_values: &'a [u32; 256],
     pub hash: &'a [u8; 16],
 }

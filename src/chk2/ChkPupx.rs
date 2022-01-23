@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for Hybrid (in Expansion mode) and Brood War. Not required for Melee.
@@ -7,12 +8,15 @@ use std::cmp::min;
 
 // This section is identical to UPGR section except it uses the Brood War set of 61 upgrades instead of the original 46.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkPupx<'a> {
+    #[serde(skip_serializing)]
     pub max_upgrade_level: &'a [[u8; 61]; 12],
+    #[serde(skip_serializing)]
     pub starting_upgrade_level: &'a [[u8; 61]; 12],
     pub global_default_maximum_upgrade_level: &'a [u8; 12],
     pub global_default_starting_upgrade_level: &'a [u8; 12],
+    #[serde(skip_serializing)]
     pub player_uses_upgrade_defaults: &'a [[u8; 61]; 12],
 }
 

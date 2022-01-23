@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not Required.
@@ -8,7 +9,7 @@ use std::cmp::min;
 // u16[ map width * height ]: 1 integer for each map tile. Moves horizontally across the map.
 // The values in TILE are normally directly generated from the ISOM section (see "'ISOM' section" above), and thus do not match that of MTXM on doodad tiles.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkTile<'a> {
     pub data: &'a [u16],
 }

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -38,7 +39,7 @@ use std::cmp::min;
 // Bit 5-15 - Unknown/unused
 // u32: Unknown/unused. Padding?
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkUprp<'a> {
     pub flag_of_special_properties: &'a u16,
     pub which_elements_of_unit_data_are_valid: &'a u16,

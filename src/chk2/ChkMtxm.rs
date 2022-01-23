@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -15,7 +16,7 @@ use std::cmp::min;
 // This section includes doodads as terrain; TILE, which is otherwise identical, doesn't. Out of the terrain sections (TILE, ISOM, and MTXM), SC only reads MTXM for the sake of not having to generate this data on-the-fly: it contains the exact representation of the level's appearance, including doodads. TILE, on the other hand, is directly tied via a tile lookup function to ISOM, and exists for the sake of not having to generate tiles from ISOM on-the-fly in StarEdit.
 // If MTXM section is smaller than (map width*height), then the remaining tiles will be filled with null tiles or tiles specified by previous MTXM sections.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMtxm<'a> {
     pub data: &'a [u16],
 }

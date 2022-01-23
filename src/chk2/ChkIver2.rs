@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not required.
@@ -9,7 +10,7 @@ use std::cmp::min;
 // 11 - 1.04 StarCraft and above ("hybrid") or Brood War.
 // This section does not "replace" IVER in hybrid/Brood War scenarios: both seem to be written by StarEdit but not read by StarCraft.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkIver2<'a> {
     pub additional_file_format_version: &'a u16,
 }

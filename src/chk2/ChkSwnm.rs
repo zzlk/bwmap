@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Not Required.
@@ -7,8 +8,9 @@ use std::cmp::min;
 
 // u32[256]: One long for each switch, specifies the string number for the name of each switch. Unnamed switches will have an index of 0, and have a default switch name.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkSwnm<'a> {
+    #[serde(skip_serializing)]
     pub switch_name_string_number: &'a [u32; 256],
 }
 

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
@@ -24,12 +25,17 @@ use std::cmp::min;
 // 01 - Technology uses default settings for player
 // See #List of Technology IDs.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkPtex<'a> {
+    #[serde(skip_serializing)]
     pub player_availability: &'a [[u8; 44]; 12],
+    #[serde(skip_serializing)]
     pub already_researched: &'a [[u8; 44]; 12],
+    #[serde(skip_serializing)]
     pub global_availability_defaults: &'a [[u8; 44]; 12],
+    #[serde(skip_serializing)]
     pub global_already_researched_defaults: &'a [[u8; 44]; 12],
+    #[serde(skip_serializing)]
     pub player_uses_default: &'a [[u8; 44]; 12],
 }
 

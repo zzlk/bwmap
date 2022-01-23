@@ -308,7 +308,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
     map
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum ParsedChunk<'a> {
     COLR(ChkColr<'a>),
     TRIG(ChkTrig<'a>),

@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
@@ -18,14 +19,21 @@ use std::cmp::min;
 // u16[46]: 1 integer per upgrade, gas time factor for each upgrade, in order of upgrade id.
 // See #List of Upgrade IDs for upgrade ids.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkUpgs<'a> {
+    #[serde(skip_serializing)]
     pub upgrade_uses_default_setings: &'a [u8; 46],
+    #[serde(skip_serializing)]
     pub base_mineral_cost: &'a [u16; 46],
+    #[serde(skip_serializing)]
     pub mineral_cost_factor: &'a [u16; 46],
+    #[serde(skip_serializing)]
     pub base_gas_cost: &'a [u16; 46],
+    #[serde(skip_serializing)]
     pub gas_cost_factor: &'a [u16; 46],
+    #[serde(skip_serializing)]
     pub base_time: &'a [u16; 46],
+    #[serde(skip_serializing)]
     pub time_factor: &'a [u16; 46],
 }
 

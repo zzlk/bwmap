@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -23,7 +24,7 @@ use std::cmp::min;
 // Bit 6-15 - Unused
 // Note that in typical locations Right is always larger than Left and Bottom is always larger than Top. However, you can reverse one or both of these for Inverted Locations.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMrgn<'a> {
     pub left: &'a u32,
     pub top: &'a u32,

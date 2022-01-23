@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -50,7 +51,7 @@ use std::cmp::min;
 // Default values will apply if bit values are unchecked. Defaults: 100% HP, 100% SP, 100% EP, 0 resources, 0 hangar count.
 // This section can be split. Additional UNIT sections will add more units.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkUnit<'a> {
     pub class_instance: &'a u32,
     pub x: &'a u16,

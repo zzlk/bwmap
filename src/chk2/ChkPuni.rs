@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
@@ -16,10 +17,13 @@ use std::cmp::min;
 // 00 - Player overrides defaults for this unit
 // 01 - Player uses defaults for this unit
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkPuni<'a> {
+    #[serde(skip_serializing)]
     pub unit_player_availability: &'a [[u8; 228]; 12],
+    #[serde(skip_serializing)]
     pub unit_global_availability: &'a [u8; 228],
+    #[serde(skip_serializing)]
     pub unit_player_uses_defaults: &'a [[u8; 228]; 12],
 }
 

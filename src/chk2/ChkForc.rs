@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -20,7 +21,7 @@ use std::cmp::min;
 // If this section is less than 20 bytes, the remaining bytes are defaulted to 0.
 // Players can be on a force greater than 4, however they will not appear in the game lobby.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkForc<'a> {
     pub player_forces: &'a [u8; 8],
     pub force_name: &'a [u16; 4],

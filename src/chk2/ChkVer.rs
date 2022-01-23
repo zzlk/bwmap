@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -23,7 +24,7 @@ use std::cmp::min;
 // 201 - Brood War internal (map version 201)
 // 203 - Brood War internal (map version 203)
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkVer<'a> {
     pub file_format_version: &'a u16,
 }

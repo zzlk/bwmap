@@ -1,4 +1,5 @@
 use crate::util::CursorSlicer;
+use serde::Serialize;
 use std::cmp::min;
 
 // Required for all versions and all game types.
@@ -8,7 +9,7 @@ use std::cmp::min;
 // u16: String number of the scenarios description.
 // A string index of 0 for the map name will default it to its file name. A string index of 0 description will default to a predefined string.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkSprp<'a> {
     pub scenario_name_string_number: &'a u16,
     pub description_string_number: &'a u16,

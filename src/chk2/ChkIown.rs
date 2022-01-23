@@ -1,5 +1,6 @@
 use crate::util::CursorSlicer;
 use std::cmp::min;
+use serde::Serialize;
 
 // Not Required.
 
@@ -17,7 +18,7 @@ use std::cmp::min;
 // 08 - Closed slot
 // This section is separate from OWNR as a staredit value. Staredit does not display "inactive" as a valid option. Italicized settings denote invalid map options, which may involve a buffer overflow.
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkIown<'a> {
     pub player_owner: &'a [u8; 12],
 }
