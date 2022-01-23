@@ -181,6 +181,7 @@ pub struct RawChunk {
     pub name: ChunkName,
     pub size: i32,
     pub offset: usize,
+    #[serde(skip_serializing)]
     pub data: Vec<u8>,
 }
 
@@ -228,6 +229,7 @@ pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MergedChunk {
     pub name: ChunkName,
+    #[serde(skip_serializing)]
     pub data: Vec<u8>,
 }
 
