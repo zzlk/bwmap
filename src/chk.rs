@@ -44,6 +44,15 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
+use crate::chk2::{
+    ChkColr::{parse_colr, ChkColr},
+    ChkCrgb::{parse_crgb, ChkCrgb},
+    ChkForc::{parse_forc, ChkForc},
+    ChkStr::{parse_str, ChkStr},
+    ChkTrig::{parse_trig, ChkTrig},
+    ChkUnis::{parse_unis, ChkUnis},
+    ChkVcod::{parse_vcod, ChkVcod},
+};
 use std::str;
 
 //use sha2::{Sha256, Digest};
@@ -101,6 +110,7 @@ pub enum ChunkName {
     TECS,
     SWNM,
     COLR,
+    CRGB,
     PUPx,
     PTEx,
     UNIx,
@@ -167,6 +177,7 @@ fn parse_name(chunk_name: &[u8]) -> ChunkName {
         b"TECS" => ChunkName::TECS,
         b"SWNM" => ChunkName::SWNM,
         b"COLR" => ChunkName::COLR,
+        b"CRGB" => ChunkName::CRGB,
         b"PUPx" => ChunkName::PUPx,
         b"PTEx" => ChunkName::PTEx,
         b"UNIx" => ChunkName::UNIx,
@@ -231,6 +242,136 @@ pub struct MergedChunk {
     pub name: ChunkName,
     #[serde(skip_serializing)]
     pub data: Vec<u8>,
+}
+
+pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> {
+    let mut map = HashMap::new();
+
+    for v in chunks {
+        match get_update_type(&v.name) {
+            ChunkNameUpdateType::FullOverwrite => {
+                let merged = MergedChunk {
+                    name: v.name.clone(),
+                    data: v.data.clone(),
+                };
+
+                map.insert(merged.name.clone(), merged);
+            }
+
+            ChunkNameUpdateType::PartialOverwrite => {
+                if let Some(c) = map.get(&v.name) {
+                    let mut merged = MergedChunk {
+                        name: c.name.clone(),
+                        data: Vec::new(),
+                    };
+
+                    merged.data.extend(v.data.as_slice());
+
+                    if c.data.len() > v.data.len() {
+                        merged.data.extend(&c.data[v.data.len()..]);
+                    }
+
+                    map.insert(merged.name.clone(), merged);
+                } else {
+                    let merged = MergedChunk {
+                        name: v.name.clone(),
+                        data: v.data.clone(),
+                    };
+
+                    map.insert(v.name.clone(), merged);
+                }
+            }
+
+            ChunkNameUpdateType::Append => {
+                if let Some(c) = map.get(&v.name) {
+                    let mut merged = MergedChunk {
+                        name: c.name.clone(),
+                        data: Vec::new(),
+                    };
+
+                    merged.data.extend_from_slice(v.data.as_slice());
+                    merged.data.extend_from_slice(&c.data);
+
+                    map.insert(merged.name.clone(), merged);
+                } else {
+                    let merged = MergedChunk {
+                        name: v.name.clone(),
+                        data: v.data.clone(),
+                    };
+
+                    map.insert(v.name.clone(), merged);
+                }
+            }
+        }
+    }
+
+    map
+}
+
+#[derive(Debug)]
+pub enum ParsedChunk<'a> {
+    COLR(ChkColr<'a>),
+    TRIG(ChkTrig<'a>),
+    CRGB(ChkCrgb<'a>),
+    FORC(ChkForc<'a>),
+    STR(ChkStr<'a>),
+    UNIS(ChkUnis<'a>),
+    VCOD(ChkVcod<'a>),
+}
+
+pub fn parse_merged_chunks(
+    chunks: &HashMap<ChunkName, MergedChunk>,
+) -> Result<HashMap<ChunkName, ParsedChunk>, anyhow::Error> {
+    let mut map = HashMap::new();
+    for (chunk_name, chunk) in chunks.into_iter() {
+        match chunk_name {
+            ChunkName::CRGB => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::CRGB(parse_crgb(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::TRIG => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TRIG(parse_trig(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::COLR => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::COLR(parse_colr(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::FORC => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::FORC(parse_forc(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::STR => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::STR(parse_str(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::UNIS => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UNIS(parse_unis(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::VCOD => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::VCOD(parse_vcod(chunk.data.as_slice())?),
+                );
+            }
+            _ => {}
+        }
+    }
+
+    Ok(map)
 }
 
 pub fn merge_rawchunks(chunks: &[RawChunk]) -> Vec<MergedChunk> {

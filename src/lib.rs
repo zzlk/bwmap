@@ -1,4 +1,5 @@
 mod chk;
+mod chk2;
 mod mpq;
 mod util;
 

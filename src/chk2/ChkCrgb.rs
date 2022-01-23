@@ -1,0 +1,29 @@
+use crate::util::CursorSlicer;
+use std::cmp::min;
+
+// Requirement unknown, but can be in any map type including non-remaster maps.
+// Validation: Must be size of 32 bytes.
+// u8[8][3]: 3 bytes for each player corresponding to an RGB color value
+// u8: R
+// u8: G
+// u8: B
+// u8[8]: Indicates how to select the color for each player
+// 0 - Random Predefined
+// 1 - Player's Choice
+// 2 - Custom RGB Color (RGB value for the corresponding player defined above)
+// 3 - Use "COLR" selection
+
+#[derive(Debug)]
+pub struct ChkCrgb<'a> {
+    pub rgb: &'a [[u8; 3]; 8],
+    pub player_color_option: &'a [u8; 8],
+}
+
+pub(crate) fn parse_crgb(sec: &[u8]) -> Result<ChkCrgb, anyhow::Error> {
+    let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkCrgb {
+        rgb: slicer.extract_ref()?,
+        player_color_option: slicer.extract_ref()?,
+    })
+}

@@ -1,10 +1,14 @@
+use crate::{
+    chk::{merge_raw_chunks, parse_merged_chunks, ChunkName},
+    parse_chk,
+};
 use rayon::prelude::*;
 
 fn for_all_test_maps<F: Fn(walkdir::DirEntry) + Sync>(func: F) {
     let processed_maps =
         walkdir::WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
             .into_iter()
-            .par_bridge()
+            //.par_bridge()
             .filter_map(Result::ok)
             .filter(
                 |e| match e.file_name().to_string_lossy().to_string().as_str() {
@@ -88,6 +92,27 @@ fn test_get_chk_from_mpq_in_memory() {
         assert_eq!(
             crate::get_chk_from_mpq_in_memory(std::fs::read(e.path()).unwrap().as_slice()).unwrap(),
             crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
+        );
+    });
+}
+
+#[test]
+fn test_parse_merged_chunks() {
+    crate::test::for_all_test_maps(|e| {
+        let chk_data =
+            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
+
+        let raw_chunks = parse_chk(&chk_data);
+        let merged_chunks = merge_raw_chunks(&raw_chunks);
+        let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+
+        println!("{:?}", parsed_chunks);
+
+        assert!(
+            parsed_chunks.get(&ChunkName::VCOD).is_some(),
+            "filename: {}, {:?}",
+            e.file_name().to_string_lossy(),
+            parsed_chunks
         );
     });
 }
