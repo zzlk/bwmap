@@ -351,7 +351,7 @@ pub enum ParsedChunk<'a> {
     ERA(ChkEra<'a>),
     FORC(ChkForc<'a>),
     IOWN(ChkIown<'a>),
-    ISOM(ChkIsom<'a>),
+    ISOM(ChkIsom),
     IVE2(ChkIve2<'a>),
     IVER(ChkIver<'a>),
     MASK(ChkMask<'a>),
@@ -371,7 +371,7 @@ pub enum ParsedChunk<'a> {
     TECS(ChkTecs<'a>),
     TECx(ChkTecx<'a>),
     THG2(ChkThg2<'a>),
-    TILE(ChkTile<'a>),
+    TILE(ChkTile),
     TRIG(ChkTrig<'a>),
     TYPE(ChkType<'a>),
     UNIS(ChkUnis<'a>),
@@ -555,12 +555,12 @@ pub fn parse_merged_chunks(
             //         ParsedChunk::THG2(parse_thg2(chunk.data.as_slice())?),
             //     );
             // }
-            // ChunkName::TILE => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::TILE(parse_tile(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::TILE => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TILE(parse_tile(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::TRIG => {
                 map.insert(
                     chunk_name.clone(),

@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::util::{reinterpret_slice2, CursorSlicer};
 use serde::Serialize;
 
 // Not Required.
@@ -9,14 +9,23 @@ use serde::Serialize;
 // This section is the only truly unknown section of the .chk format. If you're an ex-Blizzard employee or SI, please edit this section. If you have additional research, post on the forums about it and/or edit this section.
 
 #[derive(Debug, Serialize)]
-pub struct ChkIsom<'a> {
-    pub data: &'a [u16],
+pub struct ChkIsom {
+    pub data: Vec<u16>, // PROTECTION: some map protectors make ISOM sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
 pub(crate) fn parse_isom(sec: &[u8]) -> Result<ChkIsom, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
+    let data = if sec.len() % 2 == 0 {
+        Vec::from(reinterpret_slice2::<u16>(sec)?)
+    } else {
+        let mut ret = if sec.len() == 1 {
+            Vec::new()
+        } else {
+            Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
+        };
 
-    Ok(ChkIsom {
-        data: slicer.extract_rest_as_slice()?,
-    })
+        ret.push(sec[sec.len() - 1] as u16);
+        ret
+    };
+
+    Ok(ChkIsom { data })
 }
