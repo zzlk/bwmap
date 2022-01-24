@@ -22,7 +22,7 @@ use serde::Serialize;
 // This section can be split. Additional THG2 sections will add more sprites.
 
 #[derive(Debug, Serialize)]
-pub struct ChkThg2<'a> {
+pub struct ChkThg2Individual<'a> {
     pub sprite_number: &'a u16,
     pub x: &'a u16,
     pub y: &'a u16,
@@ -31,15 +31,26 @@ pub struct ChkThg2<'a> {
     pub flags: &'a u16,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ChkThg2<'a> {
+    pub sprites: Vec<ChkThg2Individual<'a>>,
+}
+
 pub(crate) fn parse_thg2(sec: &[u8]) -> Result<ChkThg2, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    Ok(ChkThg2 {
-        sprite_number: slicer.extract_ref()?,
-        x: slicer.extract_ref()?,
-        y: slicer.extract_ref()?,
-        owner: slicer.extract_ref()?,
-        unused: slicer.extract_ref()?,
-        flags: slicer.extract_ref()?,
-    })
+    let mut sprites = Vec::new();
+
+    for _ in 0..(sec.len() / 10) {
+        sprites.push(ChkThg2Individual {
+            sprite_number: slicer.extract_ref()?,
+            x: slicer.extract_ref()?,
+            y: slicer.extract_ref()?,
+            owner: slicer.extract_ref()?,
+            unused: slicer.extract_ref()?,
+            flags: slicer.extract_ref()?,
+        });
+    }
+
+    Ok(ChkThg2 { sprites })
 }

@@ -51,7 +51,7 @@ use serde::Serialize;
 // This section can be split. Additional UNIT sections will add more units.
 
 #[derive(Debug, Serialize)]
-pub struct ChkUnit<'a> {
+pub struct ChkUnitIndividual<'a> {
     pub class_instance: &'a u32,
     pub x: &'a u16,
     pub y: &'a u16,
@@ -70,25 +70,36 @@ pub struct ChkUnit<'a> {
     pub class_instance_related_to: &'a u32,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ChkUnit<'a> {
+    pub units: Vec<ChkUnitIndividual<'a>>,
+}
+
 pub(crate) fn parse_unit(sec: &[u8]) -> Result<ChkUnit, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    Ok(ChkUnit {
-        class_instance: slicer.extract_ref()?,
-        x: slicer.extract_ref()?,
-        y: slicer.extract_ref()?,
-        unit_id: slicer.extract_ref()?,
-        type_of_relation_to_other_building: slicer.extract_ref()?,
-        properties_that_can_be_applied: slicer.extract_ref()?,
-        properties_that_can_be_changed: slicer.extract_ref()?,
-        owner: slicer.extract_ref()?,
-        hit_points_percent: slicer.extract_ref()?,
-        shield_points_percent: slicer.extract_ref()?,
-        energy_points_percent: slicer.extract_ref()?,
-        resource_amount: slicer.extract_ref()?,
-        number_of_units_in_hangar: slicer.extract_ref()?,
-        unit_state_flags: slicer.extract_ref()?,
-        unused: slicer.extract_ref()?,
-        class_instance_related_to: slicer.extract_ref()?,
-    })
+    let mut units = Vec::new();
+
+    for _ in 0..(sec.len() / 36) {
+        units.push(ChkUnitIndividual {
+            class_instance: slicer.extract_ref()?,
+            x: slicer.extract_ref()?,
+            y: slicer.extract_ref()?,
+            unit_id: slicer.extract_ref()?,
+            type_of_relation_to_other_building: slicer.extract_ref()?,
+            properties_that_can_be_applied: slicer.extract_ref()?,
+            properties_that_can_be_changed: slicer.extract_ref()?,
+            owner: slicer.extract_ref()?,
+            hit_points_percent: slicer.extract_ref()?,
+            shield_points_percent: slicer.extract_ref()?,
+            energy_points_percent: slicer.extract_ref()?,
+            resource_amount: slicer.extract_ref()?,
+            number_of_units_in_hangar: slicer.extract_ref()?,
+            unit_state_flags: slicer.extract_ref()?,
+            unused: slicer.extract_ref()?,
+            class_instance_related_to: slicer.extract_ref()?,
+        });
+    }
+
+    Ok(ChkUnit { units })
 }
