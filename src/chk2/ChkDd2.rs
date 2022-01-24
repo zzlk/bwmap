@@ -16,7 +16,7 @@ use serde::Serialize;
 // 01 - Doodad is disabled
 
 #[derive(Debug, Serialize)]
-pub struct ChkDd2<'a> {
+pub struct ChkDd2Individual<'a> {
     pub doodad_number: &'a u16,
     pub x: &'a u16,
     pub y: &'a u16,
@@ -24,14 +24,25 @@ pub struct ChkDd2<'a> {
     pub disabled: &'a u8,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ChkDd2<'a> {
+    pub doodads: Vec<ChkDd2Individual<'a>>,
+}
+
 pub(crate) fn parse_dd2(sec: &[u8]) -> Result<ChkDd2, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    Ok(ChkDd2 {
-        doodad_number: slicer.extract_ref()?,
-        x: slicer.extract_ref()?,
-        y: slicer.extract_ref()?,
-        owner: slicer.extract_ref()?,
-        disabled: slicer.extract_ref()?,
-    })
+    let mut doodads = Vec::new();
+
+    for i in 0..(sec.len() / 8) {
+        doodads.push(ChkDd2Individual {
+            doodad_number: slicer.extract_ref()?,
+            x: slicer.extract_ref()?,
+            y: slicer.extract_ref()?,
+            owner: slicer.extract_ref()?,
+            disabled: slicer.extract_ref()?,
+        });
+    }
+
+    Ok(ChkDd2 { doodads })
 }

@@ -405,12 +405,12 @@ pub fn parse_merged_chunks(
                     ParsedChunk::CRGB(parse_crgb(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::DD2 => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::DD2(parse_dd2(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::DD2 => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::DD2(parse_dd2(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::DIM => {
                 map.insert(
                     chunk_name.clone(),
@@ -615,12 +615,14 @@ pub fn parse_merged_chunks(
                     ParsedChunk::UPRP(parse_uprp(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::UPUS => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::UPUS(parse_upus(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::UPUS => match parse_upus(chunk.data.as_slice()) {
+                Err(e) => {
+                    println!("{e:?}");
+                }
+                Ok(data) => {
+                    map.insert(chunk_name.clone(), ParsedChunk::UPUS(data));
+                }
+            },
             ChunkName::VCOD => {
                 map.insert(
                     chunk_name.clone(),
@@ -633,12 +635,14 @@ pub fn parse_merged_chunks(
                     ParsedChunk::VER(parse_ver(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::WAV => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::WAV(parse_wav(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::WAV => match parse_wav(chunk.data.as_slice()) {
+                Err(e) => {
+                    println!("{e:?}");
+                }
+                Ok(data) => {
+                    map.insert(chunk_name.clone(), ParsedChunk::WAV(data));
+                }
+            },
             ChunkName::UNKNOWN(string) => {}
             _ => {}
         }
