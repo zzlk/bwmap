@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::util::{reinterpret_slice, reinterpret_slice2, CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -16,14 +16,23 @@ use serde::Serialize;
 // If MTXM section is smaller than (map width*height), then the remaining tiles will be filled with null tiles or tiles specified by previous MTXM sections.
 
 #[derive(Debug, Serialize)]
-pub struct ChkMtxm<'a> {
-    pub data: &'a [u16],
+pub struct ChkMtxm {
+    pub data: Vec<u16>, // PROTECTION: some map protectors make MTXM sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
 pub(crate) fn parse_mtxm(sec: &[u8]) -> Result<ChkMtxm, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
+    let data = if sec.len() % 2 == 0 {
+        Vec::from(reinterpret_slice2::<u16>(sec)?)
+    } else {
+        let mut ret = if sec.len() == 1 {
+            Vec::new()
+        } else {
+            Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
+        };
 
-    Ok(ChkMtxm {
-        data: slicer.extract_rest_as_slice()?,
-    })
+        ret.push(sec[sec.len() - 1] as u16);
+        ret
+    };
+
+    Ok(ChkMtxm { data })
 }

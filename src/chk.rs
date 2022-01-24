@@ -357,7 +357,7 @@ pub enum ParsedChunk<'a> {
     MASK(ChkMask<'a>),
     MBRF(ChkMbrf<'a>),
     MRGN(ChkMrgn<'a>),
-    MTXM(ChkMtxm<'a>),
+    MTXM(ChkMtxm),
     OWNR(ChkOwnr<'a>),
     PTEC(ChkPtec<'a>),
     PTEx(ChkPtex<'a>),
@@ -471,12 +471,12 @@ pub fn parse_merged_chunks(
                     ParsedChunk::MRGN(parse_mrgn(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::MTXM => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::MTXM(parse_mtxm(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::MTXM => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::MTXM(parse_mtxm(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::OWNR => {
                 map.insert(
                     chunk_name.clone(),
