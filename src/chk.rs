@@ -179,6 +179,7 @@ fn parse_name(chunk_name: &[u8]) -> ChunkName {
     match chunk_name {
         b"TYPE" => ChunkName::TYPE,
         b"VER " => ChunkName::VER,
+        b"IVER" => ChunkName::IVER,
         b"IVE2" => ChunkName::IVE2,
         b"VCOD" => ChunkName::VCOD,
         b"IOWN" => ChunkName::IOWN,
