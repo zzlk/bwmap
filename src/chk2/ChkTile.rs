@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::util::{reinterpret_slice2, CursorSlicer};
 use serde::Serialize;
 
 // Not Required.
@@ -9,14 +9,23 @@ use serde::Serialize;
 // The values in TILE are normally directly generated from the ISOM section (see "'ISOM' section" above), and thus do not match that of MTXM on doodad tiles.
 
 #[derive(Debug, Serialize)]
-pub struct ChkTile<'a> {
-    pub data: &'a [u16],
+pub struct ChkTile {
+    pub data: Vec<u16>, // PROTECTION: some map protectors make TILE sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
 pub(crate) fn parse_tile(sec: &[u8]) -> Result<ChkTile, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
+    let data = if sec.len() % 2 == 0 {
+        Vec::from(reinterpret_slice2::<u16>(sec)?)
+    } else {
+        let mut ret = if sec.len() == 1 {
+            Vec::new()
+        } else {
+            Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
+        };
 
-    Ok(ChkTile {
-        data: slicer.extract_rest_as_slice()?,
-    })
+        ret.push(sec[sec.len() - 1] as u16);
+        ret
+    };
+
+    Ok(ChkTile { data })
 }
