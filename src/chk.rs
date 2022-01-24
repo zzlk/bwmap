@@ -549,12 +549,12 @@ pub fn parse_merged_chunks(
                     ParsedChunk::TECx(parse_tecx(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::THG2 => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::THG2(parse_thg2(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::THG2 => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::THG2(parse_thg2(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::TILE => {
                 map.insert(
                     chunk_name.clone(),
@@ -585,12 +585,12 @@ pub fn parse_merged_chunks(
                     ParsedChunk::UNIx(parse_unix(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::UNIT => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::UNIT(parse_unit(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::UNIT => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UNIT(parse_unit(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::UPGR => {
                 map.insert(
                     chunk_name.clone(),
