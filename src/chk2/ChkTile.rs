@@ -1,4 +1,4 @@
-use crate::util::{reinterpret_slice2, CursorSlicer};
+use crate::util::reinterpret_slice2;
 use serde::Serialize;
 
 // Not Required.
