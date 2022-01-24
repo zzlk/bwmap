@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
 // Validation: Must be a multiple of 2400 bytes.

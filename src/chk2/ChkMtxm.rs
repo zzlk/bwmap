@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions and all game types.
 // Validation: Must be less than or equal to 131072 (0x20000) bytes (256 * 256 * 2).

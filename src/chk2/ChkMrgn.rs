@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
 // Validation: 1280 bytes for retail, 5100 bytes for Hybrid and Broodwar.
@@ -34,7 +33,7 @@ pub struct ChkMrgn<'a> {
     pub elevation_flags: &'a u16,
 }
 
-pub(crate) fn parse_ver(sec: &[u8]) -> Result<ChkMrgn, anyhow::Error> {
+pub(crate) fn parse_mrgn(sec: &[u8]) -> Result<ChkMrgn, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkMrgn {

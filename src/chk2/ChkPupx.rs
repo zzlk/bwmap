@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for Hybrid (in Expansion mode) and Brood War. Not required for Melee.
 // Validation: Must be size of 2318 bytes.
@@ -20,7 +19,7 @@ pub struct ChkPupx<'a> {
     pub player_uses_upgrade_defaults: &'a [[u8; 61]; 12],
 }
 
-pub(crate) fn parse_upgr(sec: &[u8]) -> Result<ChkPupx, anyhow::Error> {
+pub(crate) fn parse_pupx(sec: &[u8]) -> Result<ChkPupx, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkPupx {

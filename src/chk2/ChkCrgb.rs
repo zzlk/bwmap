@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Requirement unknown, but can be in any map type including non-remaster maps.
 // Validation: Must be size of 32 bytes.

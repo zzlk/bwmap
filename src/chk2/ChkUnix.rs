@@ -31,7 +31,7 @@ pub struct ChkUnix<'a> {
     pub upgrade_bonus_weapon_damage: &'a [u16; 130],
 }
 
-pub(crate) fn parse_unis(sec: &[u8]) -> Result<ChkUnix, anyhow::Error> {
+pub(crate) fn parse_unix(sec: &[u8]) -> Result<ChkUnix, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkUnix {

@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
 // Validation: Must be size of 1280 bytes.
@@ -53,7 +52,7 @@ pub struct ChkUprp<'a> {
     pub padding: &'a u32,
 }
 
-pub(crate) fn parse_upgr(sec: &[u8]) -> Result<ChkUprp, anyhow::Error> {
+pub(crate) fn parse_uprp(sec: &[u8]) -> Result<ChkUprp, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkUprp {

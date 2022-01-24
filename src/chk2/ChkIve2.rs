@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Not required.
 
@@ -11,14 +10,14 @@ use std::cmp::min;
 // This section does not "replace" IVER in hybrid/Brood War scenarios: both seem to be written by StarEdit but not read by StarCraft.
 
 #[derive(Debug, Serialize)]
-pub struct ChkIver2<'a> {
+pub struct ChkIve2<'a> {
     pub additional_file_format_version: &'a u16,
 }
 
-pub(crate) fn parse_iver(sec: &[u8]) -> Result<ChkIver2, anyhow::Error> {
+pub(crate) fn parse_ive2(sec: &[u8]) -> Result<ChkIve2, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    Ok(ChkIver2 {
+    Ok(ChkIve2 {
         additional_file_format_version: slicer.extract_ref()?,
     })
 }

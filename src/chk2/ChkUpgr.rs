@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
 // Validation: Must be size of 1748 bytes.

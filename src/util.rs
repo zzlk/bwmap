@@ -89,6 +89,8 @@ impl<'a> CursorSlicer<'a> {
     }
 
     pub(crate) fn extract_rest_as_slice<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset);
+
         let ret = reinterpret_slice2(&self.s[self.current_offset..])?;
 
         self.current_offset += ret.len() * std::mem::size_of::<T>();
@@ -97,6 +99,8 @@ impl<'a> CursorSlicer<'a> {
     }
 
     pub(crate) fn extract_ref<T>(&mut self) -> Result<&'a T, anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset + std::mem::size_of::<T>());
+
         let ret = reinterpret_slice_to_ref(
             &self.s[self.current_offset..self.current_offset + std::mem::size_of::<T>()],
         )?;

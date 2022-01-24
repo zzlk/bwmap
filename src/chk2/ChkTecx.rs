@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for Hybrid (in Expansion mode) and Brood War. Not required for Melee.
 // Validation: Must be size of 396 bytes.

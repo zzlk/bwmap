@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for Brood War only and all game types.
 // Can be in non-Brood War maps in Remaster, if CRGB is also present.
