@@ -104,7 +104,16 @@ fn test_parse_merged_chunks() {
 
         let raw_chunks = parse_chk(&chk_data);
         let merged_chunks = merge_raw_chunks(&raw_chunks);
-        let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+        let parsed_chunks = parse_merged_chunks(&merged_chunks);
+
+        assert!(
+            parsed_chunks.is_ok(),
+            "filename: {}, {:?}",
+            e.file_name().to_string_lossy(),
+            parsed_chunks
+        );
+
+        let parsed_chunks = parsed_chunks.unwrap();
 
         // println!("{:?}", parsed_chunks);
 
