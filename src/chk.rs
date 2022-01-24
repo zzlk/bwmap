@@ -483,18 +483,18 @@ pub fn parse_merged_chunks(
                     ParsedChunk::OWNR(parse_ownr(chunk.data.as_slice())?),
                 );
             }
-            // ChunkName::PTEC => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::PTEC(parse_ptec(chunk.data.as_slice())?),
-            //     );
-            // }
-            // ChunkName::PTEx => {
-            //     map.insert(
-            //         chunk_name.clone(),
-            //         ParsedChunk::PTEx(parse_ptex(chunk.data.as_slice())?),
-            //     );
-            // }
+            ChunkName::PTEC => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::PTEC(parse_ptec(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::PTEx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::PTEx(parse_ptex(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::PUNI => {
                 map.insert(
                     chunk_name.clone(),

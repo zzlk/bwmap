@@ -26,11 +26,11 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ChkPtec<'a> {
-    pub player_availability: &'a [[u8; 24]; 12],
-    pub already_researched: &'a [[u8; 24]; 12],
-    pub global_availability_defaults: &'a [[u8; 24]; 12],
-    pub global_already_researched_defaults: &'a [[u8; 24]; 12],
-    pub player_uses_default: &'a [[u8; 24]; 12],
+    pub player_availability: &'a [[u8; 12]; 24],
+    pub already_researched: &'a [[u8; 12]; 24],
+    pub global_availability_defaults: &'a [u8; 24],
+    pub global_already_researched_defaults: &'a [u8; 24],
+    pub player_uses_default: &'a [[u8; 12]; 24],
 }
 
 pub(crate) fn parse_ptec(sec: &[u8]) -> Result<ChkPtec, anyhow::Error> {
