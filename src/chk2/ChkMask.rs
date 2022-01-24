@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
 // Validation: This section will always validate.
@@ -23,7 +22,7 @@ pub struct ChkMask<'a> {
     pub fog: &'a [u8],
 }
 
-pub(crate) fn parse_thg2(sec: &[u8]) -> Result<ChkMask, anyhow::Error> {
+pub(crate) fn parse_mask(sec: &[u8]) -> Result<ChkMask, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkMask {

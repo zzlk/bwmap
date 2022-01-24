@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Not Required.
 
@@ -14,7 +13,7 @@ pub struct ChkIsom<'a> {
     pub data: &'a [u16],
 }
 
-pub(crate) fn parse_tile(sec: &[u8]) -> Result<ChkIsom, anyhow::Error> {
+pub(crate) fn parse_isom(sec: &[u8]) -> Result<ChkIsom, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkIsom {

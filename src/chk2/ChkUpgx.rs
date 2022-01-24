@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for Hybrid (in Expansion mode) and Brood War. Not required for Melee.
 // Validation: Must be size of 794 bytes.
@@ -20,7 +19,7 @@ use std::cmp::min;
 // u16[61]: 1 integer per upgrade, gas time factor for each upgrade, in order of upgrade id.
 
 #[derive(Debug, Serialize)]
-pub struct ChkUpgs<'a> {
+pub struct ChkUpgx<'a> {
     #[serde(skip_serializing)]
     pub upgrade_uses_default_setings: &'a [u8; 61],
     #[serde(skip_serializing)]
@@ -37,10 +36,10 @@ pub struct ChkUpgs<'a> {
     pub time_factor: &'a [u16; 61],
 }
 
-pub(crate) fn parse_upgs(sec: &[u8]) -> Result<ChkUpgs, anyhow::Error> {
+pub(crate) fn parse_upgx(sec: &[u8]) -> Result<ChkUpgx, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    Ok(ChkUpgs {
+    Ok(ChkUpgx {
         upgrade_uses_default_setings: slicer.extract_ref()?,
         base_mineral_cost: slicer.extract_ref()?,
         mineral_cost_factor: slicer.extract_ref()?,

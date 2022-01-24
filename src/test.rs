@@ -106,7 +106,7 @@ fn test_parse_merged_chunks() {
         let merged_chunks = merge_raw_chunks(&raw_chunks);
         let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
 
-        println!("{:?}", parsed_chunks);
+        // println!("{:?}", parsed_chunks);
 
         assert!(
             parsed_chunks.get(&ChunkName::VCOD).is_some(),

@@ -47,11 +47,45 @@ use std::collections::HashMap;
 use crate::chk2::{
     ChkColr::{parse_colr, ChkColr},
     ChkCrgb::{parse_crgb, ChkCrgb},
+    ChkDd2::{parse_dd2, ChkDd2},
+    ChkDim::{parse_dim, ChkDim},
+    ChkEra::{parse_era, ChkEra},
     ChkForc::{parse_forc, ChkForc},
+    ChkIown::{parse_iown, ChkIown},
+    ChkIsom::{parse_isom, ChkIsom},
+    ChkIve2::{parse_ive2, ChkIve2},
+    ChkIver::{parse_iver, ChkIver},
+    ChkMask::{parse_mask, ChkMask},
+    ChkMbrf::{parse_mbrf, ChkMbrf},
+    ChkMrgn::{parse_mrgn, ChkMrgn},
+    ChkMtxm::{parse_mtxm, ChkMtxm},
+    ChkOwnr::{parse_ownr, ChkOwnr},
+    ChkPtec::{parse_ptec, ChkPtec},
+    ChkPtex::{parse_ptex, ChkPtex},
+    ChkPuni::{parse_puni, ChkPuni},
+    ChkPupx::{parse_pupx, ChkPupx},
+    ChkSide::{parse_side, ChkSide},
+    ChkSprp::{parse_sprp, ChkSprp},
     ChkStr::{parse_str, ChkStr},
+    ChkStrx::{parse_strx, ChkStrx},
+    ChkSwnm::{parse_swnm, ChkSwnm},
+    ChkTecs::{parse_tecs, ChkTecs},
+    ChkTecx::{parse_tecx, ChkTecx},
+    ChkThg2::{parse_thg2, ChkThg2},
+    ChkTile::{parse_tile, ChkTile},
     ChkTrig::{parse_trig, ChkTrig},
+    ChkType::{parse_type, ChkType},
     ChkUnis::{parse_unis, ChkUnis},
+    ChkUnit::{parse_unit, ChkUnit},
+    ChkUnix::{parse_unix, ChkUnix},
+    ChkUpgr::{parse_upgr, ChkUpgr},
+    ChkUpgs::{parse_upgs, ChkUpgs},
+    ChkUpgx::{parse_upgx, ChkUpgx},
+    ChkUprp::{parse_uprp, ChkUprp},
+    ChkUpus::{parse_upus, ChkUpus},
     ChkVcod::{parse_vcod, ChkVcod},
+    ChkVer::{parse_ver, ChkVer},
+    ChkWav::{parse_wav, ChkWav},
 };
 use std::str;
 
@@ -311,12 +345,46 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
 #[derive(Debug, Serialize)]
 pub enum ParsedChunk<'a> {
     COLR(ChkColr<'a>),
-    TRIG(ChkTrig<'a>),
     CRGB(ChkCrgb<'a>),
+    DD2(ChkDd2<'a>),
+    DIM(ChkDim<'a>),
+    ERA(ChkEra<'a>),
     FORC(ChkForc<'a>),
+    IOWN(ChkIown<'a>),
+    ISOM(ChkIsom<'a>),
+    IVE2(ChkIve2<'a>),
+    IVER(ChkIver<'a>),
+    MASK(ChkMask<'a>),
+    MBRF(ChkMbrf<'a>),
+    MRGN(ChkMrgn<'a>),
+    MTXM(ChkMtxm<'a>),
+    OWNR(ChkOwnr<'a>),
+    PTEC(ChkPtec<'a>),
+    PTEx(ChkPtex<'a>),
+    PUNI(ChkPuni<'a>),
+    PUPx(ChkPupx<'a>),
+    SIDE(ChkSide<'a>),
+    SPRP(ChkSprp<'a>),
     STR(ChkStr<'a>),
+    STRx(ChkStrx<'a>),
+    SWNM(ChkSwnm<'a>),
+    TECS(ChkTecs<'a>),
+    TECx(ChkTecx<'a>),
+    THG2(ChkThg2<'a>),
+    TILE(ChkTile<'a>),
+    TRIG(ChkTrig<'a>),
+    TYPE(ChkType<'a>),
     UNIS(ChkUnis<'a>),
+    UNIT(ChkUnit<'a>),
+    UNIx(ChkUnix<'a>),
+    UPGR(ChkUpgr<'a>),
+    UPGS(ChkUpgs<'a>),
+    UPGx(ChkUpgx<'a>),
+    UPRP(ChkUprp<'a>),
+    UPUS(ChkUpus<'a>),
     VCOD(ChkVcod<'a>),
+    VER(ChkVer<'a>),
+    WAV(ChkWav<'a>),
 }
 
 pub fn parse_merged_chunks(
@@ -325,22 +393,34 @@ pub fn parse_merged_chunks(
     let mut map = HashMap::new();
     for (chunk_name, chunk) in chunks.into_iter() {
         match chunk_name {
+            ChunkName::COLR => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::COLR(parse_colr(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::CRGB => {
                 map.insert(
                     chunk_name.clone(),
                     ParsedChunk::CRGB(parse_crgb(chunk.data.as_slice())?),
                 );
             }
-            ChunkName::TRIG => {
+            // ChunkName::DD2 => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::DD2(parse_dd2(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::DIM => {
                 map.insert(
                     chunk_name.clone(),
-                    ParsedChunk::TRIG(parse_trig(chunk.data.as_slice())?),
+                    ParsedChunk::DIM(parse_dim(chunk.data.as_slice())?),
                 );
             }
-            ChunkName::COLR => {
+            ChunkName::ERA => {
                 map.insert(
                     chunk_name.clone(),
-                    ParsedChunk::COLR(parse_colr(chunk.data.as_slice())?),
+                    ParsedChunk::ERA(parse_era(chunk.data.as_slice())?),
                 );
             }
             ChunkName::FORC => {
@@ -349,10 +429,148 @@ pub fn parse_merged_chunks(
                     ParsedChunk::FORC(parse_forc(chunk.data.as_slice())?),
                 );
             }
+            ChunkName::IOWN => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::IOWN(parse_iown(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::ISOM => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::ISOM(parse_isom(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::IVE2 => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::IVE2(parse_ive2(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::IVER => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::IVER(parse_iver(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::MASK => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::MASK(parse_mask(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::MBRF => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::MBRF(parse_mbrf(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::MRGN => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::MRGN(parse_mrgn(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::MTXM => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::MTXM(parse_mtxm(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::OWNR => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::OWNR(parse_ownr(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::PTEC => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::PTEC(parse_ptec(chunk.data.as_slice())?),
+            //     );
+            // }
+            // ChunkName::PTEx => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::PTEx(parse_ptex(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::PUNI => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::PUNI(parse_puni(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::PUPx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::PUPx(parse_pupx(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::SIDE => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::SIDE(parse_side(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::SPRP => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::SPRP(parse_sprp(chunk.data.as_slice())?),
+                );
+            }
             ChunkName::STR => {
                 map.insert(
                     chunk_name.clone(),
                     ParsedChunk::STR(parse_str(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::STRx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::STRx(parse_strx(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::SWNM => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::SWNM(parse_swnm(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::TECS => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TECS(parse_tecs(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::TECx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TECx(parse_tecx(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::THG2 => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::THG2(parse_thg2(chunk.data.as_slice())?),
+            //     );
+            // }
+            // ChunkName::TILE => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::TILE(parse_tile(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::TRIG => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TRIG(parse_trig(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::TYPE => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::TYPE(parse_type(chunk.data.as_slice())?),
                 );
             }
             ChunkName::UNIS => {
@@ -361,12 +579,67 @@ pub fn parse_merged_chunks(
                     ParsedChunk::UNIS(parse_unis(chunk.data.as_slice())?),
                 );
             }
+            ChunkName::UNIx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UNIx(parse_unix(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::UNIT => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::UNIT(parse_unit(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::UPGR => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UPGR(parse_upgr(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::UPGS => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UPGS(parse_upgs(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::UPGx => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UPGx(parse_upgx(chunk.data.as_slice())?),
+                );
+            }
+            ChunkName::UPRP => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::UPRP(parse_uprp(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::UPUS => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::UPUS(parse_upus(chunk.data.as_slice())?),
+            //     );
+            // }
             ChunkName::VCOD => {
                 map.insert(
                     chunk_name.clone(),
                     ParsedChunk::VCOD(parse_vcod(chunk.data.as_slice())?),
                 );
             }
+            ChunkName::VER => {
+                map.insert(
+                    chunk_name.clone(),
+                    ParsedChunk::VER(parse_ver(chunk.data.as_slice())?),
+                );
+            }
+            // ChunkName::WAV => {
+            //     map.insert(
+            //         chunk_name.clone(),
+            //         ParsedChunk::WAV(parse_wav(chunk.data.as_slice())?),
+            //     );
+            // }
+            ChunkName::UNKNOWN(string) => {}
             _ => {}
         }
     }

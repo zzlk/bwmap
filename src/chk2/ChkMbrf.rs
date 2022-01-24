@@ -1,6 +1,5 @@
 use crate::util::CursorSlicer;
 use serde::Serialize;
-use std::cmp::min;
 
 // Required for all versions. Not required for Melee.
 // Validation: Must be a multiple of 2400 bytes.
@@ -184,7 +183,7 @@ pub(crate) fn parse_mbrf_individual<'a>(
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ChkMbrf<'a> {
     pub triggers: Vec<ChkMbrfIndividual<'a>>,
 }

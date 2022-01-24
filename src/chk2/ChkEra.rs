@@ -1,5 +1,4 @@
 use crate::util::CursorSlicer;
-use std::cmp::min;
 use serde::Serialize;
 
 // Required for all versions and all game types.

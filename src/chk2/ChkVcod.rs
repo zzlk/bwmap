@@ -1,4 +1,4 @@
-use crate::util::{parse_slice2, CursorSlicer};
+use crate::util::CursorSlicer;
 use serde::Serialize;
 
 // Required for all versions and all game types.
