@@ -522,8 +522,59 @@ fn test_specific_map_files_for_known_values() {
             }
             ParsedChunk::UPGR(_) => assert_eq!(cn, ChunkName::UPGR),
             ParsedChunk::UPGS(_) => assert_eq!(cn, ChunkName::UPGS),
-            ParsedChunk::DD2(_) => assert_eq!(cn, ChunkName::DD2),
-            ParsedChunk::THG2(_) => assert_eq!(cn, ChunkName::THG2),
+            ParsedChunk::DD2(x) => {
+                assert_eq!(x.doodads.len(), 1, "{x:?}");
+                assert_eq!(
+                    x.doodads[0],
+                    crate::chk2::chk_dd2::ChkDd2Individual {
+                        doodad_number: 0,
+                        x: 3968,
+                        y: 96,
+                        owner: 0,
+                        disabled: 0
+                    },
+                    "{x:?}"
+                );
+            }
+            ParsedChunk::THG2(x) => {
+                assert_eq!(x.sprites.len(), 3, "{x:?}");
+                assert_eq!(
+                    x.sprites[0],
+                    crate::chk2::chk_thg2::ChkThg2Individual {
+                        sprite_number: 59,
+                        x: 3968,
+                        y: 96,
+                        owner: 0,
+                        unused: 0,
+                        flags: 4992,
+                    },
+                    "{x:?}"
+                );
+                assert_eq!(
+                    x.sprites[1],
+                    crate::chk2::chk_thg2::ChkThg2Individual {
+                        sprite_number: 0,
+                        x: 3970,
+                        y: 163,
+                        owner: 0,
+                        unused: 0,
+                        flags: 8832,
+                    },
+                    "{x:?}"
+                );
+                assert_eq!(
+                    x.sprites[2],
+                    crate::chk2::chk_thg2::ChkThg2Individual {
+                        sprite_number: 287,
+                        x: 3872,
+                        y: 61,
+                        owner: 0,
+                        unused: 0,
+                        flags: 4736,
+                    },
+                    "{x:?}"
+                );
+            }
             ParsedChunk::MASK(x) => {
                 for i in 0..x.fog.len() {
                     assert_eq!(x.fog[i], if i == 890 { 254 } else { 255 }, "{x:?} {i}");
