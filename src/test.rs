@@ -936,7 +936,10 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(*x.force_properties, [15, 9, 15, 15], "{x:?}");
                 assert_eq!(*x.player_forces, [0, 1, 2, 3, 0, 0, 0, 0], "{x:?}");
             }
-            ParsedChunk::WAV(_) => assert_eq!(cn, ChunkName::WAV),
+            ParsedChunk::WAV(x) => {
+                assert_eq!(x.wav_string_number.len(), 512, "{x:?}");
+                assert_eq!(x.wav_string_number[0], 9, "{x:?}");
+            }
             ParsedChunk::PTEC(_) => assert_eq!(cn, ChunkName::PTEC),
             ParsedChunk::TECS(_) => assert_eq!(cn, ChunkName::TECS),
             ParsedChunk::MBRF(_) => assert_eq!(cn, ChunkName::MBRF),
