@@ -27,10 +27,11 @@ pub(crate) fn parse_str(sec: &[u8]) -> Result<ChkStr, anyhow::Error> {
     let number_of_strings: &u16 = slicer.extract_ref()?;
 
     anyhow::ensure!(sec.len() >= 2);
-    let string_offsets: &[u16] = slicer.extract_slice(min(*number_of_strings as usize, 2))?;
+    let string_offsets: &[u16] =
+        slicer.extract_slice(min(*number_of_strings as usize, (sec.len() - 2) / 2))?;
 
     anyhow::ensure!(sec.len() >= 2 + string_offsets.len());
-    let strings: &[u8] = slicer.extract_rest_as_slice()?;
+    let strings: &[u8] = sec;
 
     Ok(ChkStr {
         number_of_strings,

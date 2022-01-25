@@ -1,6 +1,7 @@
 use crate::{
     chk::{merge_raw_chunks, parse_merged_chunks, ChunkName, ParsedChunk},
     parse_chk,
+    util::reinterpret_slice2,
 };
 use rayon::prelude::*;
 
@@ -455,15 +456,195 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::PUNI(_) => assert_eq!(cn, ChunkName::PUNI),
-            ParsedChunk::UNIS(_) => assert_eq!(cn, ChunkName::UNIS),
+            ParsedChunk::PUNI(x) => {
+                for i in 0..228 {
+                    // Global Availability
+                    assert_eq!(
+                        x.unit_global_availability[i],
+                        if i == 0 { 0 } else { 1 },
+                        "{i} {x:?}"
+                    );
+
+                    // Player defaults
+                    assert_eq!(
+                        x.unit_player_uses_defaults[0][i],
+                        if i == 0 { 1 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_uses_defaults[1][i],
+                        if i == 0 { 0 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_uses_defaults[2][i],
+                        if i == 0 { 0 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_uses_defaults[3][i],
+                        if i == 0 { 1 } else { 1 },
+                        "{i} {x:?}"
+                    );
+
+                    // Player availability
+                    assert_eq!(
+                        x.unit_player_availability[0][i],
+                        if i == 0 { 1 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_availability[1][i],
+                        if i == 0 { 1 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_availability[2][i],
+                        if i == 0 { 0 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                    assert_eq!(
+                        x.unit_player_availability[3][i],
+                        if i == 0 { 1 } else { 1 },
+                        "{i} {x:?}"
+                    );
+                }
+            }
+            ParsedChunk::UNIS(x) => {
+                assert_eq!(x.armor_points[0], 39, "{x:?}");
+                assert_eq!(x.base_weapon_damage[0], 77, "{x:?}");
+                assert_eq!(x.build_time[0], 519, "{x:?}");
+                assert_eq!(x.config[0], 0, "{x:?}");
+                assert_eq!(x.gas_cost[0], 812, "{x:?}");
+                assert_eq!(x.hit_points[0], 536849, "{x:?}");
+                assert_eq!(x.shield_points[0], 291, "{x:?}");
+                assert_eq!(x.string_number[0], 8, "{x:?}");
+                assert_eq!(x.upgrade_bonus_weapon_damage[0], 15, "{x:?}");
+            }
             ParsedChunk::UPGR(_) => assert_eq!(cn, ChunkName::UPGR),
             ParsedChunk::UPGS(_) => assert_eq!(cn, ChunkName::UPGS),
             ParsedChunk::DD2(_) => assert_eq!(cn, ChunkName::DD2),
             ParsedChunk::THG2(_) => assert_eq!(cn, ChunkName::THG2),
             ParsedChunk::MASK(_) => assert_eq!(cn, ChunkName::MASK),
             ParsedChunk::MRGN(_) => assert_eq!(cn, ChunkName::MRGN),
-            ParsedChunk::STR(_) => assert_eq!(cn, ChunkName::STR),
+            ParsedChunk::STR(x) => {
+                // offset 2050 is offset of null byte
+                assert_eq!(*x.number_of_strings, 1024, "{x:?}");
+                assert_eq!(x.string_offsets[0], 2051, "{x:?}");
+                assert_eq!(x.string_offsets[1], 2077, "{x:?}");
+                assert_eq!(x.string_offsets[2], 2105, "{x:?}");
+                assert_eq!(x.string_offsets[3], 2114, "{x:?}");
+                assert_eq!(x.string_offsets[4], 2127, "{x:?}");
+                assert_eq!(x.string_offsets[5], 2140, "{x:?}");
+                assert_eq!(x.string_offsets[6], 2148, "{x:?}");
+                assert_eq!(x.string_offsets[7], 2156, "{x:?}");
+                assert_eq!(x.string_offsets[8], 2168, "{x:?}");
+                assert_eq!(x.string_offsets[9], 2198, "{x:?}");
+                assert_eq!(x.string_offsets[10], 2050, "{x:?}");
+
+                assert_eq!(x.strings.len(), 2219, "{x:?}");
+
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0]) as usize
+                                ..(x.string_offsets[0] + 26) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "test case scenario string\0".to_owned(),
+                    "{x:?}"
+                );
+
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 26) as usize
+                                ..(x.string_offsets[0] + 54) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "test case scenario string 3\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 63) as usize
+                                ..(x.string_offsets[0] + 76) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "test force 1\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 76) as usize
+                                ..(x.string_offsets[0] + 89) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "test force 2\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 89) as usize
+                                ..(x.string_offsets[0] + 97) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "Force 3\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 97) as usize
+                                ..(x.string_offsets[0] + 105) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "Force 4\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 105) as usize
+                                ..(x.string_offsets[0] + 117) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "Test Case 1\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 117) as usize
+                                ..(x.string_offsets[0] + 147) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "sound\\Zerg\\Drone\\ZDrErr00.WAV\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 147) as usize
+                                ..(x.string_offsets[0] + 168) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "location test string\0".to_owned(),
+                    "{x:?}"
+                );
+            }
             ParsedChunk::SPRP(_) => assert_eq!(cn, ChunkName::SPRP),
             ParsedChunk::FORC(_) => assert_eq!(cn, ChunkName::FORC),
             ParsedChunk::WAV(_) => assert_eq!(cn, ChunkName::WAV),
