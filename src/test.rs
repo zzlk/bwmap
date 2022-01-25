@@ -1001,7 +1001,45 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::TECS(_) => assert_eq!(cn, ChunkName::TECS),
+            ParsedChunk::TECS(x) => {
+                assert_eq!(
+                    *x.energy_cost_to_cast,
+                    [
+                        0, 100, 100, 0, 50, 0, 100, 75, 4723, 25, 25, 0, 0, 150, 100, 150, 0, 75,
+                        75, 75, 100, 150, 100, 0
+                    ],
+                    "{x:?}"
+                );
+                assert_eq!(
+                    *x.gas_cost,
+                    [
+                        100, 200, 200, 100, 0, 150, 150, 200, 1256, 150, 100, 100, 100, 100, 100,
+                        200, 100, 100, 100, 200, 150, 150, 150, 150
+                    ],
+                    "{x:?}"
+                );
+                assert_eq!(
+                    *x.mineral_cost,
+                    [
+                        100, 200, 200, 100, 0, 150, 150, 200, 956, 150, 100, 100, 100, 100, 100,
+                        200, 100, 100, 100, 200, 150, 150, 150, 150
+                    ],
+                    "{x:?}"
+                );
+                assert_eq!(
+                    *x.technology_uses_default_settings,
+                    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    "{x:?}"
+                );
+                assert_eq!(
+                    *x.time,
+                    [
+                        1200, 1500, 1800, 1200, 0, 1200, 1500, 1200, 3510, 1500, 1200, 1200, 1200,
+                        1200, 1200, 1500, 1500, 1200, 1200, 1800, 1200, 1800, 1500, 1500
+                    ],
+                    "{x:?}"
+                );
+            }
             ParsedChunk::MBRF(_) => assert_eq!(cn, ChunkName::MBRF),
             ParsedChunk::TRIG(_) => assert_eq!(cn, ChunkName::TRIG),
             ParsedChunk::UPRP(_) => assert_eq!(cn, ChunkName::UPRP),
