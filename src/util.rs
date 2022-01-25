@@ -1,5 +1,3 @@
-use std::io::Read;
-
 pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
     if std::mem::size_of::<T>() != s.len() {
         panic!(
@@ -12,33 +10,33 @@ pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
     unsafe { *(s.as_ptr() as *const T) }
 }
 
-pub(crate) fn parse_slice2<T: Copy>(s: &mut std::io::Cursor<&[u8]>) -> Result<T, anyhow::Error> {
-    let mut buffer = Vec::new();
+// pub(crate) fn parse_slice2<T: Copy>(s: &mut std::io::Cursor<&[u8]>) -> Result<T, anyhow::Error> {
+//     let mut buffer = Vec::new();
 
-    buffer.resize(std::mem::size_of::<T>(), 0); // TODO: could do this at compile time when rust suppports generic const expressions
+//     buffer.resize(std::mem::size_of::<T>(), 0); // TODO: could do this at compile time when rust suppports generic const expressions
 
-    s.read_exact(buffer.as_mut_slice())?;
+//     s.read_exact(buffer.as_mut_slice())?;
 
-    Ok(unsafe { *(buffer.as_ptr() as *const T) })
-}
+//     Ok(unsafe { *(buffer.as_ptr() as *const T) })
+// }
 
-pub(crate) fn parse_slice_to_vec<T: Copy>(
-    s: &mut std::io::Cursor<&[u8]>,
-    count: usize,
-) -> Result<Vec<T>, anyhow::Error> {
-    let mut buffer = Vec::new();
+// pub(crate) fn parse_slice_to_vec<T: Copy>(
+//     s: &mut std::io::Cursor<&[u8]>,
+//     count: usize,
+// ) -> Result<Vec<T>, anyhow::Error> {
+//     let mut buffer = Vec::new();
 
-    buffer.resize(count * std::mem::size_of::<T>(), 0);
+//     buffer.resize(count * std::mem::size_of::<T>(), 0);
 
-    s.read(buffer.as_mut_slice())?;
+//     s.read(buffer.as_mut_slice())?;
 
-    unsafe {
-        Ok(Vec::from(std::slice::from_raw_parts(
-            buffer.as_ptr() as *const T,
-            buffer.len() / std::mem::size_of::<T>(),
-        )))
-    }
-}
+//     unsafe {
+//         Ok(Vec::from(std::slice::from_raw_parts(
+//             buffer.as_ptr() as *const T,
+//             buffer.len() / std::mem::size_of::<T>(),
+//         )))
+//     }
+// }
 
 pub(crate) fn reinterpret_slice<T: Sized>(s: &[u8]) -> &[T] {
     if s.len() % std::mem::size_of::<T>() != 0 {
