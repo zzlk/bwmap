@@ -648,7 +648,11 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(*x.scenario_name_string_number, 1, "{x:?}");
                 assert_eq!(*x.description_string_number, 2, "{x:?}");
             }
-            ParsedChunk::FORC(_) => assert_eq!(cn, ChunkName::FORC),
+            ParsedChunk::FORC(x) => {
+                assert_eq!(*x.force_name, [4, 5, 6, 7], "{x:?}");
+                assert_eq!(*x.force_properties, [15, 9, 15, 15], "{x:?}");
+                assert_eq!(*x.player_forces, [0, 1, 2, 3, 0, 0, 0, 0], "{x:?}");
+            }
             ParsedChunk::WAV(_) => assert_eq!(cn, ChunkName::WAV),
             ParsedChunk::PTEC(_) => assert_eq!(cn, ChunkName::PTEC),
             ParsedChunk::TECS(_) => assert_eq!(cn, ChunkName::TECS),
