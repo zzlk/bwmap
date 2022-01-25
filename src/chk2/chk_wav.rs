@@ -10,13 +10,13 @@ use serde::Serialize;
 #[derive(Debug, Serialize)]
 pub struct ChkWav<'a> {
     #[serde(skip_serializing)]
-    pub wav_string_number: &'a [u32; 512],
+    pub wav_string_number: &'a [u32],
 }
 
 pub(crate) fn parse_wav(sec: &[u8]) -> Result<ChkWav, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkWav {
-        wav_string_number: slicer.extract_ref()?,
+        wav_string_number: slicer.extract_rest_as_slice_lax()?,
     })
 }
