@@ -60,192 +60,58 @@ use serde::Serialize;
 // u8: Index of the current action, in StarCraft this is incremented after each action is executed, trigger execution ends when this is 64 (Max Actions) or an action is encountered with Action byte as 0
 // This section can be split. Additional TRIG sections will add more triggers.
 
-#[derive(Debug, Serialize)]
-pub struct ChkTrigCondition<'a> {
-    pub location: &'a u32,
-    pub group: &'a u32,
-    pub qualified_number: &'a u32,
-    pub unit_id: &'a u16,
-    pub numeric_comparison_or_switch_state: &'a u8,
-    pub condition: &'a u8,
-    pub resource_type_or_score_type_or_switch_number: &'a u8,
-    pub flags: &'a u8,
-    pub mask_flag: &'a u16,
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkTrigCondition {
+    pub location: u32,
+    pub group: u32,
+    pub qualified_number: u32,
+    pub unit_id: u16,
+    pub numeric_comparison_or_switch_state: u8,
+    pub condition: u8,
+    pub resource_type_or_score_type_or_switch_number: u8,
+    pub flags: u8,
+    pub mask_flag: u16,
 }
 
-fn parse_trig_condition<'a>(
-    slicer: &mut CursorSlicer<'a>,
-) -> Result<ChkTrigCondition<'a>, anyhow::Error> {
-    Ok(ChkTrigCondition {
-        location: slicer.extract_ref()?,
-        group: slicer.extract_ref()?,
-        qualified_number: slicer.extract_ref()?,
-        unit_id: slicer.extract_ref()?,
-        numeric_comparison_or_switch_state: slicer.extract_ref()?,
-        condition: slicer.extract_ref()?,
-        resource_type_or_score_type_or_switch_number: slicer.extract_ref()?,
-        flags: slicer.extract_ref()?,
-        mask_flag: slicer.extract_ref()?,
-    })
-}
-
-#[derive(Debug, Serialize)]
-pub struct ChkTrigAction<'a> {
-    pub location: &'a u32,
-    pub string_number: &'a u32,
-    pub wav_string_number: &'a u32,
-    pub seconds_or_milliseconds: &'a u32,
-    pub first_or_only_group_or_player_affected: &'a u32,
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkTrigAction {
+    pub location: u32,
+    pub string_number: u32,
+    pub wav_string_number: u32,
+    pub seconds_or_milliseconds: u32,
+    pub first_or_only_group_or_player_affected: u32,
     pub second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number:
-        &'a u32,
-    pub unit_type_or_score_type_or_resource_type_or_alliance_status: &'a u16,
-    pub action: &'a u8,
-    pub number_of_units_or_action_state_or_unit_order_or_number_modifier: &'a u8,
-    pub flags: &'a u8,
-    pub padding: &'a u8,
-    pub mask_flag: &'a u16,
+        u32,
+    pub unit_type_or_score_type_or_resource_type_or_alliance_status: u16,
+    pub action: u8,
+    pub number_of_units_or_action_state_or_unit_order_or_number_modifier: u8,
+    pub flags: u8,
+    pub padding: u8,
+    pub mask_flag: u16,
 }
 
-fn parse_trig_action<'a>(
-    slicer: &mut CursorSlicer<'a>,
-) -> Result<ChkTrigAction<'a>, anyhow::Error> {
-    Ok(ChkTrigAction {
-        location: slicer.extract_ref()?,
-        string_number: slicer.extract_ref()?,
-        wav_string_number: slicer.extract_ref()?,
-        seconds_or_milliseconds: slicer.extract_ref()?,
-        first_or_only_group_or_player_affected: slicer.extract_ref()?,
-        second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number: slicer.extract_ref()?,
-        unit_type_or_score_type_or_resource_type_or_alliance_status: slicer.extract_ref()?,
-        action: slicer.extract_ref()?,
-        number_of_units_or_action_state_or_unit_order_or_number_modifier: slicer.extract_ref()?,
-        flags: slicer.extract_ref()?,
-        padding: slicer.extract_ref()?,
-        mask_flag: slicer.extract_ref()?,
-    })
-}
-
-#[derive(Debug, Serialize)]
-pub struct ChkTrigIndividual<'a> {
-    pub conditions: [ChkTrigCondition<'a>; 16],
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkTrigIndividual {
+    pub conditions: [ChkTrigCondition; 16],
     #[serde(skip_serializing)]
-    pub actions: [ChkTrigAction<'a>; 64],
-    pub execution_flags: &'a u32,
-    pub executed_for_player: &'a [u8; 27],
-    pub current_action: &'a u8,
-}
-
-pub(crate) fn parse_trig_individual<'a>(
-    mut slicer: &mut CursorSlicer<'a>,
-) -> Result<ChkTrigIndividual<'a>, anyhow::Error> {
-    let conditions = [
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-        parse_trig_condition(&mut slicer)?,
-    ];
-
-    let actions = [
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-        parse_trig_action(&mut slicer)?,
-    ];
-
-    Ok(ChkTrigIndividual {
-        conditions,
-        actions,
-        execution_flags: slicer.extract_ref()?,
-        executed_for_player: slicer.extract_ref()?,
-        current_action: slicer.extract_ref()?,
-    })
+    pub actions: [ChkTrigAction; 64],
+    pub execution_flags: u32,
+    pub executed_for_player: [u8; 27],
+    pub current_action: u8,
 }
 
 #[derive(Debug, Serialize)]
 pub struct ChkTrig<'a> {
-    pub triggers: Vec<ChkTrigIndividual<'a>>,
+    pub triggers: &'a [ChkTrigIndividual],
 }
 
 pub(crate) fn parse_trig<'a>(sec: &'a [u8]) -> Result<ChkTrig<'a>, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
-    let mut triggers = Vec::new();
 
-    anyhow::ensure!(sec.len() % 2400 == 0);
-    for _ in 0..sec.len() / 2400 {
-        triggers.push(parse_trig_individual(&mut slicer)?);
-    }
-
-    Ok(ChkTrig { triggers })
+    Ok(ChkTrig {
+        triggers: slicer.extract_rest_as_slice_lax()?,
+    })
 }
