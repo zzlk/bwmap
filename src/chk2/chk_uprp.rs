@@ -38,33 +38,30 @@ use serde::Serialize;
 // Bit 5-15 - Unknown/unused
 // u32: Unknown/unused. Padding?
 
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkUprpIndividual {
+    pub flag_of_special_properties: u16,
+    pub which_elements_of_unit_data_are_valid: u16,
+    pub owner: u8,
+    pub hit_points_percent: u8,
+    pub shield_points_percent: u8,
+    pub energy_points_percent: u8,
+    pub resource_amount: u32,
+    pub number_of_units_in_hangar: u16,
+    pub flags: u16,
+    pub padding: u32,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ChkUprp<'a> {
-    pub flag_of_special_properties: &'a u16,
-    pub which_elements_of_unit_data_are_valid: &'a u16,
-    pub owner: &'a u8,
-    pub hit_points_percent: &'a u8,
-    pub shield_points_percent: &'a u8,
-    pub energy_points_percent: &'a u8,
-    pub resource_amount: &'a u32,
-    pub number_of_units_in_hangar: &'a u16,
-    pub flags: &'a u16,
-    pub padding: &'a u32,
+    pub cuwp_slots: &'a [ChkUprpIndividual],
 }
 
 pub(crate) fn parse_uprp(sec: &[u8]) -> Result<ChkUprp, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkUprp {
-        flag_of_special_properties: slicer.extract_ref()?,
-        which_elements_of_unit_data_are_valid: slicer.extract_ref()?,
-        owner: slicer.extract_ref()?,
-        hit_points_percent: slicer.extract_ref()?,
-        shield_points_percent: slicer.extract_ref()?,
-        energy_points_percent: slicer.extract_ref()?,
-        resource_amount: slicer.extract_ref()?,
-        number_of_units_in_hangar: slicer.extract_ref()?,
-        flags: slicer.extract_ref()?,
-        padding: slicer.extract_ref()?,
+        cuwp_slots: slicer.extract_rest_as_slice_lax()?,
     })
 }
