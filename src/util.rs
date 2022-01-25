@@ -96,6 +96,20 @@ impl<'a> CursorSlicer<'a> {
         Ok(ret)
     }
 
+    // If for example there is some kind of protection where one of the objects is mangled, such as [int, int, int, X] where X is 1 byte instead of 4, the lax variant will ignore the last one.
+    pub(crate) fn extract_rest_as_slice_lax<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset);
+
+        let len = ((self.s.len() - self.current_offset) / std::mem::size_of::<T>())
+            * std::mem::size_of::<T>();
+
+        let ret = reinterpret_slice2(&self.s[self.current_offset..self.current_offset + len])?;
+
+        self.current_offset += ret.len() * std::mem::size_of::<T>();
+
+        Ok(ret)
+    }
+
     pub(crate) fn extract_ref<T>(&mut self) -> Result<&'a T, anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset + std::mem::size_of::<T>());
 

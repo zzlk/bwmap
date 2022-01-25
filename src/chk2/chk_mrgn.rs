@@ -23,25 +23,26 @@ use serde::Serialize;
 // Bit 6-15 - Unused
 // Note that in typical locations Right is always larger than Left and Bottom is always larger than Top. However, you can reverse one or both of these for Inverted Locations.
 
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkMrgnIndividual {
+    pub left: u32,
+    pub top: u32,
+    pub right: u32,
+    pub bottom: u32,
+    pub name_string_number: u16,
+    pub elevation_flags: u16,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ChkMrgn<'a> {
-    pub left: &'a u32,
-    pub top: &'a u32,
-    pub right: &'a u32,
-    pub bottom: &'a u32,
-    pub name_string_number: &'a u16,
-    pub elevation_flags: &'a u16,
+    pub locations: &'a [ChkMrgnIndividual],
 }
 
 pub(crate) fn parse_mrgn(sec: &[u8]) -> Result<ChkMrgn, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkMrgn {
-        left: slicer.extract_ref()?,
-        top: slicer.extract_ref()?,
-        right: slicer.extract_ref()?,
-        bottom: slicer.extract_ref()?,
-        name_string_number: slicer.extract_ref()?,
-        elevation_flags: slicer.extract_ref()?,
+        locations: slicer.extract_rest_as_slice_lax()?,
     })
 }
