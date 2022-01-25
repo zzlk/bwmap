@@ -524,8 +524,55 @@ fn test_specific_map_files_for_known_values() {
             ParsedChunk::UPGS(_) => assert_eq!(cn, ChunkName::UPGS),
             ParsedChunk::DD2(_) => assert_eq!(cn, ChunkName::DD2),
             ParsedChunk::THG2(_) => assert_eq!(cn, ChunkName::THG2),
-            ParsedChunk::MASK(_) => assert_eq!(cn, ChunkName::MASK),
-            ParsedChunk::MRGN(_) => assert_eq!(cn, ChunkName::MRGN),
+            ParsedChunk::MASK(x) => {
+                for i in 0..x.fog.len() {
+                    assert_eq!(x.fog[i], if i == 890 { 254 } else { 255 }, "{x:?} {i}");
+                }
+            }
+            ParsedChunk::MRGN(x) => {
+                assert_eq!(x.locations.len(), 64, "{x:?}");
+
+                for i in 0..x.locations.len() {
+                    match i {
+                        0 => assert_eq!(
+                            x.locations[0],
+                            crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                                left: 3744,
+                                top: 32,
+                                right: 3808,
+                                bottom: 96,
+                                name_string_number: 10,
+                                elevation_flags: 0
+                            },
+                            "{x:?}"
+                        ),
+                        63 => assert_eq!(
+                            x.locations[i],
+                            crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                                left: 0,
+                                top: 0,
+                                right: 4096,
+                                bottom: 4096,
+                                name_string_number: 3,
+                                elevation_flags: 0
+                            },
+                            "{x:?}"
+                        ),
+                        _ => assert_eq!(
+                            x.locations[i],
+                            crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                                left: 0,
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                name_string_number: 0,
+                                elevation_flags: 0
+                            },
+                            "{x:?}"
+                        ),
+                    };
+                }
+            }
             ParsedChunk::STR(x) => {
                 // offset 2050 is offset of null byte
                 assert_eq!(*x.number_of_strings, 1024, "{x:?}");
