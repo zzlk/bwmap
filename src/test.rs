@@ -1,7 +1,6 @@
 use crate::{
     chk::{merge_raw_chunks, parse_merged_chunks, ChunkName, ParsedChunk},
     parse_chk,
-    util::reinterpret_slice2,
 };
 use rayon::prelude::*;
 
