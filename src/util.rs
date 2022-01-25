@@ -77,7 +77,7 @@ impl<'a> CursorSlicer<'a> {
     }
 
     pub(crate) fn extract_slice<T>(&mut self, len: usize) -> Result<&'a [T], anyhow::Error> {
-        anyhow::ensure!(self.s.len() > self.current_offset + len * std::mem::size_of::<T>());
+        anyhow::ensure!(self.s.len() >= self.current_offset + len * std::mem::size_of::<T>());
 
         let ret = reinterpret_slice2(
             &self.s[self.current_offset..self.current_offset + len * std::mem::size_of::<T>()],
