@@ -644,7 +644,10 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::SPRP(_) => assert_eq!(cn, ChunkName::SPRP),
+            ParsedChunk::SPRP(x) => {
+                assert_eq!(*x.scenario_name_string_number, 1, "{x:?}");
+                assert_eq!(*x.description_string_number, 2, "{x:?}");
+            }
             ParsedChunk::FORC(_) => assert_eq!(cn, ChunkName::FORC),
             ParsedChunk::WAV(_) => assert_eq!(cn, ChunkName::WAV),
             ParsedChunk::PTEC(_) => assert_eq!(cn, ChunkName::PTEC),
