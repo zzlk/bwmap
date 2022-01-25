@@ -1042,7 +1042,46 @@ fn test_specific_map_files_for_known_values() {
             }
             ParsedChunk::MBRF(_) => assert_eq!(cn, ChunkName::MBRF),
             ParsedChunk::TRIG(_) => assert_eq!(cn, ChunkName::TRIG),
-            ParsedChunk::UPRP(_) => assert_eq!(cn, ChunkName::UPRP),
+            ParsedChunk::UPRP(x) => {
+                assert_eq!(x.cuwp_slots.len(), 64, "{x:?}");
+
+                for i in 0..x.cuwp_slots.len() {
+                    match i {
+                        0 => assert_eq!(
+                            x.cuwp_slots[i],
+                            crate::chk2::chk_uprp::ChkUprpIndividual {
+                                flag_of_special_properties: 31,
+                                which_elements_of_unit_data_are_valid: 63,
+                                owner: 0,
+                                hit_points_percent: 255,
+                                shield_points_percent: 255,
+                                energy_points_percent: 35,
+                                resource_amount: 123,
+                                number_of_units_in_hangar: 52,
+                                flags: 13,
+                                padding: 0
+                            },
+                            "{x:?} {i}"
+                        ),
+                        _ => assert_eq!(
+                            x.cuwp_slots[i],
+                            crate::chk2::chk_uprp::ChkUprpIndividual {
+                                flag_of_special_properties: 0,
+                                which_elements_of_unit_data_are_valid: 63,
+                                owner: 0,
+                                hit_points_percent: 100,
+                                shield_points_percent: 100,
+                                energy_points_percent: 100,
+                                resource_amount: 0,
+                                number_of_units_in_hangar: 0,
+                                flags: 0,
+                                padding: 0
+                            },
+                            "{x:?} {i}"
+                        ),
+                    }
+                }
+            }
             ParsedChunk::UPUS(_) => assert_eq!(cn, ChunkName::UPUS),
             ParsedChunk::SWNM(_) => assert_eq!(cn, ChunkName::SWNM),
             _ => {
