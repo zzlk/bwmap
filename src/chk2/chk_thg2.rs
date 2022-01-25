@@ -21,36 +21,26 @@ use serde::Serialize;
 // Bit 15 - Disabled (Only valid if Draw as sprite is unchecked, disables the unit)
 // This section can be split. Additional THG2 sections will add more sprites.
 
-#[derive(Debug, Serialize)]
-pub struct ChkThg2Individual<'a> {
-    pub sprite_number: &'a u16,
-    pub x: &'a u16,
-    pub y: &'a u16,
-    pub owner: &'a u8,
-    pub unused: &'a u8,
-    pub flags: &'a u16,
+#[derive(Clone, Copy, Debug, Serialize, Eq, PartialEq)]
+#[repr(C, packed)]
+pub struct ChkThg2Individual {
+    pub sprite_number: u16,
+    pub x: u16,
+    pub y: u16,
+    pub owner: u8,
+    pub unused: u8,
+    pub flags: u16,
 }
 
 #[derive(Debug, Serialize)]
 pub struct ChkThg2<'a> {
-    pub sprites: Vec<ChkThg2Individual<'a>>,
+    pub sprites: &'a [ChkThg2Individual],
 }
 
 pub(crate) fn parse_thg2(sec: &[u8]) -> Result<ChkThg2, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    let mut sprites = Vec::new();
-
-    for _ in 0..(sec.len() / 10) {
-        sprites.push(ChkThg2Individual {
-            sprite_number: slicer.extract_ref()?,
-            x: slicer.extract_ref()?,
-            y: slicer.extract_ref()?,
-            owner: slicer.extract_ref()?,
-            unused: slicer.extract_ref()?,
-            flags: slicer.extract_ref()?,
-        });
-    }
-
-    Ok(ChkThg2 { sprites })
+    Ok(ChkThg2 {
+        sprites: slicer.extract_rest_as_slice_lax()?,
+    })
 }
