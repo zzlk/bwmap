@@ -39,3 +39,6 @@ pub mod chk_upus;
 pub mod chk_vcod;
 pub mod chk_ver;
 pub mod chk_wav;
+
+#[cfg(test)]
+mod test;
