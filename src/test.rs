@@ -1082,7 +1082,17 @@ fn test_specific_map_files_for_known_values() {
                     }
                 }
             }
-            ParsedChunk::UPUS(_) => assert_eq!(cn, ChunkName::UPUS),
+            ParsedChunk::UPUS(x) => {
+                assert_eq!(
+                    *x.cuwp_slot_is_used,
+                    [
+                        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                    ],
+                    "{x:?}"
+                );
+            }
             ParsedChunk::SWNM(_) => assert_eq!(cn, ChunkName::SWNM),
             _ => {
                 panic!("{cn:?}, {pc:?}");
