@@ -1472,8 +1472,20 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::UNIx(_) => assert_eq!(cn, ChunkName::UNIx),
-            ParsedChunk::COLR(_) => assert_eq!(cn, ChunkName::COLR),
+            ParsedChunk::UNIx(x) => {
+                assert_eq!(x.armor_points[0], 39, "{x:?}");
+                assert_eq!(x.base_weapon_damage[0], 77, "{x:?}");
+                assert_eq!(x.build_time[0], 519, "{x:?}");
+                assert_eq!(x.config[0], 0, "{x:?}");
+                assert_eq!(x.gas_cost[0], 812, "{x:?}");
+                assert_eq!(x.hit_points[0], 536849, "{x:?}");
+                assert_eq!(x.shield_points[0], 291, "{x:?}");
+                assert_eq!(x.string_number[0], 8, "{x:?}");
+                assert_eq!(x.upgrade_bonus_weapon_damage[0], 15, "{x:?}");
+            }
+            ParsedChunk::COLR(x) => {
+                assert_eq!(*x.player_color, [0, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
+            }
             ParsedChunk::IVE2(_) => assert_eq!(cn, ChunkName::IVE2),
             ParsedChunk::TYPE(_) => assert_eq!(cn, ChunkName::TYPE),
             _ => {
