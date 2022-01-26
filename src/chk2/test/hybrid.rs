@@ -9,7 +9,7 @@ use crate::{
 #[test]
 fn test_specific_map_files_for_known_values() {
     let path = format!(
-        "{}/test_vectors/custom_cases/base.scm",
+        "{}/test_vectors/custom_cases/hybrid.scm",
         env!("CARGO_MANIFEST_DIR")
     );
 
@@ -702,10 +702,9 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(x.string_offsets[7], 2156, "{x:?}");
                 assert_eq!(x.string_offsets[8], 2168, "{x:?}");
                 assert_eq!(x.string_offsets[9], 2198, "{x:?}");
-                assert_eq!(x.string_offsets[10], 2219, "{x:?}");
-                assert_eq!(x.string_offsets[11], 2050, "{x:?}");
+                assert_eq!(x.string_offsets[10], 2050, "{x:?}");
 
-                assert_eq!(x.strings.len(), 2236, "{x:?}");
+                assert_eq!(x.strings.len(), 2219, "{x:?}");
 
                 assert_eq!(
                     encoding_rs::WINDOWS_1252
@@ -718,6 +717,7 @@ fn test_specific_map_files_for_known_values() {
                     "test case scenario string\0".to_owned(),
                     "{x:?}"
                 );
+
                 assert_eq!(
                     encoding_rs::WINDOWS_1252
                         .decode(
@@ -804,17 +804,6 @@ fn test_specific_map_files_for_known_values() {
                         .0
                         .to_owned(),
                     "location test string\0".to_owned(),
-                    "{x:?}"
-                );
-                assert_eq!(
-                    encoding_rs::WINDOWS_1252
-                        .decode(
-                            &x.strings[(x.string_offsets[0] + 168) as usize
-                                ..(x.string_offsets[0] + 185) as usize],
-                        )
-                        .0
-                        .to_owned(),
-                    "test switch name\0".to_owned(),
                     "{x:?}"
                 );
             }
@@ -990,25 +979,7 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::SWNM(x) => {
-                assert_eq!(
-                    *x.switch_name_string_number,
-                    [
-                        11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0
-                    ],
-                    "{x:?}"
-                );
-            }
+            ParsedChunk::SWNM(_) => assert_eq!(cn, ChunkName::SWNM),
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
