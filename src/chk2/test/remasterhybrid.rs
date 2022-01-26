@@ -9,7 +9,7 @@ use crate::{
 #[test]
 fn test_specific_map_files_for_known_values() {
     let path = format!(
-        "{}/test_vectors/custom_cases/hybrid.scm",
+        "{}/test_vectors/custom_cases/remasterhybrid.scm",
         env!("CARGO_MANIFEST_DIR")
     );
 
@@ -17,7 +17,7 @@ fn test_specific_map_files_for_known_values() {
     let raw_chunks = crate::parse_chk(chk.as_slice());
     let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
 
-    assert_eq!(merged_chunks.keys().count(), 38);
+    assert_eq!(merged_chunks.keys().count(), 39);
 
     assert!(merged_chunks.get(&ChunkName::VER).is_some());
     assert!(merged_chunks.get(&ChunkName::IVE2).is_some());
@@ -58,10 +58,11 @@ fn test_specific_map_files_for_known_values() {
     assert!(merged_chunks.get(&ChunkName::COLR).is_some());
     assert!(merged_chunks.get(&ChunkName::IVE2).is_some());
     assert!(merged_chunks.get(&ChunkName::TYPE).is_some());
+    assert!(merged_chunks.get(&ChunkName::CRGB).is_some());
 
     let parsed_chunks = crate::parse_merged_chunks(&merged_chunks).unwrap();
 
-    assert_eq!(parsed_chunks.keys().count(), 38);
+    assert_eq!(parsed_chunks.keys().count(), 39);
 
     for (cn, pc) in parsed_chunks.iter() {
         match pc {
@@ -104,6 +105,7 @@ fn test_specific_map_files_for_known_values() {
             ParsedChunk::COLR(_) => assert_eq!(cn, &ChunkName::COLR),
             ParsedChunk::IVE2(_) => assert_eq!(cn, &ChunkName::IVE2),
             ParsedChunk::TYPE(_) => assert_eq!(cn, &ChunkName::TYPE),
+            ParsedChunk::CRGB(_) => assert_eq!(cn, &ChunkName::CRGB),
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
@@ -113,7 +115,7 @@ fn test_specific_map_files_for_known_values() {
     for (cn, pc) in parsed_chunks {
         match pc {
             ParsedChunk::VER(x) => {
-                assert_eq!(*x.file_format_version, 63);
+                assert_eq!(*x.file_format_version, 64);
             }
             ParsedChunk::IVER(x) => {
                 assert_eq!(*x.additional_file_format_version, 10);
@@ -1200,7 +1202,7 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(
                     *x.base_mineral_cost,
                     [
-                        25765, 25600, 38400, 38400, 38400, 25600, 38400, 25600, 25600, 25600,
+                        25777, 25600, 38400, 38400, 38400, 25600, 38400, 25600, 25600, 25600,
                         25600, 25600, 25600, 25600, 25600, 51200, 19712, 25600, 51200, 38400,
                         25600, 38400, 51200, 38400, 51200, 38400, 38400, 25600, 51200, 38400,
                         38400, 38400, 38400, 38400, 38400, 51200, 51200, 51200, 38400, 38400,
@@ -1492,13 +1494,30 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(x.upgrade_bonus_weapon_damage[0], 15, "{x:?}");
             }
             ParsedChunk::COLR(x) => {
-                assert_eq!(*x.player_color, [0, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
+                assert_eq!(*x.player_color, [16, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
             }
             ParsedChunk::IVE2(x) => {
                 assert_eq!(*x.additional_file_format_version, 11, "{x:?}");
             }
             ParsedChunk::TYPE(x) => {
-                assert_eq!(*x.scenario_type, 1398227282, "{x:?}");
+                assert_eq!(*x.scenario_type, 1113014610, "{x:?}");
+            }
+            ParsedChunk::CRGB(x) => {
+                assert_eq!(*x.player_color_option, [3, 2, 3, 3, 3, 3, 3, 3], "{x:?}");
+                assert_eq!(
+                    *x.rgb,
+                    [
+                        [1, 0, 15],
+                        [91, 46, 226],
+                        [1, 0, 2],
+                        [0, 0, 3],
+                        [1, 0, 4],
+                        [0, 0, 5],
+                        [1, 0, 6],
+                        [0, 0, 7]
+                    ],
+                    "{x:?}"
+                );
             }
             _ => {
                 panic!("{cn:?}, {pc:?}");
