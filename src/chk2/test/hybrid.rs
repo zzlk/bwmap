@@ -17,10 +17,10 @@ fn test_specific_map_files_for_known_values() {
     let raw_chunks = crate::parse_chk(chk.as_slice());
     let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
 
-    assert_eq!(merged_chunks.keys().count(), 31);
+    assert_eq!(merged_chunks.keys().count(), 38);
 
     assert!(merged_chunks.get(&ChunkName::VER).is_some());
-    assert!(merged_chunks.get(&ChunkName::IVER).is_some());
+    assert!(merged_chunks.get(&ChunkName::IVE2).is_some());
     assert!(merged_chunks.get(&ChunkName::VCOD).is_some());
     assert!(merged_chunks.get(&ChunkName::IOWN).is_some());
     assert!(merged_chunks.get(&ChunkName::OWNR).is_some());
@@ -53,7 +53,7 @@ fn test_specific_map_files_for_known_values() {
 
     let parsed_chunks = crate::parse_merged_chunks(&merged_chunks).unwrap();
 
-    assert_eq!(parsed_chunks.keys().count(), 31);
+    assert_eq!(parsed_chunks.keys().count(), 38);
 
     for (cn, pc) in parsed_chunks.iter() {
         match pc {
@@ -88,6 +88,14 @@ fn test_specific_map_files_for_known_values() {
             ParsedChunk::UPRP(_) => assert_eq!(cn, &ChunkName::UPRP),
             ParsedChunk::UPUS(_) => assert_eq!(cn, &ChunkName::UPUS),
             ParsedChunk::SWNM(_) => assert_eq!(cn, &ChunkName::SWNM),
+            ParsedChunk::PUPx(_) => assert_eq!(cn, &ChunkName::PUPx),
+            ParsedChunk::UPGx(_) => assert_eq!(cn, &ChunkName::UPGx),
+            ParsedChunk::TECx(_) => assert_eq!(cn, &ChunkName::TECx),
+            ParsedChunk::PTEx(_) => assert_eq!(cn, &ChunkName::PTEx),
+            ParsedChunk::UNIx(_) => assert_eq!(cn, &ChunkName::UNIx),
+            ParsedChunk::COLR(_) => assert_eq!(cn, &ChunkName::COLR),
+            ParsedChunk::IVE2(_) => assert_eq!(cn, &ChunkName::IVE2),
+            ParsedChunk::TYPE(_) => assert_eq!(cn, &ChunkName::TYPE),
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
@@ -97,7 +105,7 @@ fn test_specific_map_files_for_known_values() {
     for (cn, pc) in parsed_chunks {
         match pc {
             ParsedChunk::VER(x) => {
-                assert_eq!(*x.file_format_version, 59);
+                assert_eq!(*x.file_format_version, 63);
             }
             ParsedChunk::IVER(x) => {
                 assert_eq!(*x.additional_file_format_version, 10);
@@ -646,7 +654,7 @@ fn test_specific_map_files_for_known_values() {
                 }
             }
             ParsedChunk::MRGN(x) => {
-                assert_eq!(x.locations.len(), 64, "{x:?}");
+                assert_eq!(x.locations.len(), 255, "{x:?}");
 
                 for i in 0..x.locations.len() {
                     match i {
@@ -702,9 +710,10 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(x.string_offsets[7], 2156, "{x:?}");
                 assert_eq!(x.string_offsets[8], 2168, "{x:?}");
                 assert_eq!(x.string_offsets[9], 2198, "{x:?}");
-                assert_eq!(x.string_offsets[10], 2050, "{x:?}");
+                assert_eq!(x.string_offsets[10], 2219, "{x:?}");
+                assert_eq!(x.string_offsets[11], 2050, "{x:?}");
 
-                assert_eq!(x.strings.len(), 2219, "{x:?}");
+                assert_eq!(x.strings.len(), 2236, "{x:?}");
 
                 assert_eq!(
                     encoding_rs::WINDOWS_1252
@@ -804,6 +813,17 @@ fn test_specific_map_files_for_known_values() {
                         .0
                         .to_owned(),
                     "location test string\0".to_owned(),
+                    "{x:?}"
+                );
+                assert_eq!(
+                    encoding_rs::WINDOWS_1252
+                        .decode(
+                            &x.strings[(x.string_offsets[0] + 168) as usize
+                                ..(x.string_offsets[0] + 185) as usize],
+                        )
+                        .0
+                        .to_owned(),
+                    "test switch name\0".to_owned(),
                     "{x:?}"
                 );
             }
@@ -979,7 +999,33 @@ fn test_specific_map_files_for_known_values() {
                     "{x:?}"
                 );
             }
-            ParsedChunk::SWNM(_) => assert_eq!(cn, ChunkName::SWNM),
+            ParsedChunk::SWNM(x) => {
+                assert_eq!(
+                    *x.switch_name_string_number,
+                    [
+                        11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0
+                    ],
+                    "{x:?}"
+                );
+            }
+            ParsedChunk::PUPx(_) => assert_eq!(cn, ChunkName::PUPx),
+            ParsedChunk::UPGx(_) => assert_eq!(cn, ChunkName::UPGx),
+            ParsedChunk::TECx(_) => assert_eq!(cn, ChunkName::TECx),
+            ParsedChunk::PTEx(_) => assert_eq!(cn, ChunkName::PTEx),
+            ParsedChunk::UNIx(_) => assert_eq!(cn, ChunkName::UNIx),
+            ParsedChunk::COLR(_) => assert_eq!(cn, ChunkName::COLR),
+            ParsedChunk::IVE2(_) => assert_eq!(cn, ChunkName::IVE2),
+            ParsedChunk::TYPE(_) => assert_eq!(cn, ChunkName::TYPE),
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
