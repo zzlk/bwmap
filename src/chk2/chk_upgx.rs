@@ -22,6 +22,7 @@ use serde::Serialize;
 pub struct ChkUpgx<'a> {
     #[serde(skip_serializing)]
     pub upgrade_uses_default_setings: &'a [u8; 61],
+    pub unused: &'a u8,
     #[serde(skip_serializing)]
     pub base_mineral_cost: &'a [u16; 61],
     #[serde(skip_serializing)]
@@ -41,6 +42,7 @@ pub(crate) fn parse_upgx(sec: &[u8]) -> Result<ChkUpgx, anyhow::Error> {
 
     Ok(ChkUpgx {
         upgrade_uses_default_setings: slicer.extract_ref()?,
+        unused: slicer.extract_ref()?,
         base_mineral_cost: slicer.extract_ref()?,
         mineral_cost_factor: slicer.extract_ref()?,
         base_gas_cost: slicer.extract_ref()?,
