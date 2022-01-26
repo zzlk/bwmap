@@ -13,8 +13,10 @@ pub struct ChkPupx<'a> {
     pub max_upgrade_level: &'a [[u8; 61]; 12],
     #[serde(skip_serializing)]
     pub starting_upgrade_level: &'a [[u8; 61]; 12],
-    pub global_default_maximum_upgrade_level: &'a [u8; 12],
-    pub global_default_starting_upgrade_level: &'a [u8; 12],
+    #[serde(skip_serializing)]
+    pub global_default_maximum_upgrade_level: &'a [u8; 61],
+    #[serde(skip_serializing)]
+    pub global_default_starting_upgrade_level: &'a [u8; 61],
     #[serde(skip_serializing)]
     pub player_uses_upgrade_defaults: &'a [[u8; 61]; 12],
 }
