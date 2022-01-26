@@ -10,15 +10,15 @@ use serde::Serialize;
 #[derive(Debug, Serialize)]
 pub struct ChkPtex<'a> {
     #[serde(skip_serializing)]
-    pub player_availability: &'a [[u8; 12]; 44],
+    pub player_availability: &'a [[u8; 44]; 12],
     #[serde(skip_serializing)]
-    pub already_researched: &'a [[u8; 12]; 44],
+    pub already_researched: &'a [[u8; 44]; 12],
     #[serde(skip_serializing)]
     pub global_availability_defaults: &'a [u8; 44],
     #[serde(skip_serializing)]
     pub global_already_researched_defaults: &'a [u8; 44],
     #[serde(skip_serializing)]
-    pub player_uses_default: &'a [[u8; 12]; 44],
+    pub player_uses_default: &'a [[u8; 44]; 12],
 }
 
 pub(crate) fn parse_ptex(sec: &[u8]) -> Result<ChkPtex, anyhow::Error> {
