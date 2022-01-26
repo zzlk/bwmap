@@ -1486,8 +1486,12 @@ fn test_specific_map_files_for_known_values() {
             ParsedChunk::COLR(x) => {
                 assert_eq!(*x.player_color, [0, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
             }
-            ParsedChunk::IVE2(_) => assert_eq!(cn, ChunkName::IVE2),
-            ParsedChunk::TYPE(_) => assert_eq!(cn, ChunkName::TYPE),
+            ParsedChunk::IVE2(x) => {
+                assert_eq!(*x.additional_file_format_version, 11, "{x:?}");
+            }
+            ParsedChunk::TYPE(x) => {
+                assert_eq!(*x.scenario_type, 1398227282, "{x:?}");
+            }
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
