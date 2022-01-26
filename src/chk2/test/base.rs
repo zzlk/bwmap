@@ -17,7 +17,7 @@ fn test_specific_map_files_for_known_values() {
     let raw_chunks = crate::parse_chk(chk.as_slice());
     let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
 
-    assert_eq!(merged_chunks.keys().count(), 31);
+    assert_eq!(merged_chunks.keys().count(), 32);
 
     assert!(merged_chunks.get(&ChunkName::VER).is_some());
     assert!(merged_chunks.get(&ChunkName::IVER).is_some());
@@ -50,10 +50,11 @@ fn test_specific_map_files_for_known_values() {
     assert!(merged_chunks.get(&ChunkName::UPRP).is_some());
     assert!(merged_chunks.get(&ChunkName::UPUS).is_some());
     assert!(merged_chunks.get(&ChunkName::SWNM).is_some());
+    assert!(merged_chunks.get(&ChunkName::CRGB).is_some());
 
     let parsed_chunks = crate::parse_merged_chunks(&merged_chunks).unwrap();
 
-    assert_eq!(parsed_chunks.keys().count(), 31);
+    assert_eq!(parsed_chunks.keys().count(), 32);
 
     for (cn, pc) in parsed_chunks.iter() {
         match pc {
@@ -88,6 +89,7 @@ fn test_specific_map_files_for_known_values() {
             ParsedChunk::UPRP(_) => assert_eq!(cn, &ChunkName::UPRP),
             ParsedChunk::UPUS(_) => assert_eq!(cn, &ChunkName::UPUS),
             ParsedChunk::SWNM(_) => assert_eq!(cn, &ChunkName::SWNM),
+            ParsedChunk::CRGB(_) => assert_eq!(cn, &ChunkName::CRGB),
             _ => {
                 panic!("{cn:?}, {pc:?}");
             }
@@ -1011,6 +1013,23 @@ fn test_specific_map_files_for_known_values() {
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0, 0
+                    ],
+                    "{x:?}"
+                );
+            }
+            ParsedChunk::CRGB(x) => {
+                assert_eq!(*x.player_color_option, [3, 2, 3, 3, 3, 3, 3, 3], "{x:?}");
+                assert_eq!(
+                    *x.rgb,
+                    [
+                        [0, 0, 15],
+                        [91, 46, 226],
+                        [0, 0, 2],
+                        [0, 0, 3],
+                        [0, 0, 4],
+                        [0, 0, 5],
+                        [0, 0, 6],
+                        [0, 0, 7]
                     ],
                     "{x:?}"
                 );
