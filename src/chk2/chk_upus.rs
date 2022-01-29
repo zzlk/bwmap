@@ -11,14 +11,13 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ChkUpus<'a> {
-    #[serde(skip_serializing)]
-    pub cuwp_slot_is_used: &'a [u8; 64],
+    pub cuwp_slot_is_used: &'a [u8],
 }
 
 pub(crate) fn parse_upus(sec: &[u8]) -> Result<ChkUpus, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkUpus {
-        cuwp_slot_is_used: slicer.extract_ref()?,
+        cuwp_slot_is_used: slicer.extract_rest_as_slice_lax()?,
     })
 }

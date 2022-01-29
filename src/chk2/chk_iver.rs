@@ -12,13 +12,13 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ChkIver<'a> {
-    pub additional_file_format_version: &'a u16,
+    pub additional_file_format_version: Option<&'a u16>,
 }
 
 pub(crate) fn parse_iver(sec: &[u8]) -> Result<ChkIver, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkIver {
-        additional_file_format_version: slicer.extract_ref()?,
+        additional_file_format_version: slicer.extract_ref_lax()?,
     })
 }

@@ -102,7 +102,7 @@ fn test_specific_map_files_for_known_values() {
                 assert_eq!(*x.file_format_version, 59);
             }
             ParsedChunk::IVER(x) => {
-                assert_eq!(*x.additional_file_format_version, 10);
+                assert_eq!(*x.additional_file_format_version.unwrap(), 10);
             }
             ParsedChunk::VCOD(x) => {
                 assert_eq!(
@@ -699,7 +699,7 @@ fn test_specific_map_files_for_known_values() {
             }
             ParsedChunk::STR(x) => {
                 // offset 2050 is offset of null byte
-                assert_eq!(*x.number_of_strings, 1024, "{x:?}");
+                assert_eq!(*x.number_of_strings.unwrap(), 1024, "{x:?}");
                 assert_eq!(x.string_offsets[0], 2051, "{x:?}");
                 assert_eq!(x.string_offsets[1], 2077, "{x:?}");
                 assert_eq!(x.string_offsets[2], 2105, "{x:?}");
