@@ -15,7 +15,7 @@ use std::cmp::min;
 
 #[derive(Debug, Serialize)]
 pub struct ChkStr<'a> {
-    pub number_of_strings: &'a u16,
+    pub number_of_strings: Option<&'a u16>,
     pub string_offsets: &'a [u16],
     pub strings: &'a [u8],
 }
@@ -23,14 +23,9 @@ pub struct ChkStr<'a> {
 pub(crate) fn parse_str(sec: &[u8]) -> Result<ChkStr, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    anyhow::ensure!(sec.len() >= 2);
-    let number_of_strings: &u16 = slicer.extract_ref()?;
-
-    anyhow::ensure!(sec.len() >= 2);
+    let number_of_strings = slicer.extract_ref_lax()?;
     let string_offsets: &[u16] =
-        slicer.extract_slice(min(*number_of_strings as usize, (sec.len() - 2) / 2))?;
-
-    anyhow::ensure!(sec.len() >= 2 + string_offsets.len());
+        slicer.extract_slice_lax(*number_of_strings.unwrap_or(&0) as usize)?;
     let strings: &[u8] = sec;
 
     Ok(ChkStr {

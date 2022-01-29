@@ -22,17 +22,17 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ChkForc<'a> {
-    pub player_forces: &'a [u8; 8],
-    pub force_name: &'a [u16; 4],
-    pub force_properties: &'a [u8; 4],
+    pub player_forces: &'a [u8],
+    pub force_name: &'a [u16],
+    pub force_properties: &'a [u8],
 }
 
 pub(crate) fn parse_forc(sec: &[u8]) -> Result<ChkForc, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkForc {
-        player_forces: slicer.extract_ref()?,
-        force_name: slicer.extract_ref()?,
-        force_properties: slicer.extract_ref()?,
+        player_forces: slicer.extract_slice_lax(8)?,
+        force_name: slicer.extract_slice_lax(4)?,
+        force_properties: slicer.extract_slice_lax(4)?,
     })
 }

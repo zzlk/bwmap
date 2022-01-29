@@ -49,16 +49,16 @@ pub(crate) fn reinterpret_slice<T: Sized>(s: &[u8]) -> &[T] {
 }
 
 pub(crate) fn reinterpret_slice2<T: Sized>(s: &[u8]) -> Result<&[T], anyhow::Error> {
-    anyhow::ensure!(s.len() % std::mem::size_of::<T>() == 0);
+    anyhow::ensure!(
+        s.len() % std::mem::size_of::<T>() == 0,
+        "s.len(): {}, std::mem::size_of::<T>(): {}",
+        s.len(),
+        std::mem::size_of::<T>()
+    );
 
     Ok(unsafe {
         std::slice::from_raw_parts(s.as_ptr() as *const T, s.len() / std::mem::size_of::<T>())
     })
-}
-
-pub(crate) fn reinterpret_slice_to_ref<T: Sized>(s: &[u8]) -> Result<&T, anyhow::Error> {
-    anyhow::ensure!(s.len() == std::mem::size_of::<T>());
-    Ok(unsafe { &*(s.as_ptr() as *const T) })
 }
 
 pub(crate) struct CursorSlicer<'a> {
@@ -74,11 +74,31 @@ impl<'a> CursorSlicer<'a> {
         }
     }
 
-    pub(crate) fn extract_slice<T>(&mut self, len: usize) -> Result<&'a [T], anyhow::Error> {
-        anyhow::ensure!(self.s.len() >= self.current_offset + len * std::mem::size_of::<T>());
+    pub(crate) fn extract_slice<T>(&mut self, elements: usize) -> Result<&'a [T], anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset + elements * std::mem::size_of::<T>());
 
         let ret = reinterpret_slice2(
-            &self.s[self.current_offset..self.current_offset + len * std::mem::size_of::<T>()],
+            &self.s[self.current_offset..self.current_offset + elements * std::mem::size_of::<T>()],
+        )?;
+
+        self.current_offset += ret.len() * std::mem::size_of::<T>();
+
+        Ok(ret)
+    }
+
+    pub(crate) fn extract_slice_lax<T>(
+        &mut self,
+        elements: usize,
+    ) -> Result<&'a [T], anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset);
+
+        let elements = std::cmp::min(
+            (self.s.len() - self.current_offset) / std::mem::size_of::<T>(),
+            elements,
+        );
+
+        let ret = reinterpret_slice2(
+            &self.s[self.current_offset..self.current_offset + elements * std::mem::size_of::<T>()],
         )?;
 
         self.current_offset += ret.len() * std::mem::size_of::<T>();
@@ -88,36 +108,41 @@ impl<'a> CursorSlicer<'a> {
 
     pub(crate) fn extract_rest_as_slice<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset);
+        anyhow::ensure!((self.s.len() - self.current_offset) % std::mem::size_of::<T>() == 0);
 
-        let ret = reinterpret_slice2(&self.s[self.current_offset..])?;
+        let elements = (self.s.len() - self.current_offset) / std::mem::size_of::<T>();
 
-        self.current_offset += ret.len() * std::mem::size_of::<T>();
-
-        Ok(ret)
+        self.extract_slice(elements)
     }
 
     // If for example there is some kind of protection where one of the objects is mangled, such as [int, int, int, X] where X is 1 byte instead of 4, the lax variant will ignore the last one.
     pub(crate) fn extract_rest_as_slice_lax<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset);
+        //anyhow::ensure!((self.s.len() - self.current_offset) % std::mem::size_of::<T>() == 0);
 
-        let len = ((self.s.len() - self.current_offset) / std::mem::size_of::<T>())
-            * std::mem::size_of::<T>();
+        let elements = (self.s.len() - self.current_offset) / std::mem::size_of::<T>();
 
-        let ret = reinterpret_slice2(&self.s[self.current_offset..self.current_offset + len])?;
-
-        self.current_offset += ret.len() * std::mem::size_of::<T>();
-
-        Ok(ret)
+        self.extract_slice(elements)
     }
 
     pub(crate) fn extract_ref<T>(&mut self) -> Result<&'a T, anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset + std::mem::size_of::<T>());
 
-        let ret = reinterpret_slice_to_ref(
+        let ret = &reinterpret_slice2(
             &self.s[self.current_offset..self.current_offset + std::mem::size_of::<T>()],
-        )?;
+        )?[0];
         self.current_offset += std::mem::size_of::<T>();
         Ok(ret)
+    }
+
+    pub(crate) fn extract_ref_lax<T>(&mut self) -> Result<Option<&'a T>, anyhow::Error> {
+        anyhow::ensure!(self.s.len() >= self.current_offset);
+
+        if self.s.len() >= self.current_offset + std::mem::size_of::<T>() {
+            Ok(Some(self.extract_ref()?))
+        } else {
+            Ok(None)
+        }
     }
 }
 
