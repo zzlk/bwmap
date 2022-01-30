@@ -116,7 +116,7 @@ fn test_some_specific_maps() {
 
         process_iter_async_concurrent(
             iter,
-            16,
+            32,
             |count, last_obj| {
                 if let Err(x) = last_obj {
                     println!("-------------------------------------------------------------------------");
