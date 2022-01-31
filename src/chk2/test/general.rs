@@ -28,7 +28,7 @@ fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
         })
         .count();
 
-    assert_eq!(processed_maps, 179);
+    assert_eq!(processed_maps, 180);
 }
 
 #[test]
@@ -81,6 +81,22 @@ fn test_specific_map_protected_by_smlp_version_2_dot_5_dot_00() {
     // SMLP 2.5.00
     let chk = crate::get_chk_from_mpq_filename(format!(
         "{}/test_vectors/Lnm Series Bound 12(p).scx",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+
+    let raw_chunks = parse_chk(&chk);
+    let merged_chunks = merge_raw_chunks(&raw_chunks);
+    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+
+    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+}
+
+#[test]
+fn test_specific_map_protected_by_unknown_protector() {
+    // Unknown protector with a bunch of MPQ hacks?
+    let chk = crate::get_chk_from_mpq_filename(format!(
+        "{}/test_vectors/______4VZ015__.scx",
         env!("CARGO_MANIFEST_DIR")
     ))
     .unwrap();

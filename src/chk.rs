@@ -1077,10 +1077,10 @@ pub fn get_parsed_chk(merged_chunks: &Vec<MergedChunk>) -> anyhow::Result<ChkDum
         // This is intentional.
         encodings.sort_by(|&(_, a), &(_, b)| a.cmp(&b).reverse());
 
-        // println!(
-        //     "euc_kr: {}, utf8: {}, utf16: {}, win1252: {}",
-        //     euc_kr, utf8, utf16, win1252
-        // );
+        println!(
+            "euc_kr: {}, utf8: {}, utf16: {}, win1252: {}",
+            euc_kr, utf8, utf16, win1252
+        );
 
         //println!("encodings: {:?}", encodings);
 
