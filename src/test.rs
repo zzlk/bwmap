@@ -69,25 +69,3 @@ fn test_constrain_encoding_detection_algorithm() {
         .into_par_iter()
         .for_each(|(a, b)| assert_eq!(f(a), b));
 }
-
-#[test]
-fn test_get_chk_from_mpq_filename() {
-    crate::test::for_all_test_maps(|e| {
-        assert!(
-            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string())
-                .unwrap()
-                .len()
-                > 0
-        );
-    });
-}
-
-#[test]
-fn test_get_chk_from_mpq_in_memory() {
-    crate::test::for_all_test_maps(|e| {
-        assert_eq!(
-            crate::get_chk_from_mpq_in_memory(std::fs::read(e.path()).unwrap().as_slice()).unwrap(),
-            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
-        );
-    });
-}
