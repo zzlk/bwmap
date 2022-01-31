@@ -1173,3 +1173,11 @@ pub fn get_parsed_chk(merged_chunks: &Vec<MergedChunk>) -> anyhow::Result<ChkDum
         strings: string_table,
     })
 }
+
+pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
+    let raw_chunks = parse_chk(&chk);
+    let merged_chunks = merge_raw_chunks(&raw_chunks);
+    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+
+    parsed_chunks.get(&ChunkName::VCOD).is_some()
+}
