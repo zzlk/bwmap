@@ -63,6 +63,7 @@ fn test_constrain_encoding_detection_algorithm() {
             "Ecstasy EVF.scx",
             "\u{1}마린키우기 \u{7}E\u{6}cstasy \u{3}EVF",
         ),
+        // ("______4VZ015__.scx", "meme"),
     ];
 
     test_vectors
