@@ -1,32 +1,34 @@
 use crate::{
-    chk::ChunkName, get_chk_from_mpq_in_memory, merge_raw_chunks, parse_chk, parse_merged_chunks,
+    chk::ChunkName, get_chk_from_mpq_filename, get_chk_from_mpq_in_memory, merge_raw_chunks,
+    parse_chk, parse_merged_chunks,
 };
 use futures::FutureExt;
 use rayon::prelude::*;
+use std::fs::read;
+use walkdir::{DirEntry, WalkDir};
 
-fn for_all_test_maps<F: Fn(walkdir::DirEntry) + Sync>(func: F) {
-    let processed_maps =
-        walkdir::WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
-            .into_iter()
-            .par_bridge()
-            .filter_map(Result::ok)
-            .filter(
-                |e| match e.file_name().to_string_lossy().to_string().as_str() {
-                    "[EUD]컴디 파이널.scx" => false,
-                    "마인의 폭피 1.scm" => false,
-                    _ => {
-                        !e.file_type().is_dir()
-                            && (e.file_name().to_string_lossy().ends_with(".scx")
-                                || e.file_name().to_string_lossy().ends_with(".scm"))
-                    }
-                },
-            )
-            .map(|e| {
-                func(e);
-            })
-            .count();
+fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
+    let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
+        .into_iter()
+        .par_bridge()
+        .filter_map(Result::ok)
+        .filter(
+            |e| match e.file_name().to_string_lossy().to_string().as_str() {
+                "[EUD]컴디 파이널.scx" => false,
+                "마인의 폭피 1.scm" => false,
+                _ => {
+                    !e.file_type().is_dir()
+                        && (e.file_name().to_string_lossy().ends_with(".scx")
+                            || e.file_name().to_string_lossy().ends_with(".scm"))
+                }
+            },
+        )
+        .map(|e| {
+            func(e);
+        })
+        .count();
 
-    assert_eq!(processed_maps, 176);
+    assert_eq!(processed_maps, 178);
 }
 
 #[test]
@@ -52,85 +54,12 @@ fn test_parse_merged_chunks() {
 
         assert!(
             parsed_chunks.get(&ChunkName::VCOD).is_some(),
-            "filename: {}, {:?}",
+            "filename: {}, chk_data.len(): {}, {:?}",
             e.file_name().to_string_lossy(),
+            chk_data.len(),
             parsed_chunks
         );
     });
-}
-
-#[test]
-fn test_some_specific_maps() {
-    let rt = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-
-    let client = reqwest::Client::builder()
-        .user_agent("norecord")
-        .build()
-        .unwrap();
-
-    let hashes = vec![
-        "2328326e1f3d6f01c0565f4a66699fd6e71245c22bb3e3635b89b0fbe02cfee3",
-        "d0e414ff9cc9d60c02ac721d1a5cfc7bb657935be3906354ff08aa4a93ec3a7d",
-    ];
-
-    let do_map = |hash: &str| {
-        use anyhow::*;
-
-        let hash = hash.to_owned();
-        let client = client.clone();
-
-        async move {
-            let bytes = client
-                .request(
-                    reqwest::Method::GET,
-                    format!("https://bounding.net/api/maps/{hash}"),
-                )
-                .header("cookie", "dontratelimitmebro=true")
-                .send()
-                .await?
-                .bytes()
-                .await?;
-
-            tokio::task::spawn_blocking(move || {
-                let chk_data = get_chk_from_mpq_in_memory(bytes.as_ref())?;
-                let raw_chunks = parse_chk(&chk_data);
-                let merged_chunks = merge_raw_chunks(&raw_chunks);
-                let parsed_chunks = parse_merged_chunks(&merged_chunks)?;
-
-                anyhow::ensure!(parsed_chunks.get(&ChunkName::VCOD).is_some());
-
-                anyhow::Ok(())
-            })
-            .await?
-            .context(hash.clone())?;
-
-            anyhow::Ok(hash)
-        }
-    };
-
-    rt.block_on(async {
-        let iter = hashes.into_iter();
-
-        process_iter_async_concurrent(
-            iter,
-            32,
-            |count, last_obj| {
-                if let Err(x) = last_obj {
-                    println!("-------------------------------------------------------------------------");
-                    println!("count: {count}");
-                    println!("{x:?}");
-                    println!("-------------------------------------------------------------------------\n\n\n");
-                }
-            },
-            do_map,
-        )
-        .await;
-    });
-
-    rt.shutdown_background();
 }
 
 #[test]
@@ -264,4 +193,26 @@ where
     }
 
     counter
+}
+
+#[test]
+fn test_get_chk_from_mpq_filename() {
+    for_all_test_maps(|e| {
+        assert!(
+            get_chk_from_mpq_filename(e.path().to_string_lossy().to_string())
+                .unwrap()
+                .len()
+                > 0
+        );
+    });
+}
+
+#[test]
+fn test_get_chk_from_mpq_in_memory() {
+    for_all_test_maps(|e| {
+        assert_eq!(
+            get_chk_from_mpq_in_memory(read(e.path()).unwrap().as_slice()).unwrap(),
+            get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
+        );
+    });
 }
