@@ -1,6 +1,7 @@
 use crate::{
-    chk::ChunkName, get_chk_from_mpq_filename, get_chk_from_mpq_in_memory, merge_raw_chunks,
-    parse_chk, parse_merged_chunks,
+    chk::{get_string, ChunkName, ParsedChunk},
+    get_chk_from_mpq_filename, get_chk_from_mpq_in_memory, merge_raw_chunks, parse_chk,
+    parse_merged_chunks,
 };
 use futures::FutureExt;
 use rayon::prelude::*;
@@ -28,7 +29,7 @@ fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
         })
         .count();
 
-    assert_eq!(processed_maps, 180);
+    assert_eq!(processed_maps, 183);
 }
 
 #[test]
@@ -261,4 +262,155 @@ fn test_get_chk_from_mpq_in_memory() {
             get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
         );
     });
+}
+
+#[test]
+fn test_constrain_encoding_detection_algorithm() {
+    let f = |s: &str| {
+        let mut root = env!("CARGO_MANIFEST_DIR").to_owned();
+        root.push_str(format!("/test_vectors/{s}").as_str());
+
+        let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
+        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
+        let raw_chunks = crate::parse_chk(chk.as_slice());
+        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
+        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+
+        //let encoding_order = guess_encoding_order(&map).unwrap();
+
+        let sprp_scenario_index = if let Some(ParsedChunk::SPRP(x)) = map.get(&ChunkName::SPRP) {
+            *x.scenario_name_string_number
+        } else {
+            unreachable!();
+        };
+
+        get_string(&map, sprp_scenario_index as usize).unwrap()
+        // get_string(&map, &encoding_order, sprp_scenario_index as usize).unwrap()
+    };
+
+    let f2 = |s: &str, index: usize| {
+        let mut root = env!("CARGO_MANIFEST_DIR").to_owned();
+        root.push_str(format!("/test_vectors/{s}").as_str());
+
+        let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
+        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
+        let raw_chunks = crate::parse_chk(chk.as_slice());
+        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
+        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+
+        //let encoding_order = guess_encoding_order(&map).unwrap();
+
+        let sprp_scenario_index = if let Some(ParsedChunk::SPRP(x)) = map.get(&ChunkName::SPRP) {
+            *x.scenario_name_string_number
+        } else {
+            unreachable!();
+        };
+
+        get_string(&map, index).unwrap()
+    };
+
+    let test_vectors = [
+        ("폭피[뿌요뿌요]", "폭탄피하기[뿌요뿌요].scx"),
+        ("JØNÎ$  ßøûñÐ(beta)", "»JoNiS»BoUnD».scx"),
+        (
+            "\u{0013}\u{0002}Ðúst BóüÑÐ\u{0012}\u{0006}Dust BouND      .",
+            "D u s t BouND P .scx",
+        ),
+        ("\u{4}Poo\u{6}p \u{3}Boun\u{6}d", "poop bound.scx"),
+        (
+            "\u{3}C\u{4}r\u{6}escent \u{7}B\u{6}ound",
+            "Crescent Bound.scx",
+        ),
+        (
+            "\u{4}도라에몽\u{4} 의\u{4} \u{4}S\u{5}unken ",
+            "[[[[[도라에몽의성큰(빨�__짱 (1).scx",
+        ),
+        (
+            "\u{1}마린키우기 \u{7}E\u{6}cstasy \u{3}EVF",
+            "Ecstasy EVF.scx",
+        ),
+        ("갓 타워디펜스4VZ015겨울", "______4VZ015__.scx"),
+        (
+            "\u{2}Can \u{1}You \u{2}Stop \u{1}1 \u{4}Unit? \u{3}§tack",
+            "Can u stop 1 unit (stack) (1).scx",
+        ),
+        (
+            "\u{3}Marine Special Forces \u{7}Re",
+            "마린키우기_오리지널_re_정식_1.62.scx",
+        ),
+    ];
+
+    for (a, b) in test_vectors.into_iter() {
+        assert_eq!(a, f(b));
+    }
+
+    let test_vectors2 = [
+        (
+            "마린키우기_오리지널_re_정식_1.62.scx",
+            1,
+            "\u{3}Marine Special Forces \u{7}Re",
+        ),
+        (
+            "마린키우기_오리지널_re_정식_1.62.scx",
+            1,
+            "\u{3}Marine Special Forces \u{7}Re",
+        ),
+    ];
+
+    for (a, b) in test_vectors.into_iter() {
+        assert_eq!(a, f(b));
+    }
+}
+
+#[test]
+fn test_constrain_encoding_detection_algorithm2() {
+    let f = |s: &str, index: usize| {
+        let mut root = env!("CARGO_MANIFEST_DIR").to_owned();
+        root.push_str(format!("/test_vectors/{s}").as_str());
+
+        let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
+        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
+        let raw_chunks = crate::parse_chk(chk.as_slice());
+        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
+        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+
+        get_string(&map, index).unwrap()
+    };
+
+    let test_vectors = [
+        (
+            "\u{3}Marine Special Forces \u{7}Re",
+            "마린키우기_오리지널_re_정식_1.62.scx",
+            1,
+        ),
+        (
+            "[오리지널 \"Marine Special Forces\" 헌정맵]\r\n오리지널 마린키우기를 리메이크 했습니다.\r\n기존에 있던 마린키우기를 수정하는 것이\r\n아니라 새롭게 제작하였습니다.\r\n\r\n수정일 : 19.07.02\r\n버전 : 정식 1.62\r\n제작 : 리메이커",
+            "마린키우기_오리지널_re_정식_1.62.scx",
+            2,
+        ),
+        (
+            "\u{3}Marine Special Forces \u{7}Re",
+            "MarineSpecialForces_Re_[확장판]_1.31V.scx",
+            1,
+        ),
+        (
+            "[오리지널 \"Marine Special Forces\" 헌정맵]\r\n오리지널 마린키우기를 리메이크 했습니다.\r\n기존에 있던 마린키우기를 수정하는 것이\r\n아니라 새롭게 제작하였습니다.\r\n\r\n수정일 : 19.10.06\r\n버전 : 정식 1.31 [확장판]\r\n제작 : 리메이커",
+            "MarineSpecialForces_Re_[확장판]_1.31V.scx",
+            2,
+        ),
+        (
+            "쓰레기통",
+            "Can u stop 1 unit (stack) (1).scx",
+            23,
+        ),
+        (
+            "\r\n\u{3}고스트는 한번에 둘 이상 생산할수 없습니다.\r\n",
+            "Can u stop 1 unit (stack) (1).scx",
+            25,
+        ),
+    ];
+
+    for (a, b, c) in test_vectors.into_iter() {
+        assert_eq!(a, f(b, c));
+    }
 }

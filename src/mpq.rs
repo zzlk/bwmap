@@ -38,7 +38,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
         };
 
         let try_map_with_locale = |filename: &str, locale| {
-            println!("try_map_with_locale: {filename}, locale: {locale}");
+            //println!("try_map_with_locale: {filename}, locale: {locale}");
 
             stormlib_bindings::SFileSetLocale(locale); // Set locale, this function never fails.
             let mut chk_data: Vec<u8> = vec![0; 32 * 1024 * 1024];
@@ -50,10 +50,10 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                 &mut archive_file_handle as *mut _,
             ) == false
             {
-                println!(
-                    "SFileOpenFileEx. GetLastError: {}, filename: {filename}",
-                    stormlib_bindings::GetLastError()
-                );
+                // println!(
+                //     "SFileOpenFileEx. GetLastError: {}, filename: {filename}",
+                //     stormlib_bindings::GetLastError()
+                // );
                 return Err(anyhow::anyhow!(
                     "SFileOpenFileEx. GetLastError: {}, filename: {filename}",
                     stormlib_bindings::GetLastError()
@@ -85,10 +85,10 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                 if last_error != stormlib_bindings::ERROR_HANDLE_EOF
                     || size == chk_data.len() as u32
                 {
-                    println!(
-                        "SFileReadFile. GetLastError: {}, filename: {filename}",
-                        last_error,
-                    );
+                    // println!(
+                    //     "SFileReadFile. GetLastError: {}, filename: {filename}",
+                    //     last_error,
+                    // );
 
                     return Err(anyhow::anyhow!(
                         "SFileReadFile. GetLastError: {}, filename: {filename}",

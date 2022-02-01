@@ -38,54 +38,57 @@
 // 1.38 "UPGx" - BW Upgrade Settings
 // 1.39 "TECx" - BW Tech Settings
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, ffi::CStr};
 
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::chk2::{
-    chk_colr::{parse_colr, ChkColr},
-    chk_crgb::{parse_crgb, ChkCrgb},
-    chk_dd2::{parse_dd2, ChkDd2},
-    chk_dim::{parse_dim, ChkDim},
-    chk_era::{parse_era, ChkEra},
-    chk_forc::{parse_forc, ChkForc},
-    chk_iown::{parse_iown, ChkIown},
-    chk_isom::{parse_isom, ChkIsom},
-    chk_ive2::{parse_ive2, ChkIve2},
-    chk_iver::{parse_iver, ChkIver},
-    chk_mask::{parse_mask, ChkMask},
-    chk_mbrf::{parse_mbrf, ChkMbrf},
-    chk_mrgn::{parse_mrgn, ChkMrgn},
-    chk_mtxm::{parse_mtxm, ChkMtxm},
-    chk_ownr::{parse_ownr, ChkOwnr},
-    chk_ptec::{parse_ptec, ChkPtec},
-    chk_ptex::{parse_ptex, ChkPtex},
-    chk_puni::{parse_puni, ChkPuni},
-    chk_pupx::{parse_pupx, ChkPupx},
-    chk_side::{parse_side, ChkSide},
-    chk_sprp::{parse_sprp, ChkSprp},
-    chk_str::{parse_str, ChkStr},
-    chk_strx::{parse_strx, ChkStrx},
-    chk_swnm::{parse_swnm, ChkSwnm},
-    chk_tecs::{parse_tecs, ChkTecs},
-    chk_tecx::{parse_tecx, ChkTecx},
-    chk_thg2::{parse_thg2, ChkThg2},
-    chk_tile::{parse_tile, ChkTile},
-    chk_trig::{parse_trig, ChkTrig},
-    chk_type::{parse_type, ChkType},
-    chk_unis::{parse_unis, ChkUnis},
-    chk_unit::{parse_unit, ChkUnit},
-    chk_unix::{parse_unix, ChkUnix},
-    chk_upgr::{parse_upgr, ChkUpgr},
-    chk_upgs::{parse_upgs, ChkUpgs},
-    chk_upgx::{parse_upgx, ChkUpgx},
-    chk_uprp::{parse_uprp, ChkUprp},
-    chk_upus::{parse_upus, ChkUpus},
-    chk_vcod::{parse_vcod, ChkVcod},
-    chk_ver::{parse_ver, ChkVer},
-    chk_wav::{parse_wav, ChkWav},
+use crate::{
+    chk2::{
+        chk_colr::{parse_colr, ChkColr},
+        chk_crgb::{parse_crgb, ChkCrgb},
+        chk_dd2::{parse_dd2, ChkDd2},
+        chk_dim::{parse_dim, ChkDim},
+        chk_era::{parse_era, ChkEra},
+        chk_forc::{parse_forc, ChkForc},
+        chk_iown::{parse_iown, ChkIown},
+        chk_isom::{parse_isom, ChkIsom},
+        chk_ive2::{parse_ive2, ChkIve2},
+        chk_iver::{parse_iver, ChkIver},
+        chk_mask::{parse_mask, ChkMask},
+        chk_mbrf::{parse_mbrf, ChkMbrf},
+        chk_mrgn::{parse_mrgn, ChkMrgn},
+        chk_mtxm::{parse_mtxm, ChkMtxm},
+        chk_ownr::{parse_ownr, ChkOwnr},
+        chk_ptec::{parse_ptec, ChkPtec},
+        chk_ptex::{parse_ptex, ChkPtex},
+        chk_puni::{parse_puni, ChkPuni},
+        chk_pupx::{parse_pupx, ChkPupx},
+        chk_side::{parse_side, ChkSide},
+        chk_sprp::{parse_sprp, ChkSprp},
+        chk_str::{parse_str, ChkStr},
+        chk_strx::{parse_strx, ChkStrx},
+        chk_swnm::{parse_swnm, ChkSwnm},
+        chk_tecs::{parse_tecs, ChkTecs},
+        chk_tecx::{parse_tecx, ChkTecx},
+        chk_thg2::{parse_thg2, ChkThg2},
+        chk_tile::{parse_tile, ChkTile},
+        chk_trig::{parse_trig, ChkTrig},
+        chk_type::{parse_type, ChkType},
+        chk_unis::{parse_unis, ChkUnis},
+        chk_unit::{parse_unit, ChkUnit},
+        chk_unix::{parse_unix, ChkUnix},
+        chk_upgr::{parse_upgr, ChkUpgr},
+        chk_upgs::{parse_upgs, ChkUpgs},
+        chk_upgx::{parse_upgx, ChkUpgx},
+        chk_uprp::{parse_uprp, ChkUprp},
+        chk_upus::{parse_upus, ChkUpus},
+        chk_vcod::{parse_vcod, ChkVcod},
+        chk_ver::{parse_ver, ChkVer},
+        chk_wav::{parse_wav, ChkWav},
+    },
+    util::parse_null_terminated_bytestring_unsigned,
 };
 use std::str;
 
@@ -1180,4 +1183,416 @@ pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
     let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
 
     parsed_chunks.get(&ChunkName::VCOD).is_some()
+}
+
+pub(crate) fn get_all_string_references(
+    map: &HashMap<ChunkName, ParsedChunk>,
+) -> Result<Vec<u32>, anyhow::Error> {
+    let mut ret = Vec::new();
+
+    if let Some(ParsedChunk::SPRP(x)) = map.get(&ChunkName::SPRP) {
+        ret.push(*x.scenario_name_string_number as u32);
+        ret.push(*x.description_string_number as u32);
+    }
+
+    if let Some(ParsedChunk::FORC(x)) = map.get(&ChunkName::FORC) {
+        for string_number in x.force_name {
+            ret.push(*string_number as u32);
+        }
+    }
+
+    if let Some(ParsedChunk::UNIx(x)) = map.get(&ChunkName::UNIx) {
+        for i in 0..x.string_number.len() {
+            if x.config[i] == 0 {
+                ret.push(x.string_number[i] as u32);
+            }
+        }
+    } else if let Some(ParsedChunk::UNIS(x)) = map.get(&ChunkName::UNIS) {
+        for i in 0..x.string_number.len() {
+            if x.config[i] == 0 {
+                ret.push(x.string_number[i] as u32);
+            }
+        }
+    }
+
+    if let Some(ParsedChunk::WAV(x)) = map.get(&ChunkName::WAV) {
+        for string_number in x.wav_string_number {
+            ret.push(*string_number as u32);
+        }
+    }
+
+    if let Some(ParsedChunk::SWNM(x)) = map.get(&ChunkName::SWNM) {
+        for switch_name_string_number in x.switch_name_string_number {
+            ret.push(*switch_name_string_number);
+        }
+    }
+
+    if let Some(ParsedChunk::MRGN(x)) = map.get(&ChunkName::MRGN) {
+        for location in x.locations {
+            ret.push(location.name_string_number as u32);
+        }
+    }
+
+    if let Some(ParsedChunk::MBRF(x)) = map.get(&ChunkName::MBRF) {
+        for trigger in x.triggers {
+            for action in trigger.actions {
+                ret.push(action.string_number);
+            }
+        }
+    }
+
+    if let Some(ParsedChunk::TRIG(x)) = map.get(&ChunkName::TRIG) {
+        for trigger in x.triggers {
+            for action in trigger.actions {
+                if action.string_number > 65535 {
+                    println!("{action:?}");
+                }
+                ret.push(action.string_number);
+            }
+        }
+    }
+
+    for index in ret.iter().filter(|&&x| x != 0) {
+        println!("INDEX: {index}");
+    }
+
+    Ok(ret.into_iter().filter(|&x| x != 0).collect())
+}
+
+// pub(crate) fn guess_encoding_order(
+//     map: &HashMap<ChunkName, ParsedChunk>,
+// ) -> Result<Vec<&'static encoding_rs::Encoding>, anyhow::Error> {
+//     let string_references = get_all_string_references(map)?;
+
+//     let get_string = |index: u32| {
+//         //println!("index: {index}");
+//         anyhow::ensure!(index > 0);
+//         let index = index - 1;
+//         if let Some(ParsedChunk::STRx(x)) = map.get(&ChunkName::STRx) {
+//             anyhow::ensure!((index as usize) < x.string_offsets.len());
+//             anyhow::ensure!((x.string_offsets[index as usize] as usize) < x.strings.len());
+//             Ok(parse_null_terminated_bytestring_unsigned(
+//                 &x.strings[x.string_offsets[index as usize] as usize..],
+//             ))
+//         } else if let Some(ParsedChunk::STR(x)) = map.get(&ChunkName::STR) {
+//             anyhow::ensure!((index as usize) < x.string_offsets.len());
+//             anyhow::ensure!((x.string_offsets[index as usize] as usize) < x.strings.len());
+//             Ok(parse_null_terminated_bytestring_unsigned(
+//                 &x.strings[x.string_offsets[index as usize] as usize..],
+//             ))
+//         } else {
+//             anyhow::bail!("No STR or STRx section")
+//         }
+//     };
+
+//     let mut euc_kr_failures: i64 = 0;
+//     let mut euc_kr_characters_decoded_successfully: i64 = 0;
+//     let mut utf8_failures: i64 = 0;
+//     let mut utf8_characters_decoded_successfully: i64 = 0;
+
+//     let mut win1252_total_characters: i64 = 0;
+//     let mut win1252_characters_7f_or_above: i64 = 0;
+
+//     for v in string_references {
+//         if let Ok(bytestring) = get_string(v) {
+//             {
+//                 let conversion = encoding_rs::EUC_KR.decode(bytestring);
+
+//                 if conversion.2 {
+//                     euc_kr_failures += 1;
+//                 } else {
+//                     euc_kr_characters_decoded_successfully += conversion
+//                         .0
+//                         .chars()
+//                         .filter(|&c| c >= '가' && c <= '힣')
+//                         .count()
+//                         as i64;
+//                 }
+//                 println!("-------------------------------\nEUCKR: {}", conversion.0);
+//             }
+
+//             {
+//                 let conversion = encoding_rs::UTF_8.decode(bytestring);
+
+//                 if conversion.2 {
+//                     utf8_failures += 1;
+//                 } else {
+//                     utf8_characters_decoded_successfully +=
+//                         conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+//                 }
+//                 println!("-------------------------------\nUTF-8: {}", conversion.0);
+//             }
+
+//             {
+//                 let conversion = encoding_rs::WINDOWS_1252.decode(bytestring);
+//                 //println!("STRING: {}", conversion.0);
+//                 win1252_total_characters += conversion.0.chars().count() as i64;
+//                 win1252_characters_7f_or_above +=
+//                     conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+
+//                 println!("-------------------------------\nWIN1252: {}", conversion.0);
+//             }
+//         }
+//     }
+
+//     println!("euc_kr_failures: {euc_kr_failures}, euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, utf8_failures: {utf8_failures}, utf8_characters_decoded_successfully: {utf8_characters_decoded_successfully}, win1252_characters_7f_or_above: {win1252_characters_7f_or_above}, win1252_total_characters: {win1252_total_characters}");
+
+//     // let mut encodings = [
+//     //     (encoding_rs::WINDOWS_1252, win1252),
+//     //     (encoding_rs::EUC_KR, euc_kr),
+//     //     (encoding_rs::UTF_8, utf8),
+//     //     (encoding_rs::UTF_16LE, utf16),
+//     // ];
+//     // // sort_by is stable, so becuase wind_1252 is first, it is biased toward that when tied with other ones.
+//     // // This is intentional.
+//     // encodings.sort_by(|&(_, a), &(_, b)| a.cmp(&b).reverse());
+
+//     // println!(
+//     //     "euc_kr: {}, utf8: {}, utf16: {}, win1252: {}",
+//     //     euc_kr, utf8, utf16, win1252
+//     // );
+
+//     if euc_kr_characters_decoded_successfully == 0 && utf8_characters_decoded_successfully == 0 {
+//         Ok(vec![
+//             encoding_rs::WINDOWS_1252,
+//             encoding_rs::EUC_KR,
+//             encoding_rs::UTF_8,
+//         ])
+//     } else {
+//         Ok(vec![
+//             encoding_rs::UTF_8,
+//             encoding_rs::EUC_KR,
+//             encoding_rs::WINDOWS_1252,
+//         ])
+//     }
+// }
+
+pub(crate) fn get_string(
+    map: &HashMap<ChunkName, ParsedChunk>,
+    // encoding_order: &Vec<&'static encoding_rs::Encoding>,
+    index: usize,
+) -> Result<String, anyhow::Error> {
+    if index == 0 {
+        return Ok("Zero SPRP Index provided".to_owned());
+    }
+
+    let index = index - 1;
+
+    let bytes = if let Some(ParsedChunk::STRx(x)) = map.get(&ChunkName::STRx) {
+        parse_null_terminated_bytestring_unsigned(
+            &x.strings[x.string_offsets[index as usize] as usize..],
+        )
+    } else if let Some(ParsedChunk::STR(x)) = map.get(&ChunkName::STR) {
+        parse_null_terminated_bytestring_unsigned(
+            &x.strings[x.string_offsets[index as usize] as usize..],
+        )
+    } else {
+        anyhow::bail!("No STR or STRx section")
+    };
+
+    let mut euc_kr_failed = false;
+    let mut euc_kr_characters_decoded_successfully: i64 = 0;
+    let mut euc_kr_characters_len: usize = 0;
+    let mut utf8_failed = false;
+    let mut utf8_characters_decoded_successfully: i64 = 0;
+    let mut utf8_characters_len: usize = 0;
+
+    let mut win1252_total_characters: i64 = 0;
+    let mut win1252_characters_7f_or_above: i64 = 0;
+
+    {
+        let conversion = encoding_rs::EUC_KR.decode(bytes);
+        println!("EUC_KR: {}", conversion.0);
+        euc_kr_characters_len = conversion.0.chars().count();
+
+        if conversion.2 {
+            euc_kr_failed = true;
+        } else {
+            euc_kr_characters_decoded_successfully += conversion
+                .0
+                .chars()
+                .filter(|&c| c >= '가' && c <= '힣')
+                .count() as i64;
+        }
+    }
+
+    {
+        let conversion = encoding_rs::UTF_8.decode(bytes);
+        println!("UTF-8: {}", conversion.0);
+        utf8_characters_len = conversion.0.chars().count();
+
+        if conversion.2 {
+            utf8_failed = true;
+        } else {
+            utf8_characters_decoded_successfully +=
+                conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+        }
+    }
+
+    {
+        let conversion = encoding_rs::WINDOWS_1252.decode(bytes);
+        println!("WIN1252: {}", conversion.0);
+        win1252_total_characters += conversion.0.chars().count() as i64;
+        win1252_characters_7f_or_above +=
+            conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+    }
+
+    // for encoding in encoding_order {
+    //     let decoded = encoding.decode(bytes);
+
+    //     if !decoded.2 {
+    //         return Ok(decoded.0.to_string());
+    //     }
+    // }
+    let uchardet_guessed_encoding = unsafe {
+        let handle = uchardet_bindings::uchardet_new();
+        scopeguard::defer! {
+            uchardet_bindings::uchardet_delete(handle);
+        }
+
+        // filter out color codes because it might be breaking uchardet.
+        let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+
+        if uchardet_bindings::uchardet_handle_data(
+            handle,
+            vec.as_ptr() as *const i8,
+            bytes.len() as uchardet_bindings::size_t,
+        ) != 0
+        {
+            panic!();
+        }
+
+        uchardet_bindings::uchardet_data_end(handle);
+
+        let charset = CStr::from_ptr(uchardet_bindings::uchardet_get_charset(handle))
+            .to_str()?
+            .to_string();
+
+        match charset.as_str() {
+            "UTF-8" => anyhow::Ok(encoding_rs::UTF_8),
+            "UHC" => anyhow::Ok(encoding_rs::EUC_KR),
+            "" | "ASCII" | "ISO-8859-7" | "ISO-8859-2" | "WINDOWS-1252" | "WINDOWS-1250"
+            | "MAC-CENTRALEUROPE" | "WINDOWS-1257" | "ISO-8859-10" | "ISO-8859-1" => {
+                anyhow::Ok(encoding_rs::WINDOWS_1252)
+            }
+            _ => {
+                panic!("{charset}")
+            }
+        }
+    }?;
+
+    let mut encoding_map = std::collections::HashMap::new();
+
+    encoding_map.insert(encoding_rs::UTF_8, 0.0);
+    encoding_map.insert(encoding_rs::EUC_KR, 0.0);
+    encoding_map.insert(encoding_rs::WINDOWS_1252, 0.0);
+
+    *encoding_map.get_mut(uchardet_guessed_encoding).unwrap() += 0.6;
+
+    *encoding_map.get_mut(encoding_rs::EUC_KR).unwrap() +=
+        (euc_kr_characters_decoded_successfully as f64) / (euc_kr_characters_len as f64);
+
+    *encoding_map.get_mut(encoding_rs::WINDOWS_1252).unwrap() -=
+        (win1252_characters_7f_or_above as f64) / (bytes.len() as f64);
+
+    *encoding_map.get_mut(encoding_rs::UTF_8).unwrap() +=
+        (utf8_characters_decoded_successfully as f64) / (utf8_characters_len as f64);
+
+    println!(
+        "\
+        euc_kr_failed: {euc_kr_failed}, \
+        euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, \
+        euc_kr_characters_len: {euc_kr_characters_len}, \
+        utf8_failed: {utf8_failed}, \
+        utf8_characters_decoded_successfully: {utf8_characters_decoded_successfully}, \
+        utf8_characters_len: {utf8_characters_len}, \
+        win1252_characters_7f_or_above: {win1252_characters_7f_or_above}, \
+        win1252_total_characters: {win1252_total_characters}, \
+        \n\
+        uchardet_guess: {uchardet_guessed_encoding:?}, \
+        \n\
+        encoding_map: {encoding_map:?}, str: {}",
+        encoding_rs::WINDOWS_1252.decode(bytes).0
+    );
+
+    if euc_kr_failed {
+        encoding_map.remove(encoding_rs::EUC_KR);
+    }
+
+    if utf8_failed {
+        encoding_map.remove(encoding_rs::UTF_8);
+    }
+
+    let mut encodings: Vec<_> = encoding_map.drain().collect();
+
+    encodings.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap().reverse());
+
+    Ok(encodings[0].0.decode(bytes).0.to_string())
+
+    // TODO: Implement voting idea.
+    // decoding failure = complete veto.
+    // udetchar can vote with some weight.
+    // number of chars successfully decoded specifically in that range can also vote as some weight.
+    // Other strings in the map can also vote with some weight but not sure how to implement that exactly.
+    // Table of exceptions can also make a vote.
+
+    // let win1252_doubt = if win1252_total_characters != 0 {
+    //     (win1252_characters_7f_or_above as f32) / (win1252_total_characters as f32)
+    // } else {
+    //     0.0
+    // };
+
+    // if euc_kr_failed && utf8_failed {
+    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    // } else if euc_kr_failed && utf8_characters_decoded_successfully > 0 {
+    //     if
+    //     /*uchardet_guessed_encoding == encoding_rs::UTF_8 ||*/
+    //     win1252_doubt > 0.1 {
+    //         println!("A");
+    //         Ok(encoding_rs::UTF_8.decode(bytes).0.to_string())
+    //     } else {
+    //         println!("B");
+    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    //     }
+    // } else if utf8_failed && euc_kr_characters_decoded_successfully > 0 {
+    //     if
+    //     /*uchardet_guessed_encoding == encoding_rs::EUC_KR ||*/
+    //     win1252_doubt > 0.1 {
+    //         println!("C. uchardet_guessed_encoding: {uchardet_guessed_encoding:?}, win1252_doubt: {win1252_doubt}");
+    //         Ok(encoding_rs::EUC_KR.decode(bytes).0.to_string())
+    //     } else {
+    //         println!("D. uchardet_guessed_encoding: {uchardet_guessed_encoding:?}, win1252_doubt: {win1252_doubt}");
+    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    //     }
+    // } else {
+    //     println!("E");
+    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    // }
+
+    // if euc_kr_failed {
+    //     if utf8_failed {
+    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    //     }
+    // } else if utf8_failed {
+    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    // } else {
+    // }
+
+    // if euc_kr_failures == 0 && utf8_failures == 0 {
+    //     match charset.as_str() {
+    //         "UTF-8" => Ok(encoding_rs::UTF_8.decode(bytes).0.to_string()),
+    //         "" | "ASCII" | "ISO-8859-7" => {
+    //             Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    //         }
+    //         _ => {
+    //             unreachable!("{charset}")
+    //         }
+    //     }
+    // } else if euc_kr_failures == 0 && euc_kr_characters_decoded_successfully > 0 {
+    //     Ok(encoding_rs::EUC_KR.decode(bytes).0.to_string())
+    // } else if utf8_failures == 0 && utf8_characters_decoded_successfully > 0 {
+    //     Ok(encoding_rs::UTF_8.decode(bytes).0.to_string())
+    // } else {
+    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
+    // }
 }
