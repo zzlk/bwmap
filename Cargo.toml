@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 stormlib-bindings = { path = "../stormlib-bindings" }
 uchardet-bindings = { path = "../uchardet-bindings" }
+compact_enc_det-bindings = { path = "../compact_enc_det-bindings" }
 
 tempfile = "*"
 serde = { version = "*", features = ["derive"] }
