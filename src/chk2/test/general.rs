@@ -1,5 +1,5 @@
 use crate::{
-    chk::{get_string, ChunkName, ParsedChunk},
+    chk::{get_all_string_references, get_string, ChunkName, ParsedChunk},
     get_chk_from_mpq_filename, get_chk_from_mpq_in_memory, merge_raw_chunks, parse_chk,
     parse_merged_chunks,
 };
@@ -29,7 +29,7 @@ fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
         })
         .count();
 
-    assert_eq!(processed_maps, 183);
+    assert_eq!(processed_maps, 184);
 }
 
 #[test]
@@ -265,6 +265,26 @@ fn test_get_chk_from_mpq_in_memory() {
 }
 
 #[test]
+fn test_get_string_on_all_maps() {
+    for_all_test_maps(|e| {
+        let chk = crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
+        let raw_chunks = crate::parse_chk(chk.as_slice());
+        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
+        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+
+        let string_refs = get_all_string_references(&map).unwrap();
+
+        for string_ref in string_refs {
+            println!(
+                "string_ref: {string_ref}, file: {}",
+                e.path().to_string_lossy().to_string()
+            );
+            get_string(&map, string_ref as usize).unwrap();
+        }
+    });
+}
+
+#[test]
 fn test_constrain_encoding_detection_algorithm() {
     let f = |s: &str| {
         let mut root = env!("CARGO_MANIFEST_DIR").to_owned();
@@ -407,6 +427,36 @@ fn test_constrain_encoding_detection_algorithm2() {
             "\r\n\u{3}고스트는 한번에 둘 이상 생산할수 없습니다.\r\n",
             "Can u stop 1 unit (stack) (1).scx",
             25,
+        ),
+        (
+            "마린키우기 Let It Snow",
+            "마린키우기 Let It Snow - 3.5.scx",
+            1,
+        ),
+        (
+            "제가 처음로 제작하는 맵 입니다.\r\n맵 지형 제작 -Men- 감사합니다.\r\nMade By: Lucas Spia\r\nThanks to \r\n-Men- ,Mininii\r\n",
+            "마린키우기 Let It Snow - 3.5.scx",
+            2,
+        ),
+        (
+            "",
+            "마린키우기 Let It Snow - 3.5.scx",
+            3,
+        ),
+        (
+            "마린키우기 Snow 3.5 정식버전",
+            "마린키우기 Let It Snow - 3.5.scx",
+            4,
+        ),
+        (
+            "적 데몬 3.5 정식버전",
+            "마린키우기 Let It Snow - 3.5.scx",
+            5,
+        ),
+        (
+            "Snow 3.5 정식버전",
+            "마린키우기 Let It Snow - 3.5.scx",
+            6,
         ),
     ];
 

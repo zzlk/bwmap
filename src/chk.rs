@@ -1379,16 +1379,32 @@ pub(crate) fn get_string(
     let index = index - 1;
 
     let bytes = if let Some(ParsedChunk::STRx(x)) = map.get(&ChunkName::STRx) {
+        if index as usize >= x.string_offsets.len() {
+            return Ok("Out of bounds access".to_owned());
+        }
+        if x.string_offsets[index as usize] as usize >= x.strings.len() {
+            return Ok("Out of bounds access".to_owned());
+        }
         parse_null_terminated_bytestring_unsigned(
             &x.strings[x.string_offsets[index as usize] as usize..],
         )
     } else if let Some(ParsedChunk::STR(x)) = map.get(&ChunkName::STR) {
+        if index as usize >= x.string_offsets.len() {
+            return Ok("Out of bounds access".to_owned());
+        }
+        if x.string_offsets[index as usize] as usize >= x.strings.len() {
+            return Ok("Out of bounds access".to_owned());
+        }
         parse_null_terminated_bytestring_unsigned(
             &x.strings[x.string_offsets[index as usize] as usize..],
         )
     } else {
         anyhow::bail!("No STR or STRx section")
     };
+
+    if bytes.len() == 0 {
+        return Ok("".to_owned());
+    }
 
     let mut euc_kr_failed = false;
     let mut euc_kr_characters_decoded_successfully: i64 = 0;
@@ -1437,13 +1453,6 @@ pub(crate) fn get_string(
             conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
     }
 
-    // for encoding in encoding_order {
-    //     let decoded = encoding.decode(bytes);
-
-    //     if !decoded.2 {
-    //         return Ok(decoded.0.to_string());
-    //     }
-    // }
     let uchardet_guessed_encoding = unsafe {
         let handle = uchardet_bindings::uchardet_new();
         scopeguard::defer! {
@@ -1456,7 +1465,7 @@ pub(crate) fn get_string(
         if uchardet_bindings::uchardet_handle_data(
             handle,
             vec.as_ptr() as *const i8,
-            bytes.len() as uchardet_bindings::size_t,
+            vec.len() as uchardet_bindings::size_t,
         ) != 0
         {
             panic!();
@@ -1475,9 +1484,12 @@ pub(crate) fn get_string(
             | "MAC-CENTRALEUROPE" | "WINDOWS-1257" | "ISO-8859-10" | "ISO-8859-1" => {
                 anyhow::Ok(Some(encoding_rs::WINDOWS_1252))
             }
-            "" | "IBM852" => anyhow::Ok(None),
+            "" | "IBM852" | "VISCII" | "ISO-8859-13" | "ISO-8859-9" | "ISO-8859-3" => {
+                anyhow::Ok(None)
+            }
             _ => {
-                panic!("{charset}")
+                anyhow::Ok(None)
+                //panic!("{charset}")
             }
         }
     }?;
@@ -1513,9 +1525,11 @@ pub(crate) fn get_string(
                 | compact_enc_det_bindings::Encoding_MSFT_CP1252
                 | compact_enc_det_bindings::Encoding_ASCII_7BIT => Some(encoding_rs::WINDOWS_1252),
                 compact_enc_det_bindings::Encoding_CHINESE_GB
-                | compact_enc_det_bindings::Encoding_CHINESE_BIG5 => None,
+                | compact_enc_det_bindings::Encoding_CHINESE_BIG5
+                | compact_enc_det_bindings::Encoding_JAPANESE_EUC_JP => None,
                 _ => {
-                    panic!("encoding panic'd on: {encoding}")
+                    None
+                    //panic!("encoding panic'd on: {encoding}")
                 }
             },
             is_reliable,
@@ -1591,64 +1605,4 @@ pub(crate) fn get_string(
     // number of chars successfully decoded specifically in that range can also vote as some weight.
     // Other strings in the map can also vote with some weight but not sure how to implement that exactly.
     // Table of exceptions can also make a vote.
-
-    // let win1252_doubt = if win1252_total_characters != 0 {
-    //     (win1252_characters_7f_or_above as f32) / (win1252_total_characters as f32)
-    // } else {
-    //     0.0
-    // };
-
-    // if euc_kr_failed && utf8_failed {
-    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    // } else if euc_kr_failed && utf8_characters_decoded_successfully > 0 {
-    //     if
-    //     /*uchardet_guessed_encoding == encoding_rs::UTF_8 ||*/
-    //     win1252_doubt > 0.1 {
-    //         println!("A");
-    //         Ok(encoding_rs::UTF_8.decode(bytes).0.to_string())
-    //     } else {
-    //         println!("B");
-    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    //     }
-    // } else if utf8_failed && euc_kr_characters_decoded_successfully > 0 {
-    //     if
-    //     /*uchardet_guessed_encoding == encoding_rs::EUC_KR ||*/
-    //     win1252_doubt > 0.1 {
-    //         println!("C. uchardet_guessed_encoding: {uchardet_guessed_encoding:?}, win1252_doubt: {win1252_doubt}");
-    //         Ok(encoding_rs::EUC_KR.decode(bytes).0.to_string())
-    //     } else {
-    //         println!("D. uchardet_guessed_encoding: {uchardet_guessed_encoding:?}, win1252_doubt: {win1252_doubt}");
-    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    //     }
-    // } else {
-    //     println!("E");
-    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    // }
-
-    // if euc_kr_failed {
-    //     if utf8_failed {
-    //         Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    //     }
-    // } else if utf8_failed {
-    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    // } else {
-    // }
-
-    // if euc_kr_failures == 0 && utf8_failures == 0 {
-    //     match charset.as_str() {
-    //         "UTF-8" => Ok(encoding_rs::UTF_8.decode(bytes).0.to_string()),
-    //         "" | "ASCII" | "ISO-8859-7" => {
-    //             Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    //         }
-    //         _ => {
-    //             unreachable!("{charset}")
-    //         }
-    //     }
-    // } else if euc_kr_failures == 0 && euc_kr_characters_decoded_successfully > 0 {
-    //     Ok(encoding_rs::EUC_KR.decode(bytes).0.to_string())
-    // } else if utf8_failures == 0 && utf8_characters_decoded_successfully > 0 {
-    //     Ok(encoding_rs::UTF_8.decode(bytes).0.to_string())
-    // } else {
-    //     Ok(encoding_rs::WINDOWS_1252.decode(bytes).0.to_string())
-    // }
 }
