@@ -1469,17 +1469,58 @@ pub(crate) fn get_string(
             .to_string();
 
         match charset.as_str() {
-            "UTF-8" => anyhow::Ok(encoding_rs::UTF_8),
-            "UHC" => anyhow::Ok(encoding_rs::EUC_KR),
-            "" | "ASCII" | "ISO-8859-7" | "ISO-8859-2" | "WINDOWS-1252" | "WINDOWS-1250"
+            "UTF-8" => anyhow::Ok(Some(encoding_rs::UTF_8)),
+            "UHC" => anyhow::Ok(Some(encoding_rs::EUC_KR)),
+            "ASCII" | "ISO-8859-7" | "ISO-8859-2" | "WINDOWS-1252" | "WINDOWS-1250"
             | "MAC-CENTRALEUROPE" | "WINDOWS-1257" | "ISO-8859-10" | "ISO-8859-1" => {
-                anyhow::Ok(encoding_rs::WINDOWS_1252)
+                anyhow::Ok(Some(encoding_rs::WINDOWS_1252))
             }
+            "" | "IBM852" => anyhow::Ok(None),
             _ => {
                 panic!("{charset}")
             }
         }
     }?;
+
+    let (compact_enc_det_encoding_guess, compact_enc_det_encoding_guess_is_reliable) = unsafe {
+        // filter out color codes because it might be breaking uchardet.
+        let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+
+        let mut bytes_consumed = 0;
+        let mut is_reliable = false;
+
+        let encoding = compact_enc_det_bindings::CompactEncDet_DetectEncoding(
+            vec.as_ptr() as *const i8,
+            vec.len() as i32,
+            0 as *const i8,
+            0 as *const i8,
+            0 as *const i8,
+            compact_enc_det_bindings::Encoding_UNKNOWN_ENCODING as i32,
+            compact_enc_det_bindings::Language_UNKNOWN_LANGUAGE,
+            compact_enc_det_bindings::CompactEncDet_TextCorpusType_WEB_CORPUS,
+            true,
+            &mut bytes_consumed,
+            &mut is_reliable,
+        );
+
+        println!("is_reliable: {is_reliable}, bytes_consumed: {bytes_consumed}");
+
+        (
+            match encoding {
+                compact_enc_det_bindings::Encoding_UTF8 => Some(encoding_rs::UTF_8),
+                compact_enc_det_bindings::Encoding_KOREAN_EUC_KR => Some(encoding_rs::EUC_KR),
+                compact_enc_det_bindings::Encoding_ISO_8859_1
+                | compact_enc_det_bindings::Encoding_MSFT_CP1252
+                | compact_enc_det_bindings::Encoding_ASCII_7BIT => Some(encoding_rs::WINDOWS_1252),
+                compact_enc_det_bindings::Encoding_CHINESE_GB
+                | compact_enc_det_bindings::Encoding_CHINESE_BIG5 => None,
+                _ => {
+                    panic!("encoding panic'd on: {encoding}")
+                }
+            },
+            is_reliable,
+        )
+    };
 
     let mut encoding_map = std::collections::HashMap::new();
 
@@ -1487,7 +1528,19 @@ pub(crate) fn get_string(
     encoding_map.insert(encoding_rs::EUC_KR, 0.0);
     encoding_map.insert(encoding_rs::WINDOWS_1252, 0.0);
 
-    *encoding_map.get_mut(uchardet_guessed_encoding).unwrap() += 0.6;
+    if let Some(uchardet_guessed_encoding) = uchardet_guessed_encoding {
+        *encoding_map.get_mut(uchardet_guessed_encoding).unwrap() += 0.7;
+    }
+
+    if let Some(compact_enc_det_encoding_guess) = compact_enc_det_encoding_guess {
+        *encoding_map
+            .get_mut(compact_enc_det_encoding_guess)
+            .unwrap() += if compact_enc_det_encoding_guess_is_reliable {
+            0.7
+        } else {
+            0.2
+        };
+    }
 
     *encoding_map.get_mut(encoding_rs::EUC_KR).unwrap() +=
         (euc_kr_characters_decoded_successfully as f64) / (euc_kr_characters_len as f64);
@@ -1499,7 +1552,7 @@ pub(crate) fn get_string(
         (utf8_characters_decoded_successfully as f64) / (utf8_characters_len as f64);
 
     println!(
-        "\
+        "\n\
         euc_kr_failed: {euc_kr_failed}, \
         euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, \
         euc_kr_characters_len: {euc_kr_characters_len}, \
@@ -1511,7 +1564,10 @@ pub(crate) fn get_string(
         \n\
         uchardet_guess: {uchardet_guessed_encoding:?}, \
         \n\
-        encoding_map: {encoding_map:?}, str: {}",
+        compact_enc_det_encoding_guess: {compact_enc_det_encoding_guess:?}, \
+        \n\
+        encoding_map: {encoding_map:?}, str: {}\n\
+        ------------------------------------------------------------------------------------",
         encoding_rs::WINDOWS_1252.decode(bytes).0
     );
 
