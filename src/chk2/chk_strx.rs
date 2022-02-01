@@ -27,8 +27,7 @@ pub(crate) fn parse_strx(sec: &[u8]) -> Result<ChkStrx, anyhow::Error> {
     let number_of_strings: &u32 = slicer.extract_ref()?;
 
     anyhow::ensure!(sec.len() >= 2);
-    let string_offsets: &[u32] =
-        slicer.extract_slice(min(*number_of_strings as usize, (sec.len() - 4) / 4))?;
+    let string_offsets: &[u32] = slicer.extract_rest_as_slice_lax()?;
 
     anyhow::ensure!(sec.len() >= 2 + string_offsets.len());
     let strings: &[u8] = sec;

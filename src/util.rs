@@ -169,6 +169,19 @@ pub(crate) fn parse_null_terminated_string(s: &[i8]) -> &str {
     std::str::from_utf8(reinterpret_signed_slice(&s[0..index])).unwrap()
 }
 
+pub(crate) fn parse_null_terminated_bytestring_unsigned(s: &[u8]) -> &[u8] {
+    let mut index = 0;
+    for &c in s {
+        if c == 0 {
+            break;
+        }
+
+        index += 1;
+    }
+
+    &s[0..index]
+}
+
 // pub(crate) fn reinterpret_slice2<T: Copy + Sized>(s: &[i8]) -> &[T] {
 //     if s.len() % std::mem::size_of::<T>() != 0 {
 //         panic!();

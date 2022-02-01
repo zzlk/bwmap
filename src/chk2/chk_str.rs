@@ -23,8 +23,7 @@ pub(crate) fn parse_str(sec: &[u8]) -> Result<ChkStr, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     let number_of_strings = slicer.extract_ref_lax()?;
-    let string_offsets: &[u16] =
-        slicer.extract_slice_lax(*number_of_strings.unwrap_or(&0) as usize)?;
+    let string_offsets: &[u16] = slicer.extract_rest_as_slice_lax()?;
     let strings: &[u8] = sec;
 
     Ok(ChkStr {
