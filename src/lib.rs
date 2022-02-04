@@ -11,6 +11,7 @@ pub use chk::merge_raw_chunks;
 pub use chk::merge_rawchunks;
 pub use chk::parse_chk;
 pub use chk::parse_merged_chunks;
+pub use chk::parse_triggers;
 pub use chk::ChkDump;
 pub use chk::ChunkName;
 pub use chk::ParsedChunk;
