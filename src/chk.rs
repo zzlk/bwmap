@@ -74,7 +74,7 @@ use crate::{
         chk_tecx::{parse_tecx, ChkTecx},
         chk_thg2::{parse_thg2, ChkThg2},
         chk_tile::{parse_tile, ChkTile},
-        chk_trig::{parse_trig, ChkTrig},
+        chk_trig::{parse_trig, ChkTrig, ChkTrigAction, ChkTrigCondition},
         chk_type::{parse_type, ChkType},
         chk_unis::{parse_unis, ChkUnis},
         chk_unit::{parse_unit, ChkUnit},
@@ -1605,4 +1605,562 @@ pub(crate) fn get_string(
     // number of chars successfully decoded specifically in that range can also vote as some weight.
     // Other strings in the map can also vote with some weight but not sure how to implement that exactly.
     // Table of exceptions can also make a vote.
+}
+
+#[derive(Debug, Serialize)]
+pub enum ResourceType {
+    Unknown(i64),
+    Ore,
+    Gas,
+    OreAndGas,
+}
+
+fn parse_resource_type(resource_type: u8) -> ResourceType {
+    match resource_type {
+        0 => ResourceType::Ore,
+        1 => ResourceType::Gas,
+        10 => ResourceType::OreAndGas,
+        _ => ResourceType::Unknown(resource_type as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum NumericComparison {
+    Unknown(i64),
+    AtLeast,
+    AtMost,
+    Exactly,
+}
+
+fn parse_numeric_comparison(numeric_comparison: u8) -> NumericComparison {
+    match numeric_comparison {
+        0 => NumericComparison::AtLeast,
+        1 => NumericComparison::AtMost,
+        10 => NumericComparison::Exactly,
+        _ => NumericComparison::Unknown(numeric_comparison as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum NumberModifier {
+    Unknown(i64),
+    SetTo,
+    Add,
+    Subtract,
+}
+
+fn parse_number_modifier(modifier: u8) -> NumberModifier {
+    match modifier {
+        7 => NumberModifier::SetTo,
+        8 => NumberModifier::Add,
+        9 => NumberModifier::Subtract,
+        _ => NumberModifier::Unknown(modifier as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum ScoreType {
+    Unknown(i64),
+    Total,
+    Units,
+    Buildings,
+    UnitsAndBuildings,
+    Kills,
+    Razings,
+    KillsAndRazings,
+    Custom,
+}
+
+fn parse_score_type(score_type: u8) -> ScoreType {
+    match score_type {
+        0 => ScoreType::Total,
+        1 => ScoreType::Units,
+        2 => ScoreType::Buildings,
+        3 => ScoreType::UnitsAndBuildings,
+        4 => ScoreType::Kills,
+        5 => ScoreType::Razings,
+        6 => ScoreType::KillsAndRazings,
+        7 => ScoreType::Custom,
+        _ => ScoreType::Unknown(score_type as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum SwitchState {
+    Unknown(i64),
+    Set,
+    Cleared,
+}
+
+fn parse_switch_state(switch_state: u8) -> SwitchState {
+    match switch_state {
+        2 => SwitchState::Set,
+        3 => SwitchState::Cleared,
+        _ => SwitchState::Unknown(switch_state as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum ActionState {
+    Unknown(i64),
+    EnabledOrSet,
+    DisabledOrClear,
+    ToggleOrToggle,
+    RandomizeSwitch,
+}
+
+fn parse_action_state(action_state: u8) -> ActionState {
+    match action_state {
+        4 => ActionState::EnabledOrSet,
+        5 => ActionState::DisabledOrClear,
+        6 => ActionState::ToggleOrToggle,
+        11 => ActionState::RandomizeSwitch,
+        _ => ActionState::Unknown(action_state as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub enum Group {
+    Unknown(i64),
+    Player1,
+    Player2,
+    Player3,
+    Player4,
+    Player5,
+    Player6,
+    Player7,
+    Player8,
+    Player9,
+    Player10,
+    Player11,
+    Player12,
+    None,
+    CurrentPlayer,
+    Foes,
+    Allies,
+    NeutralPlayers,
+    AllPlayers,
+    Force1,
+    Force2,
+    Force3,
+    Force4,
+    Unused1,
+    Unused2,
+    Unused3,
+    Unused4,
+    NonAlliedVictoryPlayers,
+}
+
+fn parse_group(group: u32) -> Group {
+    match group {
+        0 => Group::Player1,
+        1 => Group::Player2,
+        2 => Group::Player3,
+        3 => Group::Player4,
+        4 => Group::Player5,
+        5 => Group::Player6,
+        6 => Group::Player7,
+        7 => Group::Player8,
+        8 => Group::Player9,
+        9 => Group::Player10,
+        10 => Group::Player11,
+        11 => Group::Player12,
+        12 => Group::None,
+        13 => Group::CurrentPlayer,
+        14 => Group::Foes,
+        15 => Group::Allies,
+        16 => Group::NeutralPlayers,
+        17 => Group::AllPlayers,
+        18 => Group::Force1,
+        19 => Group::Force2,
+        20 => Group::Force3,
+        21 => Group::Force4,
+        22 => Group::Unused1,
+        23 => Group::Unused2,
+        24 => Group::Unused3,
+        25 => Group::Unused4,
+        26 => Group::NonAlliedVictoryPlayers,
+        _ => Group::Unknown(group as i64),
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+pub enum Condition {
+    Unknown {
+        id: i64,
+        raw: ChkTrigCondition,
+    },
+    // 0
+    NoCondition,
+    // 1
+    CountdownTimer {
+        comparison: NumericComparison,
+        number: i64,
+    },
+    // 2
+    Command {
+        player: Group,
+        comparison: NumericComparison,
+        unit_type: i64,
+    },
+    // 3
+    Bring {
+        player: Group,
+        comparison: NumericComparison,
+        unit_type: i64,
+        location: i64,
+        number: i64,
+    },
+    // 4
+    Accumulate {
+        player: Group,
+        comparison: NumericComparison,
+        unit_type: i64,
+        number: i64,
+        resource_type: ResourceType,
+    },
+    // 5
+    Kill {
+        player: Group,
+        comparison: NumericComparison,
+        unit_type: i64,
+        number: i64,
+    },
+    // 6
+    CommandsTheMost {
+        unit_type: i64,
+    },
+    // 7
+    CommandsTheMostAt {
+        unit_type: i64,
+        location: i64,
+    },
+    // 8
+    MostKills {
+        unit_type: i64,
+    },
+    // 9
+    HighestScore {
+        score_type: ScoreType,
+    },
+    // 10
+    MostResources {
+        resource_type: ResourceType,
+    },
+    // 11
+    Switch {
+        switch: i64,
+        switch_state: SwitchState,
+    },
+    // 12
+    ElapsedTime {
+        comparison: NumericComparison,
+        number: i64,
+    },
+    // 13
+    DataIsAMissionBriefing,
+    // 14
+    Opponents {
+        player: Group,
+        comparison: NumericComparison,
+        number: i64,
+    },
+    // 15
+    Deaths {
+        player: Group,
+        comparison: NumericComparison,
+        unit_type: i64,
+        number: i64,
+    },
+    // 16
+    CommandsTheLeast {
+        unit_type: i64,
+    },
+    // 17
+    CommandsTheLeastAt {
+        unit_type: i64,
+        location: i64,
+    },
+    // 18
+    LeastKills {
+        unit_type: i64,
+    },
+    // 19
+    LowestScore {
+        score_type: ScoreType,
+    },
+    // 20
+    LeastResources {
+        resource_type: ResourceType,
+    },
+    // 21
+    Score {
+        player: Group,
+        comparison: NumericComparison,
+        score_type: ScoreType,
+        number: i64,
+    },
+    // 22
+    Always,
+    // 23
+    Never,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+pub enum Action {
+    Unknown {
+        id: i64,
+        raw: ChkTrigAction,
+    },
+    NoAction,
+    Victory,
+    Defeat,
+    PreserveTrigger,
+    Wait {
+        time: i64,
+    },
+    PauseGame,
+    UnpauseGame,
+    // TODO: a lot of other actions
+    SetDeaths {
+        player: Group,
+        unit_type: i64,
+        number: i64,
+        modifier: NumberModifier,
+    },
+    // TODO: a lot of other actions
+}
+
+#[derive(Debug, Serialize)]
+pub struct Trigger {
+    pub conditions: Vec<Condition>,
+    pub actions: Vec<Action>,
+    pub execution_flags: u32,
+    pub activated_for_players: [u8; 27],
+    pub index_of_current_action: u8,
+}
+
+pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
+    let mut ret = Vec::new();
+
+    if let Some(ParsedChunk::TRIG(trig)) = map.get(&ChunkName::TRIG) {
+        for trigger in trig.triggers {
+            let mut conditions = Vec::new();
+            for condition in trigger.conditions {
+                match condition.condition {
+                    0 => {
+                        //conditions.push(Condition::NoCondition)
+                    }
+                    1 => {
+                        conditions.push(Condition::CountdownTimer {
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    2 => {
+                        conditions.push(Condition::Command {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            unit_type: condition.unit_id as i64,
+                        });
+                    }
+                    3 => {
+                        conditions.push(Condition::Bring {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            unit_type: condition.unit_id as i64,
+                            location: condition.location as i64,
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    4 => {
+                        conditions.push(Condition::Accumulate {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            unit_type: condition.unit_id as i64,
+                            number: condition.qualified_number as i64,
+                            resource_type: parse_resource_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                        });
+                    }
+                    5 => {
+                        conditions.push(Condition::Kill {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            unit_type: condition.unit_id as i64,
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    6 => {
+                        conditions.push(Condition::CommandsTheMost {
+                            unit_type: condition.unit_id as i64,
+                        });
+                    }
+                    7 => {
+                        conditions.push(Condition::CommandsTheMostAt {
+                            unit_type: condition.unit_id as i64,
+                            location: condition.location as i64,
+                        });
+                    }
+                    8 => {
+                        conditions.push(Condition::MostKills {
+                            unit_type: condition.unit_id as i64,
+                        });
+                    }
+                    9 => {
+                        conditions.push(Condition::HighestScore {
+                            score_type: parse_score_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                        });
+                    }
+                    10 => {
+                        conditions.push(Condition::MostResources {
+                            resource_type: parse_resource_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                        });
+                    }
+                    11 => {
+                        conditions.push(Condition::Switch {
+                            switch: condition.resource_type_or_score_type_or_switch_number as i64,
+                            switch_state: parse_switch_state(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                        });
+                    }
+                    12 => {
+                        conditions.push(Condition::ElapsedTime {
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    13 => {
+                        conditions.push(Condition::DataIsAMissionBriefing);
+                    }
+                    14 => {
+                        conditions.push(Condition::Opponents {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    15 => {
+                        conditions.push(Condition::Deaths {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            unit_type: condition.unit_id as i64,
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    16 => {
+                        conditions.push(Condition::CommandsTheLeast {
+                            unit_type: condition.unit_id as i64,
+                        });
+                    }
+                    17 => {
+                        conditions.push(Condition::CommandsTheLeastAt {
+                            unit_type: condition.unit_id as i64,
+                            location: condition.location as i64,
+                        });
+                    }
+                    18 => {
+                        conditions.push(Condition::LeastKills {
+                            unit_type: condition.unit_id as i64,
+                        });
+                    }
+                    19 => {
+                        conditions.push(Condition::LowestScore {
+                            score_type: parse_score_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                        });
+                    }
+                    20 => {
+                        conditions.push(Condition::LeastResources {
+                            resource_type: parse_resource_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                        });
+                    }
+                    21 => {
+                        conditions.push(Condition::Score {
+                            player: parse_group(condition.group),
+                            comparison: parse_numeric_comparison(
+                                condition.numeric_comparison_or_switch_state,
+                            ),
+                            score_type: parse_score_type(
+                                condition.resource_type_or_score_type_or_switch_number,
+                            ),
+                            number: condition.qualified_number as i64,
+                        });
+                    }
+                    22 => {
+                        conditions.push(Condition::Always);
+                    }
+                    23 => {
+                        conditions.push(Condition::Never);
+                    }
+                    _ => {
+                        conditions.push(Condition::Unknown {
+                            id: condition.condition as i64,
+                            raw: condition,
+                        });
+                    }
+                }
+            }
+
+            let mut actions = Vec::new();
+            for action in trigger.actions {
+                match action.action {
+                    0 => {
+                        //actions.push(Action::NoAction)
+                    }
+                    45 => {
+                        actions.push(Action::SetDeaths {
+                            player: parse_group(action.first_or_only_group_or_player_affected),
+                            unit_type: action.unit_type_or_score_type_or_resource_type_or_alliance_status as i64,
+                            number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
+                            modifier: parse_number_modifier(action.number_of_units_or_action_state_or_unit_order_or_number_modifier),
+                        });
+                    }
+                    _ => {
+                        actions.push(Action::Unknown {
+                            id: action.action as i64,
+                            raw: action,
+                        });
+                    }
+                }
+            }
+
+            ret.push(Trigger {
+                conditions,
+                actions,
+                execution_flags: trigger.execution_flags,
+                activated_for_players: trigger.executed_for_player,
+                index_of_current_action: trigger.current_action,
+            });
+        }
+    }
+
+    ret
 }
