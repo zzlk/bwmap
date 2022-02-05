@@ -43,9 +43,306 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::{
-    chk::get_string,
+    chk::{get_location_name, get_string},
     chk2::chk_trig::{ChkTrigAction, ChkTrigCondition},
+    util::reinterpret_as_slice,
     ChunkName, ParsedChunk,
+};
+
+static AI_SCRIPT_MAP: phf::Map<&'static [u8], &'static str> = phf::phf_map! {
+    b"TMCu" => "Terran Custom Level",
+    b"ZMCu" => "Zerg Custom Level",
+    b"PMCu" => "Protoss Custom Level",
+    b"TMCx" => "Terran Expansion Custom Level",
+    b"ZMCx" => "Zerg Expansion Custom Level",
+    b"PMCx" => "Protoss Expansion Custom Level",
+    b"TLOf" => "Terran Campaign Easy",
+    b"TMED" => "Terran Campaign Medium",
+    b"THIf" => "Terran Campaign Difficult",
+    b"TSUP" => "Terran Campaign Insane",
+    b"TARE" => "Terran Campaign Area Town",
+    b"ZLOf" => "Zerg Campaign Easy",
+    b"ZMED" => "Zerg Campaign Medium",
+    b"ZHIf" => "Zerg Campaign Difficult",
+    b"ZSUP" => "Zerg Campaign Insane",
+    b"ZARE" => "Zerg Campaign Area Town",
+    b"PLOf" => "Protoss Campaign Easy",
+    b"PMED" => "Protoss Campaign Medium",
+    b"PHIf" => "Protoss Campaign Difficult",
+    b"PSUP" => "Protoss Campaign Insane",
+    b"PARE" => "Protoss Campaign Area Town",
+    b"TLOx" => "Expansion Terran Campaign Easy",
+    b"TMEx" => "Expansion Terran Campaign Medium",
+    b"THIx" => "Expansion Terran Campaign Difficult",
+    b"TSUx" => "Expansion Terran Campaign Insane",
+    b"TARx" => "Expansion Terran Campaign Area Town",
+    b"ZLOx" => "Expansion Zerg Campaign Easy",
+    b"ZMEx" => "Expansion Zerg Campaign Medium",
+    b"ZHIx" => "Expansion Zerg Campaign Difficult",
+    b"ZSUx" => "Expansion Zerg Campaign Insane",
+    b"ZARx" => "Expansion Zerg Campaign Area Town",
+    b"PLOx" => "Expansion Protoss Campaign Easy",
+    b"PMEx" => "Expansion Protoss Campaign Medium",
+    b"PHIx" => "Expansion Protoss Campaign Difficult",
+    b"PSUx" => "Expansion Protoss Campaign Insane",
+    b"PARx" => "Expansion Protoss Campaign Area Town",
+    b"Suic" => "Send All Units on Strategic Suicide Missions",
+    b"SuiR" => "Send All Units on Random Suicide Missions",
+    b"Rscu" => "Switch Computer Player to Rescue Passive",
+    b"+Vi0" => "Turn ON Shared Vision for Player 1",
+    b"+Vi1" => "Turn ON Shared Vision for Player 2",
+    b"+Vi2" => "Turn ON Shared Vision for Player 3",
+    b"+Vi3" => "Turn ON Shared Vision for Player 4",
+    b"+Vi4" => "Turn ON Shared Vision for Player 5",
+    b"+Vi5" => "Turn ON Shared Vision for Player 6",
+    b"+Vi6" => "Turn ON Shared Vision for Player 7",
+    b"+Vi7" => "Turn ON Shared Vision for Player 8",
+    b"-Vi0" => "Turn OFF Shared Vision for Player 1",
+    b"-Vi1" => "Turn OFF Shared Vision for Player 2",
+    b"-Vi2" => "Turn OFF Shared Vision for Player 3",
+    b"-Vi3" => "Turn OFF Shared Vision for Player 4",
+    b"-Vi4" => "Turn OFF Shared Vision for Player 5",
+    b"-Vi5" => "Turn OFF Shared Vision for Player 6",
+    b"-Vi6" => "Turn OFF Shared Vision for Player 7",
+    b"-Vi7" => "Turn OFF Shared Vision for Player 8",
+    b"MvTe" => "Move Dark Templars to Region",
+    b"ClrC" => "Clear Previous Combat Data",
+    b"Enmy" => "Set Player to Enemy",
+    b"y   " => "Set Player to Ally",
+    b"VluA" => "Value This Area Higher",
+    b"EnBk" => "Enter Closest Bunker",
+    b"StTg" => "Set Generic Command Target",
+    b"StPt" => "Make These Units Patrol",
+    b"EnTr" => "Enter Transport",
+    b"ExTr" => "Exit Transport",
+    b"NuHe" => "AI Nuke Here",
+    b"HaHe" => "AI Harass Here",
+    b"JYDg" => "Set Unit Order To:Junk Yard Dog",
+    b"DWHe" => "Disruption Web Here",
+    b"ReHe" => "Recall Here",
+    b"Ter3" => "Terran 3 - Zerg Town",
+    b"Ter5" => "Terran 5 - Terran Main Town",
+    b"Te5H" => "Terran 5 - Terran Harvest Town",
+    b"Ter6" => "Terran 6 - Air Attack Zerg",
+    b"Te6b" => "Terran 6 - Ground Attack Zerg",
+    b"Te6c" => "Terran 6 - Zerg Support Town",
+    b"Ter7" => "Terran 7 - Bottom Zerg Town",
+    b"Te7s" => "Terran 7 - Right Zerg Town",
+    b"Te7m" => "Terran 7 - Middle Zerg Town",
+    b"Ter8" => "Terran 8 - Confederate Town",
+    b"Tr9L" => "Terran 9 - Light Attack",
+    b"Tr9H" => "Terran 9 - Heavy Attack",
+    b"Te10" => "Terran 10 - Confederate Towns",
+    b"T11z" => "Terran 11 - Zerg Town",
+    b"T11a" => "Terran 11 - Lower Protoss Town",
+    b"T11b" => "Terran 11 - Upper Protoss Town",
+    b"T12N" => "Terran 12 - Nuke Town",
+    b"T12P" => "Terran 12 - Phoenix Town",
+    b"T12T" => "Terran 12 - Tank Town",
+    b"TED1" => "Terran 1 - Electronic Distribution",
+    b"TED2" => "Terran 2 - Electronic Distribution",
+    b"TED3" => "Terran 3 - Electronic Distribution",
+    b"TSW1" => "Terran 1 - Shareware",
+    b"TSW2" => "Terran 2 - Shareware",
+    b"TSW3" => "Terran 3 - Shareware",
+    b"TSW4" => "Terran 4 - Shareware",
+    b"TSW5" => "Terran 5 - Shareware",
+    b"Zer1" => "Zerg 1 - Terran Town",
+    b"Zer2" => "Zerg 2 - Protoss Town",
+    b"Zer3" => "Zerg 3 - Terran Town",
+    b"Zer4" => "Zerg 4 - Right Terran Town",
+    b"Ze4S" => "Zerg 4 - Lower Terran Town",
+    b"Zer6" => "Zerg 6 - Protoss Town",
+    b"Zr7a" => "Zerg 7 - Air Town",
+    b"Zr7g" => "Zerg 7 - Ground Town",
+    b"Zr7s" => "Zerg 7 - Support Town",
+    b"Zer8" => "Zerg 8 - Scout Town",
+    b"Ze8T" => "Zerg 8 - Templar Town",
+    b"Zer9" => "Zerg 9 - Teal Protoss",
+    b"Z9ly" => "Zerg 9 - Left Yellow Protoss",
+    b"Z9ry" => "Zerg 9 - Right Yellow Protoss",
+    b"Z9lo" => "Zerg 9 - Left Orange Protoss",
+    b"Z9ro" => "Zerg 9 - Right Orange Protoss",
+    b"Z10a" => "Zerg 10 - Left Teal (Attack",
+    b"Z10b" => "Zerg 10 - Right Teal (Support",
+    b"Z10c" => "Zerg 10 - Left Yellow (Support",
+    b"Z10d" => "Zerg 10 - Right Yellow (Attack",
+    b"Z10e" => "Zerg 10 - Red Protoss",
+    b"Pro1" => "Protoss 1 - Zerg Town",
+    b"Pro2" => "Protoss 2 - Zerg Town",
+    b"Pr3R" => "Protoss 3 - Air Zerg Town",
+    b"Pr3G" => "Protoss 3 - Ground Zerg Town",
+    b"Pro4" => "Protoss 4 - Zerg Town",
+    b"Pr5I" => "Protoss 5 - Zerg Town Island",
+    b"Pr5B" => "Protoss 5 - Zerg Town Base",
+    b"Pro7" => "Protoss 7 - Left Protoss Town",
+    b"Pr7B" => "Protoss 7 - Right Protoss Town",
+    b"Pr7S" => "Protoss 7 - Shrine Protoss",
+    b"Pro8" => "Protoss 8 - Left Protoss Town",
+    b"Pr8B" => "Protoss 8 - Right Protoss Town",
+    b"Pr8D" => "Protoss 8 - Protoss Defenders",
+    b"Pro9" => "Protoss 9 - Ground Zerg",
+    b"Pr9W" => "Protoss 9 - Air Zerg",
+    b"Pr9Y" => "Protoss 9 - Spell Zerg",
+    b"Pr10" => "Protoss 10 - Mini-Towns",
+    b"P10C" => "Protoss 10 - Mini-Town Master",
+    b"P10o" => "Protoss 10 - Overmind Defenders",
+    b"PB1A" => "Brood Wars Protoss 1 - Town A",
+    b"PB1B" => "Brood Wars Protoss 1 - Town B",
+    b"PB1C" => "Brood Wars Protoss 1 - Town C",
+    b"PB1D" => "Brood Wars Protoss 1 - Town D",
+    b"PB1E" => "Brood Wars Protoss 1 - Town E",
+    b"PB1F" => "Brood Wars Protoss 1 - Town F",
+    b"PB2A" => "Brood Wars Protoss 2 - Town A",
+    b"PB2B" => "Brood Wars Protoss 2 - Town B",
+    b"PB2C" => "Brood Wars Protoss 2 - Town C",
+    b"PB2D" => "Brood Wars Protoss 2 - Town D",
+    b"PB2E" => "Brood Wars Protoss 2 - Town E",
+    b"PB2F" => "Brood Wars Protoss 2 - Town F",
+    b"PB3A" => "Brood Wars Protoss 3 - Town A",
+    b"PB3B" => "Brood Wars Protoss 3 - Town B",
+    b"PB3C" => "Brood Wars Protoss 3 - Town C",
+    b"PB3D" => "Brood Wars Protoss 3 - Town D",
+    b"PB3E" => "Brood Wars Protoss 3 - Town E",
+    b"PB3F" => "Brood Wars Protoss 3 - Town F",
+    b"PB4A" => "Brood Wars Protoss 4 - Town A",
+    b"PB4B" => "Brood Wars Protoss 4 - Town B",
+    b"PB4C" => "Brood Wars Protoss 4 - Town C",
+    b"PB4D" => "Brood Wars Protoss 4 - Town D",
+    b"PB4E" => "Brood Wars Protoss 4 - Town E",
+    b"PB4F" => "Brood Wars Protoss 4 - Town F",
+    b"PB5A" => "Brood Wars Protoss 5 - Town A",
+    b"PB5B" => "Brood Wars Protoss 5 - Town B",
+    b"PB5C" => "Brood Wars Protoss 5 - Town C",
+    b"PB5D" => "Brood Wars Protoss 5 - Town D",
+    b"PB5E" => "Brood Wars Protoss 5 - Town E",
+    b"PB5F" => "Brood Wars Protoss 5 - Town F",
+    b"PB6A" => "Brood Wars Protoss 6 - Town A",
+    b"PB6B" => "Brood Wars Protoss 6 - Town B",
+    b"PB6C" => "Brood Wars Protoss 6 - Town C",
+    b"PB6D" => "Brood Wars Protoss 6 - Town D",
+    b"PB6E" => "Brood Wars Protoss 6 - Town E",
+    b"PB6F" => "Brood Wars Protoss 6 - Town F",
+    b"PB7A" => "Brood Wars Protoss 7 - Town A",
+    b"PB7B" => "Brood Wars Protoss 7 - Town B",
+    b"PB7C" => "Brood Wars Protoss 7 - Town C",
+    b"PB7D" => "Brood Wars Protoss 7 - Town D",
+    b"PB7E" => "Brood Wars Protoss 7 - Town E",
+    b"PB7F" => "Brood Wars Protoss 7 - Town F",
+    b"PB8A" => "Brood Wars Protoss 8 - Town A",
+    b"PB8B" => "Brood Wars Protoss 8 - Town B",
+    b"PB8C" => "Brood Wars Protoss 8 - Town C",
+    b"PB8D" => "Brood Wars Protoss 8 - Town D",
+    b"PB8E" => "Brood Wars Protoss 8 - Town E",
+    b"PB8F" => "Brood Wars Protoss 8 - Town F",
+    b"TB1A" => "Brood Wars Terran 1 - Town A",
+    b"TB1B" => "Brood Wars Terran 1 - Town B",
+    b"TB1C" => "Brood Wars Terran 1 - Town C",
+    b"TB1D" => "Brood Wars Terran 1 - Town D",
+    b"TB1E" => "Brood Wars Terran 1 - Town E",
+    b"TB1F" => "Brood Wars Terran 1 - Town F",
+    b"TB2A" => "Brood Wars Terran 2 - Town A",
+    b"TB2B" => "Brood Wars Terran 2 - Town B",
+    b"TB2C" => "Brood Wars Terran 2 - Town C",
+    b"TB2D" => "Brood Wars Terran 2 - Town D",
+    b"TB2E" => "Brood Wars Terran 2 - Town E",
+    b"TB2F" => "Brood Wars Terran 2 - Town F",
+    b"TB3A" => "Brood Wars Terran 3 - Town A",
+    b"TB3B" => "Brood Wars Terran 3 - Town B",
+    b"TB3C" => "Brood Wars Terran 3 - Town C",
+    b"TB3D" => "Brood Wars Terran 3 - Town D",
+    b"TB3E" => "Brood Wars Terran 3 - Town E",
+    b"TB3F" => "Brood Wars Terran 3 - Town F",
+    b"TB4A" => "Brood Wars Terran 4 - Town A",
+    b"TB4B" => "Brood Wars Terran 4 - Town B",
+    b"TB4C" => "Brood Wars Terran 4 - Town C",
+    b"TB4D" => "Brood Wars Terran 4 - Town D",
+    b"TB4E" => "Brood Wars Terran 4 - Town E",
+    b"TB4F" => "Brood Wars Terran 4 - Town F",
+    b"TB5A" => "Brood Wars Terran 5 - Town A",
+    b"TB5B" => "Brood Wars Terran 5 - Town B",
+    b"TB5C" => "Brood Wars Terran 5 - Town C",
+    b"TB5D" => "Brood Wars Terran 5 - Town D",
+    b"TB5E" => "Brood Wars Terran 5 - Town E",
+    b"TB5F" => "Brood Wars Terran 5 - Town F",
+    b"TB6A" => "Brood Wars Terran 6 - Town A",
+    b"TB6B" => "Brood Wars Terran 6 - Town B",
+    b"TB6C" => "Brood Wars Terran 6 - Town C",
+    b"TB6D" => "Brood Wars Terran 6 - Town D",
+    b"TB6E" => "Brood Wars Terran 6 - Town E",
+    b"TB6F" => "Brood Wars Terran 6 - Town F",
+    b"TB7A" => "Brood Wars Terran 7 - Town A",
+    b"TB7B" => "Brood Wars Terran 7 - Town B",
+    b"TB7C" => "Brood Wars Terran 7 - Town C",
+    b"TB7D" => "Brood Wars Terran 7 - Town D",
+    b"TB7E" => "Brood Wars Terran 7 - Town E",
+    b"TB7F" => "Brood Wars Terran 7 - Town F",
+    b"TB8A" => "Brood Wars Terran 8 - Town A",
+    b"TB8B" => "Brood Wars Terran 8 - Town B",
+    b"TB8C" => "Brood Wars Terran 8 - Town C",
+    b"TB8D" => "Brood Wars Terran 8 - Town D",
+    b"TB8E" => "Brood Wars Terran 8 - Town E",
+    b"TB8F" => "Brood Wars Terran 8 - Town F",
+    b"ZB1A" => "Brood Wars Zerg 1 - Town A",
+    b"ZB1B" => "Brood Wars Zerg 1 - Town B",
+    b"ZB1C" => "Brood Wars Zerg 1 - Town C",
+    b"ZB1D" => "Brood Wars Zerg 1 - Town D",
+    b"ZB1E" => "Brood Wars Zerg 1 - Town E",
+    b"ZB1F" => "Brood Wars Zerg 1 - Town F",
+    b"ZB2A" => "Brood Wars Zerg 2 - Town A",
+    b"ZB2B" => "Brood Wars Zerg 2 - Town B",
+    b"ZB2C" => "Brood Wars Zerg 2 - Town C",
+    b"ZB2D" => "Brood Wars Zerg 2 - Town D",
+    b"ZB2E" => "Brood Wars Zerg 2 - Town E",
+    b"ZB2F" => "Brood Wars Zerg 2 - Town F",
+    b"ZB3A" => "Brood Wars Zerg 3 - Town A",
+    b"ZB3B" => "Brood Wars Zerg 3 - Town B",
+    b"ZB3C" => "Brood Wars Zerg 3 - Town C",
+    b"ZB3D" => "Brood Wars Zerg 3 - Town D",
+    b"ZB3E" => "Brood Wars Zerg 3 - Town E",
+    b"ZB3F" => "Brood Wars Zerg 3 - Town F",
+    b"ZB4A" => "Brood Wars Zerg 4 - Town A",
+    b"ZB4B" => "Brood Wars Zerg 4 - Town B",
+    b"ZB4C" => "Brood Wars Zerg 4 - Town C",
+    b"ZB4D" => "Brood Wars Zerg 4 - Town D",
+    b"ZB4E" => "Brood Wars Zerg 4 - Town E",
+    b"ZB4F" => "Brood Wars Zerg 4 - Town F",
+    b"ZB5A" => "Brood Wars Zerg 5 - Town A",
+    b"ZB5B" => "Brood Wars Zerg 5 - Town B",
+    b"ZB5C" => "Brood Wars Zerg 5 - Town C",
+    b"ZB5D" => "Brood Wars Zerg 5 - Town D",
+    b"ZB5E" => "Brood Wars Zerg 5 - Town E",
+    b"ZB5F" => "Brood Wars Zerg 5 - Town F",
+    b"ZB6A" => "Brood Wars Zerg 6 - Town A",
+    b"ZB6B" => "Brood Wars Zerg 6 - Town B",
+    b"ZB6C" => "Brood Wars Zerg 6 - Town C",
+    b"ZB6D" => "Brood Wars Zerg 6 - Town D",
+    b"ZB6E" => "Brood Wars Zerg 6 - Town E",
+    b"ZB6F" => "Brood Wars Zerg 6 - Town F",
+    b"ZB7A" => "Brood Wars Zerg 7 - Town A",
+    b"ZB7B" => "Brood Wars Zerg 7 - Town B",
+    b"ZB7C" => "Brood Wars Zerg 7 - Town C",
+    b"ZB7D" => "Brood Wars Zerg 7 - Town D",
+    b"ZB7E" => "Brood Wars Zerg 7 - Town E",
+    b"ZB7F" => "Brood Wars Zerg 7 - Town F",
+    b"ZB8A" => "Brood Wars Zerg 8 - Town A",
+    b"ZB8B" => "Brood Wars Zerg 8 - Town B",
+    b"ZB8C" => "Brood Wars Zerg 8 - Town C",
+    b"ZB8D" => "Brood Wars Zerg 8 - Town D",
+    b"ZB8E" => "Brood Wars Zerg 8 - Town E",
+    b"ZB8F" => "Brood Wars Zerg 8 - Town F",
+    b"ZB9A" => "Brood Wars Zerg 9 - Town A",
+    b"ZB9B" => "Brood Wars Zerg 9 - Town B",
+    b"ZB9C" => "Brood Wars Zerg 9 - Town C",
+    b"ZB9D" => "Brood Wars Zerg 9 - Town D",
+    b"ZB9E" => "Brood Wars Zerg 9 - Town E",
+    b"ZB9F" => "Brood Wars Zerg 9 - Town F",
+    b"ZB0A" => "Brood Wars Zerg 10 - Town A",
+    b"ZB0B" => "Brood Wars Zerg 10 - Town B",
+    b"ZB0C" => "Brood Wars Zerg 10 - Town C",
+    b"ZB0D" => "Brood Wars Zerg 10 - Town D",
+    b"ZB0E" => "Brood Wars Zerg 10 - Town E",
+    b"ZB0F" => "Brood Wars Zerg 10 - Town F",
 };
 
 #[derive(Debug, Serialize)]
@@ -176,6 +473,16 @@ fn parse_action_state(action_state: u8) -> ActionState {
         _ => ActionState::Unknown(action_state as i64),
     }
 }
+
+fn parse_ai_script(aiscript_id: u32) -> &'static str {
+    if let Ok(x) = reinterpret_as_slice(&aiscript_id) {
+        AI_SCRIPT_MAP.get(x).cloned().unwrap()
+    } else {
+        ""
+    }
+}
+
+//AI_SCRIPT_MAP
 
 #[derive(Debug, Serialize)]
 pub enum AllianceStatus {
@@ -930,11 +1237,11 @@ pub enum Action {
     },
     // 15
     RunAIScript {
-        script: i64,
+        script: &'static str,
     },
     // 16
     RunAIScriptAtLocation {
-        script: i64,
+        script: &'static str,
         location: String,
     },
     // 17
@@ -1217,7 +1524,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 condition.numeric_comparison_or_switch_state,
                             ),
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: get_string(map, condition.location as usize)
+                            location: get_location_name(map, condition.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                             number: condition.qualified_number as i64,
                         });
@@ -1253,7 +1560,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     7 => {
                         conditions.push(Condition::CommandsTheMostAt {
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: get_string(map, condition.location as usize)
+                            location: get_location_name(map, condition.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1322,7 +1629,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     17 => {
                         conditions.push(Condition::CommandsTheLeastAt {
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: get_string(map, condition.location as usize)
+                            location: get_location_name(map, condition.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1402,7 +1709,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             text: get_string(map, action.string_number as usize).unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             time: action.seconds_or_milliseconds as i64,
                             modifier: parse_number_modifier(
                                 action.number_of_units_or_action_state_or_unit_order_or_number_modifier,
@@ -1428,7 +1735,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     10 => {
                         actions.push(Action::CenterView {
-                            location: get_string(map, action.location as usize)
+                            location: get_location_name(map, action.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1438,7 +1745,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             unit_prop: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                         });
                     }
@@ -1464,13 +1771,13 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     15 => {
                         actions.push(Action::RunAIScript {
-                        script: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
+                        script: parse_ai_script(action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number),
                     });
                     }
                     16 => {
                         actions.push(Action::RunAIScriptAtLocation {
-                            script: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            script: parse_ai_script(action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     17 => {
@@ -1489,7 +1796,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: get_string(map, action.location as usize)
+                            location: get_location_name(map, action.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1535,7 +1842,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     24 => {
@@ -1553,7 +1860,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     26 => {
@@ -1578,7 +1885,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     28 => {
                         actions.push(Action::MinimapPing {
-                            location: get_string(map, action.location as usize)
+                            location: get_location_name(map, action.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1617,7 +1924,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: get_string(map, action.location as usize)
+                            location: get_location_name(map, action.location as usize)
                                 .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
@@ -1654,8 +1961,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
-                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
+                            source_location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_location_name(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     39 => {
@@ -1664,8 +1971,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
-                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
+                            source_location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_location_name(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                         });
                     }
@@ -1686,7 +1993,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             state: parse_action_state(action.number_of_units_or_action_state_or_unit_order_or_number_modifier), // TODO: split actionstate enum into doodad state + switch state + computer-player state.
                         });
                     }
@@ -1696,7 +2003,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             state: parse_action_state(action.number_of_units_or_action_state_or_unit_order_or_number_modifier), // TODO: split actionstate enum into doodad state + switch state + computer-player state.
                         });
                     }
@@ -1707,7 +2014,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     45 => {
@@ -1724,8 +2031,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             player: parse_group(action.first_or_only_group_or_player_affected),
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
-                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
-                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
+                            source_location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_location_name(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                             order: parse_order(action.number_of_units_or_action_state_or_unit_order_or_number_modifier)
                         });
                     }
@@ -1742,7 +2049,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     49 => {
@@ -1752,7 +2059,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     50 => {
@@ -1762,7 +2069,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     51 => {
@@ -1772,7 +2079,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     52 => {
@@ -1782,7 +2089,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     53 => {
@@ -1792,7 +2099,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            location: get_location_name(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     54 => {
