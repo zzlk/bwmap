@@ -138,7 +138,7 @@ impl<'a> CursorSlicer<'a> {
 
         let elements = (self.s.len() - self.current_offset) / std::mem::size_of::<T>();
 
-        self.extract_slice(elements)
+        self.extract_slice_lax(elements)
     }
 
     pub(crate) fn extract_ref<T>(&mut self) -> Result<&'a T, anyhow::Error> {
