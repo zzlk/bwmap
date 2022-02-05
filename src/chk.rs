@@ -1080,10 +1080,10 @@ pub fn get_parsed_chk(merged_chunks: &Vec<MergedChunk>) -> anyhow::Result<ChkDum
         // This is intentional.
         encodings.sort_by(|&(_, a), &(_, b)| a.cmp(&b).reverse());
 
-        println!(
-            "euc_kr: {}, utf8: {}, utf16: {}, win1252: {}",
-            euc_kr, utf8, utf16, win1252
-        );
+        // println!(
+        //     "euc_kr: {}, utf8: {}, utf16: {}, win1252: {}",
+        //     euc_kr, utf8, utf16, win1252
+        // );
 
         //println!("encodings: {:?}", encodings);
 
@@ -1367,6 +1367,25 @@ pub(crate) fn get_all_string_references(
 //     }
 // }
 
+pub(crate) fn get_location_name(
+    map: &HashMap<ChunkName, ParsedChunk>,
+    index: usize,
+) -> Result<String, anyhow::Error> {
+    if index == 0 {
+        return Ok("No Location".to_owned());
+    }
+
+    if let Some(ParsedChunk::MRGN(mrgn)) = map.get(&ChunkName::MRGN) {
+        if mrgn.locations.len() <= index {
+            return Ok("Location index out of bounds".to_owned());
+        }
+
+        get_string(map, mrgn.locations[index - 1].name_string_number as usize)
+    } else {
+        Ok("No Location".to_owned())
+    }
+}
+
 pub(crate) fn get_string(
     map: &HashMap<ChunkName, ParsedChunk>,
     // encoding_order: &Vec<&'static encoding_rs::Encoding>,
@@ -1418,7 +1437,7 @@ pub(crate) fn get_string(
 
     {
         let conversion = encoding_rs::EUC_KR.decode(bytes);
-        println!("EUC_KR: {}", conversion.0);
+        // println!("EUC_KR: {}", conversion.0);
         euc_kr_characters_len = conversion.0.chars().count();
 
         if conversion.2 {
@@ -1434,7 +1453,7 @@ pub(crate) fn get_string(
 
     {
         let conversion = encoding_rs::UTF_8.decode(bytes);
-        println!("UTF-8: {}", conversion.0);
+        // println!("UTF-8: {}", conversion.0);
         utf8_characters_len = conversion.0.chars().count();
 
         if conversion.2 {
@@ -1447,7 +1466,7 @@ pub(crate) fn get_string(
 
     {
         let conversion = encoding_rs::WINDOWS_1252.decode(bytes);
-        println!("WIN1252: {}", conversion.0);
+        // println!("WIN1252: {}", conversion.0);
         win1252_total_characters += conversion.0.chars().count() as i64;
         win1252_characters_7f_or_above +=
             conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
@@ -1515,7 +1534,7 @@ pub(crate) fn get_string(
             &mut is_reliable,
         );
 
-        println!("is_reliable: {is_reliable}, bytes_consumed: {bytes_consumed}");
+        // println!("is_reliable: {is_reliable}, bytes_consumed: {bytes_consumed}");
 
         (
             match encoding {
@@ -1565,25 +1584,25 @@ pub(crate) fn get_string(
     *encoding_map.get_mut(encoding_rs::UTF_8).unwrap() +=
         (utf8_characters_decoded_successfully as f64) / (utf8_characters_len as f64);
 
-    println!(
-        "\n\
-        euc_kr_failed: {euc_kr_failed}, \
-        euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, \
-        euc_kr_characters_len: {euc_kr_characters_len}, \
-        utf8_failed: {utf8_failed}, \
-        utf8_characters_decoded_successfully: {utf8_characters_decoded_successfully}, \
-        utf8_characters_len: {utf8_characters_len}, \
-        win1252_characters_7f_or_above: {win1252_characters_7f_or_above}, \
-        win1252_total_characters: {win1252_total_characters}, \
-        \n\
-        uchardet_guess: {uchardet_guessed_encoding:?}, \
-        \n\
-        compact_enc_det_encoding_guess: {compact_enc_det_encoding_guess:?}, \
-        \n\
-        encoding_map: {encoding_map:?}, str: {}\n\
-        ------------------------------------------------------------------------------------",
-        encoding_rs::WINDOWS_1252.decode(bytes).0
-    );
+    // println!(
+    //     "\n\
+    //     euc_kr_failed: {euc_kr_failed}, \
+    //     euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, \
+    //     euc_kr_characters_len: {euc_kr_characters_len}, \
+    //     utf8_failed: {utf8_failed}, \
+    //     utf8_characters_decoded_successfully: {utf8_characters_decoded_successfully}, \
+    //     utf8_characters_len: {utf8_characters_len}, \
+    //     win1252_characters_7f_or_above: {win1252_characters_7f_or_above}, \
+    //     win1252_total_characters: {win1252_total_characters}, \
+    //     \n\
+    //     uchardet_guess: {uchardet_guessed_encoding:?}, \
+    //     \n\
+    //     compact_enc_det_encoding_guess: {compact_enc_det_encoding_guess:?}, \
+    //     \n\
+    //     encoding_map: {encoding_map:?}, str: {}\n\
+    //     ------------------------------------------------------------------------------------",
+    //     encoding_rs::WINDOWS_1252.decode(bytes).0
+    // );
 
     if euc_kr_failed {
         encoding_map.remove(encoding_rs::EUC_KR);

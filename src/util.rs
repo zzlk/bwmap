@@ -38,6 +38,12 @@ pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
 //     }
 // }
 
+pub(crate) fn reinterpret_as_slice<T: Sized + Copy>(s: &T) -> Result<&[u8], anyhow::Error> {
+    anyhow::Ok(unsafe {
+        std::slice::from_raw_parts((s as *const T) as *const u8, std::mem::size_of::<T>())
+    })
+}
+
 pub(crate) fn reinterpret_slice<T: Sized>(s: &[u8]) -> &[T] {
     if s.len() % std::mem::size_of::<T>() != 0 {
         panic!();

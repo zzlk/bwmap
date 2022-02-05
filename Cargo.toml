@@ -23,3 +23,4 @@ futures = "*"
 scopeguard = "*"
 lazy_static = "*"
 rand = "*"
+phf = { version = "0.10", features = ["macros"] }
