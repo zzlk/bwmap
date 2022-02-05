@@ -890,12 +890,12 @@ pub enum Action {
         location: String,
         time: i64,
         modifier: NumberModifier,
-        wave: i64,
+        wave: String,
         wave_time: i64,
     },
     // 8
     PlayWav {
-        wave: i64,
+        wave: String,
         wave_time: i64,
     },
     // 9
@@ -1407,14 +1407,15 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             modifier: parse_number_modifier(
                                 action.number_of_units_or_action_state_or_unit_order_or_number_modifier,
                             ),
-                            wave: action.wav_string_number as i64,
+                            wave: get_string(map,action.wav_string_number as usize).unwrap_or("couldn't get string".to_owned()),
                             // TODO: not sure what this is supposed to be.
                             wave_time: 0,
                         });
                     }
                     8 => {
                         actions.push(Action::PlayWav {
-                            wave: action.wav_string_number as i64,
+                            wave: get_string(map, action.wav_string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             // TODO: not sure what this is supposed to be.
                             wave_time: 0,
                         });
