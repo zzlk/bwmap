@@ -1399,20 +1399,36 @@ pub(crate) fn get_string(
 
     let bytes = if let Some(ParsedChunk::STRx(x)) = map.get(&ChunkName::STRx) {
         if index as usize >= x.string_offsets.len() {
-            return Ok("Out of bounds access".to_owned());
+            return Ok(format!(
+                "Out of bounds access STRx offset table. index: {index}, string_offsets.len(): {}",
+                x.string_offsets.len()
+            ));
         }
         if x.string_offsets[index as usize] as usize >= x.strings.len() {
-            return Ok("Out of bounds access".to_owned());
+            return Ok(format!(
+                "Out of bounds access STRx. index: {index}, string_offsets.len(): {}, offset: {}, strings.len(): {}",
+                x.string_offsets.len(),
+                x.string_offsets[index as usize],
+                x.strings.len()
+            ));
         }
         parse_null_terminated_bytestring_unsigned(
             &x.strings[x.string_offsets[index as usize] as usize..],
         )
     } else if let Some(ParsedChunk::STR(x)) = map.get(&ChunkName::STR) {
         if index as usize >= x.string_offsets.len() {
-            return Ok("Out of bounds access".to_owned());
+            return Ok(format!(
+                "Out of bounds access STR offset table. index: {index}, string_offsets.len(): {}",
+                x.string_offsets.len()
+            ));
         }
         if x.string_offsets[index as usize] as usize >= x.strings.len() {
-            return Ok("Out of bounds access".to_owned());
+            return Ok(format!(
+                "Out of bounds access STR. index: {index}, string_offsets.len(): {}, offset: {}, strings.len(): {}",
+                x.string_offsets.len(),
+                x.string_offsets[index as usize],
+                x.strings.len()
+            ));
         }
         parse_null_terminated_bytestring_unsigned(
             &x.strings[x.string_offsets[index as usize] as usize..],
