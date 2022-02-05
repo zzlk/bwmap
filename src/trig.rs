@@ -43,6 +43,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::{
+    chk::get_string,
     chk2::chk_trig::{ChkTrigAction, ChkTrigCondition},
     ChunkName, ParsedChunk,
 };
@@ -884,7 +885,7 @@ pub enum Action {
     UnpauseGame,
     // 7
     Transmission {
-        text: i64,
+        text: String,
         unit_type: UnitType,
         location: i64,
         time: i64,
@@ -899,7 +900,7 @@ pub enum Action {
     },
     // 9
     DisplayTextMessage {
-        text: i64,
+        text: String,
     },
     // 10
     CenterView {
@@ -915,7 +916,7 @@ pub enum Action {
     },
     // 12
     SetMissionObjectives {
-        text: i64,
+        text: String,
     },
     // 13
     SetSwitch {
@@ -938,28 +939,28 @@ pub enum Action {
     },
     // 17
     LeaderBoardControl {
-        text: i64,
+        text: String,
         unit_type: UnitType,
     },
     // 18
     LeaderBoardControlAtLocation {
-        text: i64,
+        text: String,
         unit_type: UnitType,
         location: i64,
     },
     // 19
     LeaderBoardResources {
-        text: i64,
+        text: String,
         resource_type: ResourceType,
     },
     // 20
     LeaderBoardKills {
-        text: i64,
+        text: String,
         unit_type: UnitType,
     },
     // 21
     LeaderBoardPoints {
-        text: i64,
+        text: String,
         score_type: ScoreType,
     },
     // 22
@@ -1019,28 +1020,28 @@ pub enum Action {
     },
     // 33
     LeaderBoardGoalControl {
-        text: i64,
+        text: String,
         unit_type: UnitType,
     },
     // 34
     LeaderBoardGoalControlAtLocation {
-        text: i64,
+        text: String,
         unit_type: UnitType,
         location: i64,
     },
     // 35
     LeaderBoardGoalResources {
-        text: i64,
+        text: String,
         resource_type: ResourceType,
     },
     // 36
     LeaderBoardGoalKills {
-        text: i64,
+        text: String,
         unit_type: UnitType,
     },
     // 37
     LeaderBoardGoalPoints {
-        text: i64,
+        text: String,
         score_type: ScoreType,
     },
     // 38
@@ -1064,7 +1065,7 @@ pub enum Action {
     },
     // 41
     SetNextScenario {
-        text: i64,
+        text: String,
     },
     // 42
     SetDoodadState {
@@ -1104,7 +1105,7 @@ pub enum Action {
     },
     // 47
     Comment {
-        text: i64,
+        text: String,
     },
     // 48
     GiveUnitsToPlayer {
@@ -1395,7 +1396,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     7 => {
                         actions.push(Action::Transmission {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize).unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             location: action.location as i64,
@@ -1417,7 +1418,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     9 => {
                         actions.push(Action::DisplayTextMessage {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     10 => {
@@ -1437,7 +1439,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     12 => {
                         actions.push(Action::SetMissionObjectives {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     13 => {
@@ -1467,7 +1470,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     17 => {
                         actions.push(Action::LeaderBoardControl {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1475,7 +1479,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     18 => {
                         actions.push(Action::LeaderBoardControlAtLocation {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1484,7 +1489,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     19 => {
                         actions.push(Action::LeaderBoardResources {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             resource_type: parse_resource_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1492,7 +1498,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     20 => {
                         actions.push(Action::LeaderBoardKills {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1500,7 +1507,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     21 => {
                         actions.push(Action::LeaderBoardPoints {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             score_type: parse_score_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1588,7 +1596,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     33 => {
                         actions.push(Action::LeaderBoardGoalControl {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1596,7 +1605,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     34 => {
                         actions.push(Action::LeaderBoardGoalControlAtLocation {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1605,7 +1615,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     35 => {
                         actions.push(Action::LeaderBoardGoalResources {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             resource_type: parse_resource_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1613,7 +1624,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     36 => {
                         actions.push(Action::LeaderBoardGoalKills {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1621,7 +1633,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     37 => {
                         actions.push(Action::LeaderBoardGoalPoints {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             score_type: parse_score_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
@@ -1655,7 +1668,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     41 => {
                         actions.push(Action::SetNextScenario {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     42 => {
@@ -1709,7 +1723,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     47 => {
                         actions.push(Action::Comment {
-                            text: action.string_number as i64,
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     48 => {
