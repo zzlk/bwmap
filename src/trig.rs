@@ -762,7 +762,7 @@ pub enum Condition {
         player: Group,
         comparison: NumericComparison,
         unit_type: UnitType,
-        location: i64,
+        location: String,
         number: i64,
     },
     // 4
@@ -787,7 +787,7 @@ pub enum Condition {
     // 7
     CommandsTheMostAt {
         unit_type: UnitType,
-        location: i64,
+        location: String,
     },
     // 8
     MostKills {
@@ -833,7 +833,7 @@ pub enum Condition {
     // 17
     CommandsTheLeastAt {
         unit_type: UnitType,
-        location: i64,
+        location: String,
     },
     // 18
     LeastKills {
@@ -887,7 +887,7 @@ pub enum Action {
     Transmission {
         text: String,
         unit_type: UnitType,
-        location: i64,
+        location: String,
         time: i64,
         modifier: NumberModifier,
         wave: i64,
@@ -904,14 +904,14 @@ pub enum Action {
     },
     // 10
     CenterView {
-        location: i64,
+        location: String,
     },
     // 11
     CreateUnitWithProperties {
         player: Group,
         unit_type: UnitType,
         number: i64,
-        location: i64,
+        location: String,
         unit_prop: i64,
     },
     // 12
@@ -935,7 +935,7 @@ pub enum Action {
     // 16
     RunAIScriptAtLocation {
         script: i64,
-        location: i64,
+        location: String,
     },
     // 17
     LeaderBoardControl {
@@ -946,7 +946,7 @@ pub enum Action {
     LeaderBoardControlAtLocation {
         text: String,
         unit_type: UnitType,
-        location: i64,
+        location: String,
     },
     // 19
     LeaderBoardResources {
@@ -973,7 +973,7 @@ pub enum Action {
         player: Group,
         unit_type: UnitType,
         number: i64,
-        location: i64,
+        location: String,
     },
     // 24
     RemoveAllUnits {
@@ -985,7 +985,7 @@ pub enum Action {
         player: Group,
         unit_type: UnitType,
         number: i64,
-        location: i64,
+        location: String,
     },
     // 26
     SetResources {
@@ -1003,7 +1003,7 @@ pub enum Action {
     },
     // 28
     MinimapPing {
-        location: i64,
+        location: String,
     },
     // 29
     TalkingPortrait {
@@ -1027,7 +1027,7 @@ pub enum Action {
     LeaderBoardGoalControlAtLocation {
         text: String,
         unit_type: UnitType,
-        location: i64,
+        location: String,
     },
     // 35
     LeaderBoardGoalResources {
@@ -1048,16 +1048,16 @@ pub enum Action {
     MoveLocation {
         player: Group,
         unit_type: UnitType,
-        source_location: i64,
-        destination_location: i64,
+        source_location: String,
+        destination_location: String,
     },
     // 39
     MoveUnit {
         player: Group,
         unit_type: UnitType,
         number: i64,
-        source_location: i64,
-        destination_location: i64,
+        source_location: String,
+        destination_location: String,
     },
     // 40
     LeaderboardGreed {
@@ -1071,14 +1071,14 @@ pub enum Action {
     SetDoodadState {
         player: Group,
         unit_type: UnitType,
-        location: i64,
+        location: String,
         state: ActionState,
     },
     // 43
     SetInvincibility {
         player: Group,
         unit_type: UnitType,
-        location: i64,
+        location: String,
         state: ActionState,
     },
     // 44
@@ -1086,7 +1086,7 @@ pub enum Action {
         player: Group,
         unit_type: UnitType,
         number: i64,
-        location: i64,
+        location: String,
     },
     // 45
     SetDeaths {
@@ -1099,8 +1099,8 @@ pub enum Action {
     Order {
         player: Group,
         unit_type: UnitType,
-        source_location: i64,
-        destination_location: i64,
+        source_location: String,
+        destination_location: String,
         order: Order,
     },
     // 47
@@ -1113,7 +1113,7 @@ pub enum Action {
         destination_player: Group,
         unit_type: UnitType,
         number: i64,
-        location: i64,
+        location: String,
     },
     // 49
     ModifyUnitHitPoints {
@@ -1121,7 +1121,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         mod_ammount: i64,
-        location: i64,
+        location: String,
     },
     // 50
     ModifyUnitEnergy {
@@ -1129,7 +1129,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         mod_ammount: i64,
-        location: i64,
+        location: String,
     },
     // 51
     ModifyUnitShieldPoints {
@@ -1137,7 +1137,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         mod_ammount: i64,
-        location: i64,
+        location: String,
     },
     // 52
     ModifyUnitResource {
@@ -1145,7 +1145,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         mod_ammount: i64,
-        location: i64,
+        location: String,
     },
     // 53
     ModifyUnitHangarCount {
@@ -1153,7 +1153,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         mod_ammount: i64,
-        location: i64,
+        location: String,
     },
     // 54
     PauseTimer,
@@ -1217,7 +1217,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 condition.numeric_comparison_or_switch_state,
                             ),
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: condition.location as i64,
+                            location: get_string(map, condition.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                             number: condition.qualified_number as i64,
                         });
                     }
@@ -1252,7 +1253,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     7 => {
                         conditions.push(Condition::CommandsTheMostAt {
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: condition.location as i64,
+                            location: get_string(map, condition.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     8 => {
@@ -1320,7 +1322,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     17 => {
                         conditions.push(Condition::CommandsTheLeastAt {
                             unit_type: parse_unit_type(condition.unit_id),
-                            location: condition.location as i64,
+                            location: get_string(map, condition.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     18 => {
@@ -1399,7 +1402,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             text: get_string(map, action.string_number as usize).unwrap_or("couldn't get string".to_owned()),
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             time: action.seconds_or_milliseconds as i64,
                             modifier: parse_number_modifier(
                                 action.number_of_units_or_action_state_or_unit_order_or_number_modifier,
@@ -1424,7 +1427,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     10 => {
                         actions.push(Action::CenterView {
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     11 => {
@@ -1433,7 +1437,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             unit_prop: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                         });
                     }
@@ -1465,7 +1469,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     16 => {
                         actions.push(Action::RunAIScriptAtLocation {
                             script: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     17 => {
@@ -1484,7 +1488,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     19 => {
@@ -1529,7 +1534,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     24 => {
@@ -1547,7 +1552,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     26 => {
@@ -1572,7 +1577,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                     }
                     28 => {
                         actions.push(Action::MinimapPing {
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     29 => {
@@ -1610,7 +1616,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     35 => {
@@ -1646,8 +1653,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            source_location: action.location as i64,
-                            destination_location: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
+                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     39 => {
@@ -1656,8 +1663,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            source_location: action.location as i64,
-                            destination_location: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
+                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                         });
                     }
@@ -1678,7 +1685,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             state: parse_action_state(action.number_of_units_or_action_state_or_unit_order_or_number_modifier), // TODO: split actionstate enum into doodad state + switch state + computer-player state.
                         });
                     }
@@ -1688,7 +1695,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                             state: parse_action_state(action.number_of_units_or_action_state_or_unit_order_or_number_modifier), // TODO: split actionstate enum into doodad state + switch state + computer-player state.
                         });
                     }
@@ -1699,7 +1706,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 action.unit_type_or_score_type_or_resource_type_or_alliance_status,
                             ),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     45 => {
@@ -1716,8 +1723,8 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             player: parse_group(action.first_or_only_group_or_player_affected),
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
-                            source_location: action.location as i64,
-                            destination_location: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
+                            source_location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
+                            destination_location: get_string(map,action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as usize).unwrap_or("couldn't get string".to_owned()),
                             order: parse_order(action.number_of_units_or_action_state_or_unit_order_or_number_modifier)
                         });
                     }
@@ -1734,7 +1741,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                             unit_type: parse_unit_type(action
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     49 => {
@@ -1744,7 +1751,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     50 => {
@@ -1754,7 +1761,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     51 => {
@@ -1764,7 +1771,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     52 => {
@@ -1774,7 +1781,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     53 => {
@@ -1784,7 +1791,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             mod_ammount: 0, // TODO: what is this.
-                            location: action.location as i64,
+                            location: get_string(map, action.location as usize).unwrap_or("couldn't get string".to_owned()),
                         });
                     }
                     54 => {
