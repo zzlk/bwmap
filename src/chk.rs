@@ -1252,10 +1252,6 @@ pub(crate) fn get_all_string_references(
         }
     }
 
-    for index in ret.iter().filter(|&&x| x != 0) {
-        println!("INDEX: {index}");
-    }
-
     Ok(ret.into_iter().filter(|&x| x != 0).collect())
 }
 

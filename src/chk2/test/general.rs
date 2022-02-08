@@ -11,7 +11,7 @@ use walkdir::{DirEntry, WalkDir};
 fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
     let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
         .into_iter()
-        .par_bridge()
+        //.par_bridge()
         .filter_map(Result::ok)
         .filter(
             |e| match e.file_name().to_string_lossy().to_string().as_str() {
@@ -35,6 +35,7 @@ fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
 #[test]
 fn test_parse_merged_chunks() {
     for_all_test_maps(|e| {
+        println!("file: {}", e.file_name().to_string_lossy());
         let chk_data =
             crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
 
@@ -62,7 +63,23 @@ fn test_parse_merged_chunks() {
 }
 
 #[test]
-fn test_specific_map_protected_by_smc_version_2_dot_9() {
+fn test_specific_map_0c0c_bound_protected_by_acmp_version_1_dot_74() {
+    // Unknown protector with a bunch of MPQ hacks?
+    let chk = crate::get_chk_from_mpq_filename(format!(
+        "{}/test_vectors/OcOc Bound 2(p).scx",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+
+    let raw_chunks = parse_chk(&chk);
+    let merged_chunks = merge_raw_chunks(&raw_chunks);
+    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+
+    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+}
+
+#[test]
+fn test_specific_map_sniper_seed_protected_by_smc_version_2_dot_9() {
     // SMC V2.9
     let chk = crate::get_chk_from_mpq_filename(format!(
         "{}/test_vectors/Sniper - Seed vA.scx",
@@ -275,10 +292,6 @@ fn test_get_string_on_all_maps() {
         let string_refs = get_all_string_references(&map).unwrap();
 
         for string_ref in string_refs {
-            println!(
-                "string_ref: {string_ref}, file: {}",
-                e.path().to_string_lossy().to_string()
-            );
             get_string(&map, string_ref as usize).unwrap();
         }
     });
