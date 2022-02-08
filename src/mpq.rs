@@ -12,12 +12,8 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
     unsafe {
         //let zzz = std::ffi::CString::new(filename.as_str())?;
         let mut mpq_handle = 0 as stormlib_bindings::HANDLE;
-        if stormlib_bindings::SFileOpenArchive(
-            cstr.as_ptr() as *mut _,
-            0,
-            0,
-            &mut mpq_handle as *mut _,
-        ) == false
+        if stormlib_bindings::SFileOpenArchive(cstr.as_ptr(), 0, 0, &mut mpq_handle as *mut _)
+            == false
         {
             return Err(anyhow::anyhow!(
                 "SFileOpenArchive. GetLastError: {}, filename: {filename}",
@@ -40,22 +36,24 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
         let try_map_with_locale = |filename: &str, locale| {
             //println!("try_map_with_locale: {filename}, locale: {locale}");
 
+            let cstr = std::ffi::CString::new(filename)?;
+
             stormlib_bindings::SFileSetLocale(locale); // Set locale, this function never fails.
             let mut chk_data: Vec<u8> = vec![0; 32 * 1024 * 1024];
             let mut archive_file_handle = 0 as stormlib_bindings::HANDLE;
             if stormlib_bindings::SFileOpenFileEx(
                 mpq_handle,
-                filename.as_ptr() as *mut _,
+                cstr.as_ptr(),
                 0,
                 &mut archive_file_handle as *mut _,
             ) == false
             {
-                // println!(
-                //     "SFileOpenFileEx. GetLastError: {}, filename: {filename}",
-                //     stormlib_bindings::GetLastError()
-                // );
+                println!(
+                    "SFileOpenFileEx. GetLastError: {}, filename: {filename}, locale: {locale}",
+                    stormlib_bindings::GetLastError()
+                );
                 return Err(anyhow::anyhow!(
-                    "SFileOpenFileEx. GetLastError: {}, filename: {filename}",
+                    "SFileOpenFileEx. GetLastError: {}, filename: {filename}, locale: {locale}",
                     stormlib_bindings::GetLastError()
                 ));
             }
@@ -65,7 +63,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                     println!(
                         "{:?}",
                         anyhow::anyhow!(
-                            "SFileCloseFile. GetLastError: {}, filename: {filename}",
+                            "SFileCloseFile. GetLastError: {}, filename: {filename}, locale: {locale}",
                             stormlib_bindings::GetLastError()
                         )
                     );
@@ -85,13 +83,13 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                 if last_error != stormlib_bindings::ERROR_HANDLE_EOF
                     || size == chk_data.len() as u32
                 {
-                    // println!(
-                    //     "SFileReadFile. GetLastError: {}, filename: {filename}",
-                    //     last_error,
-                    // );
+                    println!(
+                        "SFileReadFile. GetLastError: {}, filename: {filename}, locale: {locale}",
+                        last_error,
+                    );
 
                     return Err(anyhow::anyhow!(
-                        "SFileReadFile. GetLastError: {}, filename: {filename}",
+                        "SFileReadFile. GetLastError: {}, filename: {filename}, locale: {locale}",
                         last_error,
                     ));
                 }
@@ -109,13 +107,20 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
 
         // PROTECTION: Some maps put fake scenario.chk files at different locales. Try to find the real one by trying a lot of them.
         for locale in locales {
-            if let Ok(x) = try_map_with_locale("staredit\\scenario.chk\0", locale) {
+            if let Ok(x) = try_map_with_locale("staredit\\scenario.chk", locale) {
+                println!("got candidate");
                 // PROTECTION: Some maps put very small scenario.chk files in the mpq at different locales, ignore them.
                 if verify_is_valid_chk(x.as_slice()) {
                     return Ok(x);
                 }
             }
         }
+
+        // return Err(anyhow::anyhow!(
+        //     "Couldn't find scenario.chk the legit way: {}, file: {}",
+        //     stormlib_bindings::GetLastError(),
+        //     filename
+        // ));
 
         // If none of the files found are useful then fall back to enumarating every single file in the MPQ and check to see if it is a CHK file.
         {
