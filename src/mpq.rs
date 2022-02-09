@@ -108,7 +108,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
         // PROTECTION: Some maps put fake scenario.chk files at different locales. Try to find the real one by trying a lot of them.
         for locale in locales {
             if let Ok(x) = try_map_with_locale("staredit\\scenario.chk", locale) {
-                println!("got candidate");
+                // println!("got candidate");
                 // PROTECTION: Some maps put very small scenario.chk files in the mpq at different locales, ignore them.
                 if verify_is_valid_chk(x.as_slice()) {
                     return Ok(x);
