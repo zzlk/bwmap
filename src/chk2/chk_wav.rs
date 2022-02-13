@@ -9,7 +9,6 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct ChkWav<'a> {
-    #[serde(skip_serializing)]
     pub wav_string_number: &'a [u32],
 }
 
