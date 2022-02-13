@@ -44,7 +44,10 @@ use std::collections::HashMap;
 
 use crate::{
     chk::{get_location_name, get_string},
-    chk2::chk_trig::{ChkTrigAction, ChkTrigCondition},
+    chk2::{
+        chk_mbrf::{ChkMbrfAction, ChkMbrfCondition},
+        chk_trig::{ChkTrigAction, ChkTrigCondition},
+    },
     util::reinterpret_as_slice,
     ChunkName, ParsedChunk,
 };
@@ -1481,6 +1484,171 @@ pub enum Action {
     DisableDebugMode,
     // 59
     EnableDebugMode,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+pub enum MissionBriefingCondition {
+    Unknown { id: i64, raw: ChkMbrfCondition },
+    // 13
+    DataIsAMissionBriefing,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+pub enum MissionBriefingAction {
+    Unknown {
+        id: i64,
+        raw: ChkMbrfAction,
+    },
+    // 0
+    NoAction,
+    // 1
+    Wait {
+        time: i64,
+    },
+    // 2
+    PlayWav {
+        wave: String,
+        wave_time: i64,
+    },
+    // 3
+    DisplayTextMessage {
+        text: String,
+    },
+    // 4
+    SetMissionObjectives {
+        text: String,
+    },
+    // 5
+    ShowPortrait {
+        unit_type: UnitType,
+        slot: i64,
+    },
+    // 6
+    HidePortrait {
+        slot: i64,
+    },
+    // 7
+    DisplaySpeakingPortrait {
+        unit_type: UnitType,
+        slot: i64,
+    },
+    // 8
+    DisplayTransmission {
+        text: String,
+        slot: i64,
+        time: i64,
+        modifier: NumberModifier,
+        wave: String,
+        wave_time: i64,
+    },
+    // 9
+    SkipTutorialEnabled,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MissionBriefing {
+    pub conditions: Vec<MissionBriefingCondition>,
+    pub actions: Vec<MissionBriefingAction>,
+    pub execution_flags: u32,
+    pub activated_for_players: [u8; 27],
+    pub index_of_current_action: u8,
+}
+
+pub fn parse_mission_briefing(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<MissionBriefing> {
+    let mut ret = Vec::new();
+
+    if let Some(ParsedChunk::MBRF(trig)) = map.get(&ChunkName::MBRF) {
+        for trigger in trig.triggers {
+            let mut conditions = Vec::new();
+            for condition in trigger.conditions {
+                match condition.condition {
+                    13 => {
+                        conditions.push(MissionBriefingCondition::DataIsAMissionBriefing);
+                    }
+                    _ => {
+                        conditions.push(MissionBriefingCondition::Unknown {
+                            id: condition.condition as i64,
+                            raw: condition,
+                        });
+                    }
+                }
+            }
+            let mut actions = Vec::new();
+            for action in trigger.actions {
+                match action.action {
+                    0 => {
+                        actions.push(MissionBriefingAction::NoAction);
+                    }
+                    1 => {
+                        actions.push(MissionBriefingAction::Wait {
+                            time: action.seconds_or_milliseconds as i64,
+                        });
+                    }
+                    2 => {
+                        actions.push(MissionBriefingAction::PlayWav {
+                            wave: get_string(map, action.wav_string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
+                            wave_time: action.seconds_or_milliseconds as i64,
+                        });
+                    }
+                    3 => {
+                        actions.push(MissionBriefingAction::DisplayTextMessage {
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
+                        });
+                    }
+                    4 => {
+                        actions.push(MissionBriefingAction::SetMissionObjectives {
+                            text: get_string(map, action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
+                        });
+                    }
+                    5 => {
+                        actions.push(MissionBriefingAction::ShowPortrait {
+                            unit_type: parse_unit_type(
+                                action.unit_type_or_score_type_or_resource_type_or_alliance_status,
+                            ),
+                            slot: action.first_or_only_group_or_player_affected as i64,
+                        });
+                    }
+                    6 => {
+                        actions.push(MissionBriefingAction::HidePortrait {
+                            slot: action.first_or_only_group_or_player_affected as i64,
+                        });
+                    }
+                    7 => {
+                        actions.push(MissionBriefingAction::DisplaySpeakingPortrait {
+                            slot: action.first_or_only_group_or_player_affected as i64,
+                            unit_type: parse_unit_type(
+                                action.unit_type_or_score_type_or_resource_type_or_alliance_status,
+                            ),
+                        });
+                    }
+                    8 => {
+                        actions.push(MissionBriefingAction::SkipTutorialEnabled);
+                    }
+                    _ => {
+                        actions.push(MissionBriefingAction::Unknown {
+                            id: action.action as i64,
+                            raw: action,
+                        });
+                    }
+                }
+            }
+
+            ret.push(MissionBriefing {
+                conditions,
+                actions,
+                execution_flags: trigger.execution_flags,
+                activated_for_players: trigger.executed_for_player,
+                index_of_current_action: trigger.current_action,
+            });
+        }
+    }
+
+    ret
 }
 
 #[derive(Debug, Serialize)]
