@@ -89,7 +89,7 @@ fn specific_test_0c0c_bound() -> Result<()> {
         let mut archive_file_handle = 0 as stormlib_bindings::HANDLE;
         if stormlib_bindings::SFileOpenFileEx(
             mpq_handle,
-            std::ffi::CString::new("File00000014.xxx")?.as_ptr(),
+            std::ffi::CString::new("staredit\\scenario.chk")?.as_ptr(),
             0,
             &mut archive_file_handle as *mut _,
         ) == false

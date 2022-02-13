@@ -116,89 +116,90 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
             }
         }
 
-        // return Err(anyhow::anyhow!(
-        //     "Couldn't find scenario.chk the legit way: {}, file: {}",
-        //     stormlib_bindings::GetLastError(),
-        //     filename
-        // ));
+        return Err(anyhow::anyhow!(
+            "Couldn't find scenario.chk the legit way: {}, file: {}",
+            stormlib_bindings::GetLastError(),
+            filename
+        ));
 
-        // If none of the files found are useful then fall back to enumarating every single file in the MPQ and check to see if it is a CHK file.
-        {
-            let mut find_data: stormlib_bindings::SFILE_FIND_DATA =
-                stormlib_bindings::SFILE_FIND_DATA {
-                    cFileName: [0i8; 1024],
-                    szPlainName: 0 as *mut i8,
-                    dwHashIndex: 0,
-                    dwBlockIndex: 0,
-                    dwFileSize: 0,
-                    dwFileFlags: 0,
-                    dwCompSize: 0,
-                    dwFileTimeLo: 0,
-                    dwFileTimeHi: 0,
-                    lcLocale: 0,
-                };
+        // If none of the files found are useful then fall back to enumarating every single file in the MPQ and check to see if it is a CHK file.;
+        // Until I'm confident i won't need this again, I'll just leave it here for now.
+        // {
+        //     let mut find_data: stormlib_bindings::SFILE_FIND_DATA =
+        //         stormlib_bindings::SFILE_FIND_DATA {
+        //             cFileName: [0i8; 1024],
+        //             szPlainName: 0 as *mut i8,
+        //             dwHashIndex: 0,
+        //             dwBlockIndex: 0,
+        //             dwFileSize: 0,
+        //             dwFileFlags: 0,
+        //             dwCompSize: 0,
+        //             dwFileTimeLo: 0,
+        //             dwFileTimeHi: 0,
+        //             lcLocale: 0,
+        //         };
 
-            let search_handle = stormlib_bindings::SFileFindFirstFile(
-                mpq_handle,
-                format!("{}\0", "*").as_ptr() as *const i8,
-                &mut find_data as *mut stormlib_bindings::SFILE_FIND_DATA,
-                0 as *mut _,
-            );
+        //     let search_handle = stormlib_bindings::SFileFindFirstFile(
+        //         mpq_handle,
+        //         format!("{}\0", "*").as_ptr() as *const i8,
+        //         &mut find_data as *mut stormlib_bindings::SFILE_FIND_DATA,
+        //         0 as *mut _,
+        //     );
 
-            scopeguard::defer! {
-                if stormlib_bindings::SFileFindClose(search_handle) == false {
-                    println!(
-                        "{:?}",
-                        anyhow::anyhow!(
-                            "SFileFindClose. GetLastError: {}, filename: {filename}",
-                            stormlib_bindings::GetLastError()
-                        )
-                    );
-                }
-            }
+        //     scopeguard::defer! {
+        //         if stormlib_bindings::SFileFindClose(search_handle) == false {
+        //             println!(
+        //                 "{:?}",
+        //                 anyhow::anyhow!(
+        //                     "SFileFindClose. GetLastError: {}, filename: {filename}",
+        //                     stormlib_bindings::GetLastError()
+        //                 )
+        //             );
+        //         }
+        //     }
 
-            loop {
-                if search_handle == 0 as stormlib_bindings::HANDLE {
-                    return Err(anyhow::anyhow!(
-                        "search_handle == 0. No more files in MPQ. GetLastError: {}",
-                        stormlib_bindings::GetLastError()
-                    ));
-                }
+        //     loop {
+        //         if search_handle == 0 as stormlib_bindings::HANDLE {
+        //             return Err(anyhow::anyhow!(
+        //                 "search_handle == 0. No more files in MPQ. GetLastError: {}",
+        //                 stormlib_bindings::GetLastError()
+        //             ));
+        //         }
 
-                let new_filename =
-                    crate::util::parse_null_terminated_string(&find_data.cFileName[0..]);
+        //         let new_filename =
+        //             crate::util::parse_null_terminated_string(&find_data.cFileName[0..]);
 
-                println!(
-                    "Enumarating Files: cFileName: {}, dwBlockIndex: {}, dwCompSize: {}, dwFileSize: {}, dwFileTimeHi: {}, dwFileTimeLo: {}, dwHashIndex: {}, lcLocale: {}",
-                    new_filename,
-                    find_data.dwBlockIndex,
-                    find_data.dwCompSize,
-                    find_data.dwFileSize,
-                    find_data.dwFileTimeHi,
-                    find_data.dwFileTimeLo,
-                    find_data.dwHashIndex,
-                    find_data.lcLocale,
-                );
+        //         println!(
+        //             "Enumarating Files: cFileName: {}, dwBlockIndex: {}, dwCompSize: {}, dwFileSize: {}, dwFileTimeHi: {}, dwFileTimeLo: {}, dwHashIndex: {}, lcLocale: {}",
+        //             new_filename,
+        //             find_data.dwBlockIndex,
+        //             find_data.dwCompSize,
+        //             find_data.dwFileSize,
+        //             find_data.dwFileTimeHi,
+        //             find_data.dwFileTimeLo,
+        //             find_data.dwHashIndex,
+        //             find_data.lcLocale,
+        //         );
 
-                if let Ok(x) = try_map_with_locale(new_filename, find_data.lcLocale) {
-                    // PROTECTION: Some maps put very small scenario.chk files in the mpq at different locales, ignore them.
-                    if verify_is_valid_chk(x.as_slice()) {
-                        return Ok(x);
-                    }
-                }
+        //         if let Ok(x) = try_map_with_locale(new_filename, find_data.lcLocale) {
+        //             // PROTECTION: Some maps put very small scenario.chk files in the mpq at different locales, ignore them.
+        //             if verify_is_valid_chk(x.as_slice()) {
+        //                 return Ok(x);
+        //             }
+        //         }
 
-                if stormlib_bindings::SFileFindNextFile(
-                    search_handle,
-                    &mut find_data as *mut stormlib_bindings::SFILE_FIND_DATA,
-                ) == false
-                {
-                    return Err(anyhow::anyhow!(
-                        "SFileFindNextFile. No more files in MPQ. GetLastError: {}",
-                        stormlib_bindings::GetLastError()
-                    ));
-                }
-            }
-        }
+        //         if stormlib_bindings::SFileFindNextFile(
+        //             search_handle,
+        //             &mut find_data as *mut stormlib_bindings::SFILE_FIND_DATA,
+        //         ) == false
+        //         {
+        //             return Err(anyhow::anyhow!(
+        //                 "SFileFindNextFile. No more files in MPQ. GetLastError: {}",
+        //                 stormlib_bindings::GetLastError()
+        //             ));
+        //         }
+        //     }
+        // }
     }
 }
 
