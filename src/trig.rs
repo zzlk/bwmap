@@ -1490,6 +1490,8 @@ pub enum Action {
 #[serde(tag = "type")]
 pub enum MissionBriefingCondition {
     Unknown { id: i64, raw: ChkMbrfCondition },
+    // 0
+    NoCondition,
     // 13
     DataIsAMissionBriefing,
 }
@@ -1564,6 +1566,9 @@ pub fn parse_mission_briefing(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Miss
             let mut conditions = Vec::new();
             for condition in trigger.conditions {
                 match condition.condition {
+                    0 => {
+                        //conditions.push(MissionBriefingCondition::NoCondition);
+                    }
                     13 => {
                         conditions.push(MissionBriefingCondition::DataIsAMissionBriefing);
                     }
@@ -1579,7 +1584,7 @@ pub fn parse_mission_briefing(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Miss
             for action in trigger.actions {
                 match action.action {
                     0 => {
-                        actions.push(MissionBriefingAction::NoAction);
+                        //actions.push(MissionBriefingAction::NoAction);
                     }
                     1 => {
                         actions.push(MissionBriefingAction::Wait {
