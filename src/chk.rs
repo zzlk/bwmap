@@ -91,6 +91,7 @@ use crate::{
     util::parse_null_terminated_bytestring_unsigned,
 };
 use std::str;
+use tracing::{instrument, log::info, span};
 
 //use sha2::{Sha256, Digest};
 
@@ -391,6 +392,7 @@ pub enum ParsedChunk<'a> {
     WAV(ChkWav<'a>),
 }
 
+#[instrument(skip(chunks))]
 pub fn parse_merged_chunks(
     chunks: &HashMap<ChunkName, MergedChunk>,
 ) -> Result<HashMap<ChunkName, ParsedChunk>, anyhow::Error> {
@@ -1382,7 +1384,7 @@ pub(crate) fn get_location_name(
     }
 }
 
-pub(crate) fn get_string(
+pub fn get_string(
     map: &HashMap<ChunkName, ParsedChunk>,
     // encoding_order: &Vec<&'static encoding_rs::Encoding>,
     index: usize,
