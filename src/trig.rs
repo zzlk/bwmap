@@ -51,6 +51,7 @@ use crate::{
     util::reinterpret_as_slice,
     ChunkName, ParsedChunk,
 };
+use tracing::instrument;
 
 static AI_SCRIPT_MAP: phf::Map<&'static [u8], &'static str> = phf::phf_map! {
     b"TMCu" => "Terran Custom Level",
@@ -1558,6 +1559,7 @@ pub struct MissionBriefing {
     pub index_of_current_action: u8,
 }
 
+#[instrument(skip_all)]
 pub fn parse_mission_briefing(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<MissionBriefing> {
     let mut ret = Vec::new();
 
@@ -1665,6 +1667,7 @@ pub struct Trigger {
     pub index_of_current_action: u8,
 }
 
+#[instrument(skip_all)]
 pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
     let mut ret = Vec::new();
 
