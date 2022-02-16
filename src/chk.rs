@@ -235,6 +235,7 @@ pub struct RawChunk {
     pub data: Vec<u8>,
 }
 
+#[instrument(skip_all)]
 pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
     let mut offset = 0;
     let mut ret = Vec::new();
@@ -283,6 +284,7 @@ pub struct MergedChunk {
     pub data: Vec<u8>,
 }
 
+#[instrument(skip_all)]
 pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> {
     let mut map = HashMap::new();
 
@@ -652,6 +654,7 @@ pub fn parse_merged_chunks(
     Ok(map)
 }
 
+#[instrument(skip_all)]
 pub fn merge_rawchunks(chunks: &[RawChunk]) -> Vec<MergedChunk> {
     let mut map = HashMap::new();
 
@@ -888,6 +891,7 @@ fn parse_UNIS(sec: &[u8]) -> Vec<ParsedUNIS> {
     ret
 }
 
+#[instrument(skip_all)]
 pub fn get_parsed_chk(merged_chunks: &Vec<MergedChunk>) -> anyhow::Result<ChkDump, anyhow::Error> {
     let mut hash_table = std::collections::HashMap::new();
 
