@@ -1,7 +1,7 @@
 use crate::chk::verify_is_valid_chk;
 use tracing::instrument;
 
-#[instrument]
+#[instrument(level = "trace")]
 pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, anyhow::Error> {
     // This is really not the rust way to do things but stormlib_bindings is internally not threadsafe so what we can do.
     lazy_static::lazy_static! {
@@ -205,6 +205,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
     }
 }
 
+#[instrument(level = "trace", skip_all)]
 pub fn get_chk_from_mpq_in_memory(mpq: &[u8]) -> anyhow::Result<Vec<u8>, anyhow::Error> {
     use std::io::Write;
 

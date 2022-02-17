@@ -357,6 +357,7 @@ pub enum ResourceType {
     OreAndGas,
 }
 
+#[instrument(level = "trace")]
 fn parse_resource_type(resource_type: u16) -> ResourceType {
     match resource_type {
         0 => ResourceType::Ore,
@@ -374,6 +375,7 @@ pub enum NumericComparison {
     Exactly,
 }
 
+#[instrument(level = "trace")]
 fn parse_numeric_comparison(numeric_comparison: u8) -> NumericComparison {
     match numeric_comparison {
         0 => NumericComparison::AtLeast,
@@ -391,6 +393,7 @@ pub enum NumberModifier {
     Subtract,
 }
 
+#[instrument(level = "trace")]
 fn parse_number_modifier(modifier: u8) -> NumberModifier {
     match modifier {
         7 => NumberModifier::SetTo,
@@ -434,6 +437,7 @@ pub enum SwitchState {
     Cleared,
 }
 
+#[instrument(level = "trace")]
 fn parse_switch_state(switch_state: u8) -> SwitchState {
     match switch_state {
         2 => SwitchState::Set,
@@ -450,6 +454,7 @@ pub enum Order {
     Attack,
 }
 
+#[instrument(level = "trace")]
 fn parse_order(order: u8) -> Order {
     match order {
         0 => Order::Move,
@@ -468,6 +473,7 @@ pub enum ActionState {
     RandomizeSwitch,
 }
 
+#[instrument(level = "trace")]
 fn parse_action_state(action_state: u8) -> ActionState {
     match action_state {
         4 => ActionState::EnabledOrSet,
@@ -478,6 +484,7 @@ fn parse_action_state(action_state: u8) -> ActionState {
     }
 }
 
+#[instrument(level = "trace")]
 fn parse_ai_script(aiscript_id: u32) -> &'static str {
     if let Ok(x) = reinterpret_as_slice(&aiscript_id) {
         if let Some(script) = AI_SCRIPT_MAP.get(x).cloned() {
@@ -1018,6 +1025,7 @@ pub enum Group {
     NonAlliedVictoryPlayers,
 }
 
+#[instrument(level = "trace")]
 fn parse_group(group: u32) -> Group {
     match group {
         0 => Group::Player1,

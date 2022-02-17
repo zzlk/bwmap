@@ -105,6 +105,7 @@ enum ChunkNameUpdateType {
     Append,
 }
 
+#[instrument(level = "trace", skip_all)]
 fn get_update_type(name: &ChunkName) -> ChunkNameUpdateType {
     match name {
         ChunkName::MTXM => ChunkNameUpdateType::PartialOverwrite,
@@ -121,6 +122,7 @@ fn get_update_type(name: &ChunkName) -> ChunkNameUpdateType {
     }
 }
 
+#[instrument(level = "trace", skip_all)]
 fn parse_name(chunk_name: &[u8]) -> ChunkName {
     match chunk_name {
         b"TYPE" => ChunkName::TYPE,
@@ -169,15 +171,15 @@ fn parse_name(chunk_name: &[u8]) -> ChunkName {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RawChunk {
+pub struct RawChunk<'a> {
     pub name: ChunkName,
     pub size: i32,
     pub offset: usize,
     #[serde(skip_serializing)]
-    pub data: Vec<u8>,
+    pub data: &'a [u8],
 }
 
-#[instrument(skip_all)]
+#[instrument(level = "trace", skip_all)]
 pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
     let mut offset = 0;
     let mut ret = Vec::new();
@@ -205,7 +207,7 @@ pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
             break;
         }
 
-        let data = chk[offset..offset + size.abs() as usize].to_vec();
+        let data = &chk[offset..offset + size.abs() as usize];
         offset += usize::try_from(size).unwrap();
 
         ret.push(RawChunk {
@@ -226,7 +228,7 @@ pub struct MergedChunk {
     pub data: Vec<u8>,
 }
 
-#[instrument(skip_all)]
+#[instrument(level = "trace", skip_all)]
 pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> {
     let mut map = HashMap::new();
 
@@ -235,7 +237,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
             ChunkNameUpdateType::FullOverwrite => {
                 let merged = MergedChunk {
                     name: v.name.clone(),
-                    data: v.data.clone(),
+                    data: v.data.to_owned(),
                 };
 
                 map.insert(merged.name.clone(), merged);
@@ -248,7 +250,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
                         data: Vec::new(),
                     };
 
-                    merged.data.extend(v.data.as_slice());
+                    merged.data.extend(v.data);
 
                     if c.data.len() > v.data.len() {
                         merged.data.extend(&c.data[v.data.len()..]);
@@ -258,7 +260,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
                 } else {
                     let merged = MergedChunk {
                         name: v.name.clone(),
-                        data: v.data.clone(),
+                        data: v.data.to_owned(),
                     };
 
                     map.insert(v.name.clone(), merged);
@@ -272,14 +274,14 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
                         data: Vec::new(),
                     };
 
-                    merged.data.extend_from_slice(v.data.as_slice());
-                    merged.data.extend_from_slice(&c.data);
+                    merged.data.extend_from_slice(v.data);
+                    merged.data.extend_from_slice(&c.data.as_slice());
 
                     map.insert(merged.name.clone(), merged);
                 } else {
                     let merged = MergedChunk {
                         name: v.name.clone(),
-                        data: v.data.clone(),
+                        data: v.data.to_owned(),
                     };
 
                     map.insert(v.name.clone(), merged);
@@ -336,7 +338,7 @@ pub enum ParsedChunk<'a> {
     WAV(ChkWav<'a>),
 }
 
-#[instrument(skip(chunks))]
+#[instrument(level = "trace", skip_all)]
 pub fn parse_merged_chunks(
     chunks: &HashMap<ChunkName, MergedChunk>,
 ) -> Result<HashMap<ChunkName, ParsedChunk>, anyhow::Error> {
@@ -596,6 +598,7 @@ pub fn parse_merged_chunks(
     Ok(map)
 }
 
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
     let raw_chunks = parse_chk(&chk);
     let merged_chunks = merge_raw_chunks(&raw_chunks);
@@ -782,6 +785,7 @@ pub fn get_all_string_references(
 //     }
 // }
 
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn get_location_name(
     map: &HashMap<ChunkName, ParsedChunk>,
     index: usize,
@@ -801,6 +805,7 @@ pub(crate) fn get_location_name(
     }
 }
 
+#[instrument(level = "trace", skip_all)]
 pub fn get_string(
     map: &HashMap<ChunkName, ParsedChunk>,
     // encoding_order: &Vec<&'static encoding_rs::Encoding>,
