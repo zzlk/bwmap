@@ -74,7 +74,7 @@ use crate::{
         chk_tecx::{parse_tecx, ChkTecx},
         chk_thg2::{parse_thg2, ChkThg2},
         chk_tile::{parse_tile, ChkTile},
-        chk_trig::{parse_trig, ChkTrig, ChkTrigAction, ChkTrigCondition},
+        chk_trig::{parse_trig, ChkTrig},
         chk_type::{parse_type, ChkType},
         chk_unis::{parse_unis, ChkUnis},
         chk_unit::{parse_unit, ChkUnit},
@@ -91,7 +91,7 @@ use crate::{
     util::parse_null_terminated_bytestring_unsigned,
 };
 use std::str;
-use tracing::{instrument, log::info, span};
+use tracing::instrument;
 
 //use sha2::{Sha256, Digest};
 
@@ -1191,6 +1191,7 @@ pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
     parsed_chunks.get(&ChunkName::VCOD).is_some()
 }
 
+#[allow(unused)]
 pub(crate) fn get_all_string_references(
     map: &HashMap<ChunkName, ParsedChunk>,
 ) -> Result<Vec<u32>, anyhow::Error> {
@@ -1445,12 +1446,11 @@ pub fn get_string(
 
     let mut euc_kr_failed = false;
     let mut euc_kr_characters_decoded_successfully: i64 = 0;
-    let mut euc_kr_characters_len: usize = 0;
+    let euc_kr_characters_len: usize;
     let mut utf8_failed = false;
     let mut utf8_characters_decoded_successfully: i64 = 0;
-    let mut utf8_characters_len: usize = 0;
+    let utf8_characters_len: usize;
 
-    let mut win1252_total_characters: i64 = 0;
     let mut win1252_characters_7f_or_above: i64 = 0;
 
     {
@@ -1485,7 +1485,6 @@ pub fn get_string(
     {
         let conversion = encoding_rs::WINDOWS_1252.decode(bytes);
         // println!("WIN1252: {}", conversion.0);
-        win1252_total_characters += conversion.0.chars().count() as i64;
         win1252_characters_7f_or_above +=
             conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
     }

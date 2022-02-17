@@ -1,30 +1,5 @@
 use rayon::prelude::*;
 
-fn for_all_test_maps<F: Fn(walkdir::DirEntry) + Sync>(func: F) {
-    let processed_maps =
-        walkdir::WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
-            .into_iter()
-            .par_bridge()
-            .filter_map(Result::ok)
-            .filter(
-                |e| match e.file_name().to_string_lossy().to_string().as_str() {
-                    "[EUD]컴디 파이널.scx" => false,
-                    "마인의 폭피 1.scm" => false,
-                    _ => {
-                        !e.file_type().is_dir()
-                            && (e.file_name().to_string_lossy().ends_with(".scx")
-                                || e.file_name().to_string_lossy().ends_with(".scm"))
-                    }
-                },
-            )
-            .map(|e| {
-                func(e);
-            })
-            .count();
-
-    assert_eq!(processed_maps, 176);
-}
-
 #[test]
 fn test_constrain_encoding_detection_algorithm() {
     let f = |s: &str| {
