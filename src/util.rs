@@ -1,3 +1,6 @@
+use tracing::instrument;
+
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
     if std::mem::size_of::<T>() != s.len() {
         panic!(
@@ -38,12 +41,14 @@ pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
 //     }
 // }
 
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn reinterpret_as_slice<T: Sized + Copy>(s: &T) -> Result<&[u8], anyhow::Error> {
     anyhow::Ok(unsafe {
         std::slice::from_raw_parts((s as *const T) as *const u8, std::mem::size_of::<T>())
     })
 }
 
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn reinterpret_slice2<T: Sized>(s: &[u8]) -> Result<&[T], anyhow::Error> {
     anyhow::ensure!(
         s.len() % std::mem::size_of::<T>() == 0,
@@ -63,6 +68,7 @@ pub(crate) struct CursorSlicer<'a> {
 }
 
 impl<'a> CursorSlicer<'a> {
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn new(s: &'a [u8]) -> CursorSlicer {
         CursorSlicer {
             s,
@@ -70,6 +76,7 @@ impl<'a> CursorSlicer<'a> {
         }
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_slice<T>(&mut self, elements: usize) -> Result<&'a [T], anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset + elements * std::mem::size_of::<T>());
 
@@ -82,6 +89,7 @@ impl<'a> CursorSlicer<'a> {
         Ok(ret)
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_slice_lax<T>(
         &mut self,
         elements: usize,
@@ -102,6 +110,7 @@ impl<'a> CursorSlicer<'a> {
         Ok(ret)
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_rest_as_slice<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset);
         anyhow::ensure!((self.s.len() - self.current_offset) % std::mem::size_of::<T>() == 0);
@@ -112,6 +121,7 @@ impl<'a> CursorSlicer<'a> {
     }
 
     // If for example there is some kind of protection where one of the objects is mangled, such as [int, int, int, X] where X is 1 byte instead of 4, the lax variant will ignore the last one.
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_rest_as_slice_lax<T>(&mut self) -> Result<&'a [T], anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset);
         //anyhow::ensure!((self.s.len() - self.current_offset) % std::mem::size_of::<T>() == 0);
@@ -121,6 +131,7 @@ impl<'a> CursorSlicer<'a> {
         self.extract_slice_lax(elements)
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_ref<T>(&mut self) -> Result<&'a T, anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset + std::mem::size_of::<T>());
 
@@ -131,6 +142,7 @@ impl<'a> CursorSlicer<'a> {
         Ok(ret)
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_ref_lax<T>(&mut self) -> Result<Option<&'a T>, anyhow::Error> {
         anyhow::ensure!(self.s.len() >= self.current_offset);
 
@@ -142,6 +154,7 @@ impl<'a> CursorSlicer<'a> {
     }
 }
 
+#[instrument(level = "trace", skip_all)]
 pub(crate) fn parse_null_terminated_bytestring_unsigned(s: &[u8]) -> &[u8] {
     let mut index = 0;
     for &c in s {
