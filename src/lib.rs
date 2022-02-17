@@ -8,13 +8,10 @@ mod util;
 mod test;
 
 pub use chk::get_all_string_references;
-pub use chk::get_parsed_chk;
 pub use chk::get_string;
 pub use chk::merge_raw_chunks;
-pub use chk::merge_rawchunks;
 pub use chk::parse_chk;
 pub use chk::parse_merged_chunks;
-pub use chk::ChkDump;
 pub use chk::ChunkName;
 pub use chk::ParsedChunk;
 pub use mpq::get_chk_from_mpq_filename;

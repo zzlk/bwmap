@@ -44,16 +44,6 @@ pub(crate) fn reinterpret_as_slice<T: Sized + Copy>(s: &T) -> Result<&[u8], anyh
     })
 }
 
-pub(crate) fn reinterpret_slice<T: Sized>(s: &[u8]) -> &[T] {
-    if s.len() % std::mem::size_of::<T>() != 0 {
-        panic!();
-    }
-
-    unsafe {
-        std::slice::from_raw_parts(s.as_ptr() as *const T, s.len() / std::mem::size_of::<T>())
-    }
-}
-
 pub(crate) fn reinterpret_slice2<T: Sized>(s: &[u8]) -> Result<&[T], anyhow::Error> {
     anyhow::ensure!(
         s.len() % std::mem::size_of::<T>() == 0,
