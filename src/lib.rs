@@ -7,6 +7,7 @@ mod util;
 #[cfg(test)]
 mod test;
 
+pub use chk::get_all_string_references;
 pub use chk::get_parsed_chk;
 pub use chk::get_string;
 pub use chk::merge_raw_chunks;
