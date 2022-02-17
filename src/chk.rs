@@ -1191,8 +1191,7 @@ pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
     parsed_chunks.get(&ChunkName::VCOD).is_some()
 }
 
-#[allow(unused)]
-pub(crate) fn get_all_string_references(
+pub fn get_all_string_references(
     map: &HashMap<ChunkName, ParsedChunk>,
 ) -> Result<Vec<u32>, anyhow::Error> {
     let mut ret = Vec::new();
