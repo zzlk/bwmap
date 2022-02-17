@@ -785,7 +785,7 @@ pub fn get_all_string_references(
 //     }
 // }
 
-#[instrument(level = "trace", skip_all)]
+#[instrument(level = "trace", skip(map))]
 pub(crate) fn get_location_name(
     map: &HashMap<ChunkName, ParsedChunk>,
     index: usize,
@@ -805,7 +805,7 @@ pub(crate) fn get_location_name(
     }
 }
 
-#[instrument(level = "trace", skip_all)]
+#[instrument(level = "trace", skip(map))]
 pub fn get_string(
     map: &HashMap<ChunkName, ParsedChunk>,
     // encoding_order: &Vec<&'static encoding_rs::Encoding>,
