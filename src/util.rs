@@ -54,16 +54,6 @@ pub(crate) fn reinterpret_slice<T: Sized>(s: &[u8]) -> &[T] {
     }
 }
 
-pub(crate) fn reinterpret_signed_slice<T: Sized>(s: &[i8]) -> &[T] {
-    if s.len() % std::mem::size_of::<T>() != 0 {
-        panic!();
-    }
-
-    unsafe {
-        std::slice::from_raw_parts(s.as_ptr() as *const T, s.len() / std::mem::size_of::<T>())
-    }
-}
-
 pub(crate) fn reinterpret_slice2<T: Sized>(s: &[u8]) -> Result<&[T], anyhow::Error> {
     anyhow::ensure!(
         s.len() % std::mem::size_of::<T>() == 0,
@@ -160,19 +150,6 @@ impl<'a> CursorSlicer<'a> {
             Ok(None)
         }
     }
-}
-
-pub(crate) fn parse_null_terminated_string(s: &[i8]) -> &str {
-    let mut index = 0;
-    for &c in s {
-        if c == 0i8 {
-            break;
-        }
-
-        index += 1;
-    }
-
-    std::str::from_utf8(reinterpret_signed_slice(&s[0..index])).unwrap()
 }
 
 pub(crate) fn parse_null_terminated_bytestring_unsigned(s: &[u8]) -> &[u8] {

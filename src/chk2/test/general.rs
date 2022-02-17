@@ -5,7 +5,6 @@ use crate::{
 };
 use anyhow::Result;
 use futures::FutureExt;
-use rayon::prelude::*;
 use std::fs::read;
 use walkdir::{DirEntry, WalkDir};
 
@@ -445,27 +444,6 @@ fn test_constrain_encoding_detection_algorithm() {
         // get_string(&map, &encoding_order, sprp_scenario_index as usize).unwrap()
     };
 
-    let f2 = |s: &str, index: usize| {
-        let mut root = env!("CARGO_MANIFEST_DIR").to_owned();
-        root.push_str(format!("/test_vectors/{s}").as_str());
-
-        let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
-        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
-        let raw_chunks = crate::parse_chk(chk.as_slice());
-        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
-        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
-
-        //let encoding_order = guess_encoding_order(&map).unwrap();
-
-        let sprp_scenario_index = if let Some(ParsedChunk::SPRP(x)) = map.get(&ChunkName::SPRP) {
-            *x.scenario_name_string_number
-        } else {
-            unreachable!();
-        };
-
-        get_string(&map, index).unwrap()
-    };
-
     let test_vectors = [
         ("폭피[뿌요뿌요]", "폭탄피하기[뿌요뿌요].scx"),
         ("JØNÎ$  ßøûñÐ(beta)", "»JoNiS»BoUnD».scx"),
@@ -494,23 +472,6 @@ fn test_constrain_encoding_detection_algorithm() {
         (
             "\u{3}Marine Special Forces \u{7}Re",
             "마린키우기_오리지널_re_정식_1.62.scx",
-        ),
-    ];
-
-    for (a, b) in test_vectors.into_iter() {
-        assert_eq!(a, f(b));
-    }
-
-    let test_vectors2 = [
-        (
-            "마린키우기_오리지널_re_정식_1.62.scx",
-            1,
-            "\u{3}Marine Special Forces \u{7}Re",
-        ),
-        (
-            "마린키우기_오리지널_re_정식_1.62.scx",
-            1,
-            "\u{3}Marine Special Forces \u{7}Re",
         ),
     ];
 
