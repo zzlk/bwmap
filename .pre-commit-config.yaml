@@ -1,0 +1,27 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+        exclude: '.*.scm$'
+    -   id: end-of-file-fixer
+        exclude: '.*.scm$'
+    -   id: check-yaml
+    -   id: check-toml
+    -   id: check-added-large-files
+
+-   repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+    -   id: fmt
+    -   id: cargo-check
+
+-   repo: local
+    hooks:
+    -   id: cargo-test-map-files
+        name: cargo-test-map-files
+        description: Run cargo test for any .rs .scm .scx .rep files changed
+        entry: cargo test
+        language: system
+        files: \.(rs|scm|scx|rep)$
+        pass_filenames: false
