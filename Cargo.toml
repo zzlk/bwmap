@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-stormlib-bindings = { path = "stormlib-bindings" }
-uchardet-bindings = { path = "uchardet-bindings" }
-compact_enc_det-bindings = { path = "compact_enc_det-bindings" }
+stormlib-bindings = { git = "ssh://git@github.com/zzlk/stormlib-bindings.git" }
+uchardet-bindings = { git = "ssh://git@github.com/zzlk/uchardet-bindings.git" }
+compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bindings.git" }
 
 tempfile = "*"
 serde = { version = "*", features = ["derive"] }
