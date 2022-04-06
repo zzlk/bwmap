@@ -1,9 +1,0 @@
-[submodule "compact_enc_det-bindings"]
-	path = compact_enc_det-bindings
-	url = git@github.com:zzlk/compact_enc_det-bindings.git
-[submodule "stormlib-bindings"]
-	path = stormlib-bindings
-	url = git@github.com:zzlk/stormlib-bindings.git
-[submodule "uchardet-bindings"]
-	path = uchardet-bindings
-	url = git@github.com:zzlk/uchardet-bindings.git
