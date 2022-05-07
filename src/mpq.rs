@@ -211,7 +211,7 @@ pub fn get_chk_from_mpq_in_memory(mpq: &[u8]) -> anyhow::Result<Vec<u8>, anyhow:
 
     let path = {
         use std::str::FromStr;
-        let uuid = uuid::Uuid::new_v4().to_simple().to_string();
+        let uuid = uuid::Uuid::new_v4().as_simple().to_string();
         let path = std::path::PathBuf::from_str(format!("/tmp/{}.scx", uuid).as_str())?;
 
         let mut file = std::fs::File::create(&path)?;
