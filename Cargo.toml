@@ -17,7 +17,7 @@ anyhow = "*"
 uuid = { version = "*", features = ["v4"] }
 walkdir = "*"
 rayon = "*"
-reqwest = { version = "*", features = ["json"] }
+reqwest = { version = "*", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 futures = "*"
 scopeguard = "*"
