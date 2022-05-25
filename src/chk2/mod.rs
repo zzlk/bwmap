@@ -41,4 +41,5 @@ pub mod chk_ver;
 pub mod chk_wav;
 
 #[cfg(test)]
+#[cfg(feature = "full")]
 mod test;

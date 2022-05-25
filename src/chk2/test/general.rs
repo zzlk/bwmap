@@ -1,7 +1,8 @@
 use crate::{
     chk::{get_all_string_references, get_string, ChunkName, ParsedChunk},
-    get_chk_from_mpq_filename, get_chk_from_mpq_in_memory, merge_raw_chunks, parse_chk,
-    parse_merged_chunks,
+    merge_raw_chunks,
+    mpq::{get_chk_from_mpq_filename, get_chk_from_mpq_in_memory},
+    parse_chk, parse_merged_chunks,
 };
 use anyhow::Result;
 use futures::FutureExt;

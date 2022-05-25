@@ -785,6 +785,7 @@ pub fn get_all_string_references(
 //     }
 // }
 
+#[cfg(feature = "full")]
 #[instrument(level = "trace", skip(map))]
 pub(crate) fn get_location_name(
     map: &HashMap<ChunkName, ParsedChunk>,
@@ -805,6 +806,7 @@ pub(crate) fn get_location_name(
     }
 }
 
+#[cfg(feature = "full")]
 #[instrument(level = "trace", skip(map))]
 pub fn get_string(
     map: &HashMap<ChunkName, ParsedChunk>,
