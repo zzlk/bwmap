@@ -1,0 +1,10 @@
+[build]
+rustflags = ["--cfg", "tokio_unstable"]
+# "-Cforce-frame-pointers=yes" "-C", "target-feature=+crt-static"
+
+#[target.x86_64-unknown-linux-gnu]
+#linker = "/usr/bin/clang"
+#rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment", "--cfg", "tokio_unstable", "-Cforce-frame-pointers=yes", "-C", "inline-threshold=0"]
+
+[net]
+git-fetch-with-cli = true
