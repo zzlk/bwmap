@@ -1,28 +1,29 @@
 mod chk;
 mod chk2;
-mod mpq;
-mod trig;
 mod util;
+
+#[cfg(feature = "full")]
+mod mpq;
+#[cfg(feature = "full")]
+mod trig;
 
 #[cfg(test)]
 mod test;
 
 pub use chk::get_all_string_references;
-pub use chk::get_string;
+
 pub use chk::merge_raw_chunks;
 pub use chk::parse_chk;
 pub use chk::parse_merged_chunks;
 pub use chk::ChunkName;
 pub use chk::ParsedChunk;
+
+#[cfg(feature = "full")]
+pub use trig::*;
+
+#[cfg(feature = "full")]
+pub use chk::get_string;
+#[cfg(feature = "full")]
 pub use mpq::get_chk_from_mpq_filename;
+#[cfg(feature = "full")]
 pub use mpq::get_chk_from_mpq_in_memory;
-pub use trig::parse_mission_briefing;
-pub use trig::parse_triggers;
-pub use trig::Action;
-pub use trig::Condition;
-pub use trig::Group;
-pub use trig::MissionBriefing;
-pub use trig::MissionBriefingAction;
-pub use trig::MissionBriefingCondition;
-pub use trig::Trigger;
-pub use trig::UnitType;

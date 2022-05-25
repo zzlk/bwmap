@@ -43,7 +43,6 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 use crate::{
-    chk::{get_location_name, get_string},
     chk2::{
         chk_mbrf::{ChkMbrfAction, ChkMbrfCondition},
         chk_trig::{ChkTrigAction, ChkTrigCondition},
@@ -52,6 +51,9 @@ use crate::{
     ChunkName, ParsedChunk,
 };
 use tracing::instrument;
+
+#[cfg(feature = "full")]
+use crate::chk::{get_location_name, get_string};
 
 static AI_SCRIPT_MAP: phf::Map<&'static [u8], &'static str> = phf::phf_map! {
     b"TMCu" => "Terran Custom Level",

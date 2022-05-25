@@ -4,16 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["full", "stormlib-bindings", "uchardet-bindings", "compact_enc_det-bindings", "uuid"]
+full = []
 
 [dependencies]
-stormlib-bindings = { git = "ssh://git@github.com/zzlk/stormlib-bindings.git" }
-uchardet-bindings = { git = "ssh://git@github.com/zzlk/uchardet-bindings.git" }
-compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bindings.git" }
+stormlib-bindings = { git = "ssh://git@github.com/zzlk/stormlib-bindings.git", optional = true }
+uchardet-bindings = { git = "ssh://git@github.com/zzlk/uchardet-bindings.git", optional = true }
+compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bindings.git", optional = true }
 
 serde = { version = "*", features = ["derive"] }
 encoding_rs = "*"
 anyhow = "*"
-uuid = { version = "*", features = ["v4"] }
+uuid = { version = "*", features = ["v4"], optional = true }
 
 scopeguard = "*"
 lazy_static = "*"
@@ -23,9 +26,9 @@ tracing = "*"
 
 [dev-dependencies]
 reqwest = { version = "*", default-features = false, features = ["json", "rustls-tls"] }
-tokio = { version = "1", features = ["full"] }
-walkdir = "*"
-rayon = "*"
-futures = "*"
-rand = "*"
-tempfile = "*"
+tokio = { version = "1" }
+walkdir = { version = "*" }
+rayon = { version = "*" }
+futures = { version = "*" }
+rand = { version = "*" }
+tempfile = { version = "*" }
