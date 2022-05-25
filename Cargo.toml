@@ -15,10 +15,8 @@ serde = { version = "*", features = ["derive"] }
 encoding_rs = "*"
 anyhow = "*"
 uuid = { version = "*", features = ["v4"] }
-walkdir = "*"
 rayon = "*"
-reqwest = { version = "*", default-features = false, features = ["json", "rustls-tls"] }
-tokio = { version = "1", features = ["full"] }
+
 futures = "*"
 scopeguard = "*"
 lazy_static = "*"
@@ -26,3 +24,8 @@ rand = "*"
 phf = { version = "0.10", features = ["macros"] }
 
 tracing = "*"
+
+[dev-dependencies]
+reqwest = { version = "*", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["full"] }
+walkdir = "*"
