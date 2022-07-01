@@ -1,54 +1,57 @@
-use std::{convert::TryFrom, ffi::CStr};
+use std::convert::TryFrom;
+
+#[cfg(feature = "full")]
+use std::ffi::CStr;
 
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{
-    chk2::{
-        chk_colr::{parse_colr, ChkColr},
-        chk_crgb::{parse_crgb, ChkCrgb},
-        chk_dd2::{parse_dd2, ChkDd2},
-        chk_dim::{parse_dim, ChkDim},
-        chk_era::{parse_era, ChkEra},
-        chk_forc::{parse_forc, ChkForc},
-        chk_iown::{parse_iown, ChkIown},
-        chk_isom::{parse_isom, ChkIsom},
-        chk_ive2::{parse_ive2, ChkIve2},
-        chk_iver::{parse_iver, ChkIver},
-        chk_mask::{parse_mask, ChkMask},
-        chk_mbrf::{parse_mbrf, ChkMbrf},
-        chk_mrgn::{parse_mrgn, ChkMrgn},
-        chk_mtxm::{parse_mtxm, ChkMtxm},
-        chk_ownr::{parse_ownr, ChkOwnr},
-        chk_ptec::{parse_ptec, ChkPtec},
-        chk_ptex::{parse_ptex, ChkPtex},
-        chk_puni::{parse_puni, ChkPuni},
-        chk_pupx::{parse_pupx, ChkPupx},
-        chk_side::{parse_side, ChkSide},
-        chk_sprp::{parse_sprp, ChkSprp},
-        chk_str::{parse_str, ChkStr},
-        chk_strx::{parse_strx, ChkStrx},
-        chk_swnm::{parse_swnm, ChkSwnm},
-        chk_tecs::{parse_tecs, ChkTecs},
-        chk_tecx::{parse_tecx, ChkTecx},
-        chk_thg2::{parse_thg2, ChkThg2},
-        chk_tile::{parse_tile, ChkTile},
-        chk_trig::{parse_trig, ChkTrig},
-        chk_type::{parse_type, ChkType},
-        chk_unis::{parse_unis, ChkUnis},
-        chk_unit::{parse_unit, ChkUnit},
-        chk_unix::{parse_unix, ChkUnix},
-        chk_upgr::{parse_upgr, ChkUpgr},
-        chk_upgs::{parse_upgs, ChkUpgs},
-        chk_upgx::{parse_upgx, ChkUpgx},
-        chk_uprp::{parse_uprp, ChkUprp},
-        chk_upus::{parse_upus, ChkUpus},
-        chk_vcod::{parse_vcod, ChkVcod},
-        chk_ver::{parse_ver, ChkVer},
-        chk_wav::{parse_wav, ChkWav},
-    },
-    util::parse_null_terminated_bytestring_unsigned,
+#[cfg(feature = "full")]
+use crate::util::parse_null_terminated_bytestring_unsigned;
+
+use crate::chk2::{
+    chk_colr::{parse_colr, ChkColr},
+    chk_crgb::{parse_crgb, ChkCrgb},
+    chk_dd2::{parse_dd2, ChkDd2},
+    chk_dim::{parse_dim, ChkDim},
+    chk_era::{parse_era, ChkEra},
+    chk_forc::{parse_forc, ChkForc},
+    chk_iown::{parse_iown, ChkIown},
+    chk_isom::{parse_isom, ChkIsom},
+    chk_ive2::{parse_ive2, ChkIve2},
+    chk_iver::{parse_iver, ChkIver},
+    chk_mask::{parse_mask, ChkMask},
+    chk_mbrf::{parse_mbrf, ChkMbrf},
+    chk_mrgn::{parse_mrgn, ChkMrgn},
+    chk_mtxm::{parse_mtxm, ChkMtxm},
+    chk_ownr::{parse_ownr, ChkOwnr},
+    chk_ptec::{parse_ptec, ChkPtec},
+    chk_ptex::{parse_ptex, ChkPtex},
+    chk_puni::{parse_puni, ChkPuni},
+    chk_pupx::{parse_pupx, ChkPupx},
+    chk_side::{parse_side, ChkSide},
+    chk_sprp::{parse_sprp, ChkSprp},
+    chk_str::{parse_str, ChkStr},
+    chk_strx::{parse_strx, ChkStrx},
+    chk_swnm::{parse_swnm, ChkSwnm},
+    chk_tecs::{parse_tecs, ChkTecs},
+    chk_tecx::{parse_tecx, ChkTecx},
+    chk_thg2::{parse_thg2, ChkThg2},
+    chk_tile::{parse_tile, ChkTile},
+    chk_trig::{parse_trig, ChkTrig},
+    chk_type::{parse_type, ChkType},
+    chk_unis::{parse_unis, ChkUnis},
+    chk_unit::{parse_unit, ChkUnit},
+    chk_unix::{parse_unix, ChkUnix},
+    chk_upgr::{parse_upgr, ChkUpgr},
+    chk_upgs::{parse_upgs, ChkUpgs},
+    chk_upgx::{parse_upgx, ChkUpgx},
+    chk_uprp::{parse_uprp, ChkUprp},
+    chk_upus::{parse_upus, ChkUpus},
+    chk_vcod::{parse_vcod, ChkVcod},
+    chk_ver::{parse_ver, ChkVer},
+    chk_wav::{parse_wav, ChkWav},
 };
 use std::str;
 use tracing::instrument;
