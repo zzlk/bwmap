@@ -193,32 +193,35 @@ pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
             break;
         }
         let name = parse_name(&chk[offset..offset + 4]);
-        offset += 4;
 
+        offset += 4;
         if offset + 4 >= chk.len() {
             break;
         }
         let size: i32 = crate::util::parse_slice(&chk[offset..offset + 4]);
+        let size = size as i64;
+
         offset += 4;
-
-        // TODO: I have heard? some map protectors use negative sizes to stack sections, how to do.
-        if size < 0 {
+        if (offset as i64 + size) > chk.len() as i64 {
             break;
         }
 
-        if offset + size as usize > chk.len() {
+        if (offset as i64 + size) < 0 {
             break;
         }
 
-        let data = &chk[offset..offset + size.abs() as usize];
-        offset += usize::try_from(size).unwrap();
+        if size >= 0 {
+            let data = &chk[offset..(offset as i64 + size) as usize];
 
-        ret.push(RawChunk {
-            name,
-            size,
-            offset: start_offset,
-            data,
-        });
+            ret.push(RawChunk {
+                name,
+                size: size as i32,
+                offset: start_offset,
+                data,
+            });
+        }
+
+        offset = (offset as i64 + size).try_into().unwrap();
     }
 
     ret

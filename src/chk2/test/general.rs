@@ -30,7 +30,7 @@ fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
         })
         .count();
 
-    assert_eq!(processed_maps, 184);
+    assert_eq!(processed_maps, 185);
 }
 
 #[test]
@@ -562,4 +562,21 @@ fn test_constrain_encoding_detection_algorithm2() {
     for (a, b, c) in test_vectors.into_iter() {
         assert_eq!(a, f(b, c));
     }
+}
+
+#[test]
+fn specific_test_rise_of_empires() -> Result<()> {
+    let filename = format!(
+        "{}/test_vectors/[6]Rise of Empires v6.07e.scx",
+        env!("CARGO_MANIFEST_DIR")
+    );
+
+    let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
+    let raw_chunks = parse_chk(&chk_data);
+    let merged_chunks = merge_raw_chunks(&raw_chunks);
+    let parsed_chunks = parse_merged_chunks(&merged_chunks)?;
+
+    assert!(parsed_chunks.get(&ChunkName::SPRP).is_some());
+
+    anyhow::Ok(())
 }
