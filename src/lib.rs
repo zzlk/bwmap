@@ -1,5 +1,6 @@
 mod chk;
 mod chk2;
+mod riff;
 mod util;
 
 #[cfg(feature = "full")]
