@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Not required.
@@ -16,6 +16,16 @@ pub struct ChkType<'a> {
 
 pub(crate) fn parse_type(sec: &[u8]) -> Result<ChkType, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkType {
+        scenario_type: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_type2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkType<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkType {
         scenario_type: slicer.extract_ref()?,

@@ -1,5 +1,7 @@
 mod chk;
 mod chk2;
+mod chunk_name;
+mod parsed_chk;
 mod riff;
 mod util;
 
@@ -16,8 +18,8 @@ pub use chk::get_all_string_references;
 pub use chk::merge_raw_chunks;
 pub use chk::parse_chk;
 pub use chk::parse_merged_chunks;
-pub use chk::ChunkName;
 pub use chk::ParsedChunk;
+pub use chunk_name::ChunkName;
 
 #[cfg(feature = "full")]
 pub use trig::*;

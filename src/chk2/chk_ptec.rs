@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
@@ -35,6 +35,20 @@ pub struct ChkPtec<'a> {
 
 pub(crate) fn parse_ptec(sec: &[u8]) -> Result<ChkPtec, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkPtec {
+        player_availability: slicer.extract_ref()?,
+        already_researched: slicer.extract_ref()?,
+        global_availability_defaults: slicer.extract_ref()?,
+        global_already_researched_defaults: slicer.extract_ref()?,
+        player_uses_default: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_ptec2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPtec<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkPtec {
         player_availability: slicer.extract_ref()?,

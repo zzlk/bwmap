@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Not Required.
@@ -24,6 +24,16 @@ pub struct ChkIown<'a> {
 
 pub(crate) fn parse_iown(sec: &[u8]) -> Result<ChkIown, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkIown {
+        player_owner: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_iown2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIown<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkIown {
         player_owner: slicer.extract_ref()?,

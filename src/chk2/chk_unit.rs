@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -50,55 +50,52 @@ use serde::Serialize;
 // Default values will apply if bit values are unchecked. Defaults: 100% HP, 100% SP, 100% EP, 0 resources, 0 hangar count.
 // This section can be split. Additional UNIT sections will add more units.
 
-#[derive(Debug, Serialize, Eq, PartialEq)]
-pub struct ChkUnitIndividual<'a> {
-    pub class_instance: &'a u32,
-    pub x: &'a u16,
-    pub y: &'a u16,
-    pub unit_id: &'a u16,
-    pub type_of_relation_to_other_building: &'a u16,
-    pub properties_that_can_be_applied: &'a u16,
-    pub properties_that_can_be_changed: &'a u16,
-    pub owner: &'a u8,
-    pub hit_points_percent: &'a u8,
-    pub shield_points_percent: &'a u8,
-    pub energy_points_percent: &'a u8,
-    pub resource_amount: &'a u32,
-    pub number_of_units_in_hangar: &'a u16,
-    pub unit_state_flags: &'a u16,
-    pub unused: &'a u32,
-    pub class_instance_related_to: &'a u32,
+#[derive(Debug, Serialize, Eq, PartialEq, Copy, Clone)]
+#[repr(C, packed)]
+pub struct ChkUnitIndividual {
+    pub class_instance: u32,
+    pub x: u16,
+    pub y: u16,
+    pub unit_id: u16,
+    pub type_of_relation_to_other_building: u16,
+    pub properties_that_can_be_applied: u16,
+    pub properties_that_can_be_changed: u16,
+    pub owner: u8,
+    pub hit_points_percent: u8,
+    pub shield_points_percent: u8,
+    pub energy_points_percent: u8,
+    pub resource_amount: u32,
+    pub number_of_units_in_hangar: u16,
+    pub unit_state_flags: u16,
+    pub unused: u32,
+    pub class_instance_related_to: u32,
 }
 
 #[derive(Debug, Serialize)]
-pub struct ChkUnit<'a> {
-    pub units: Vec<ChkUnitIndividual<'a>>,
+pub struct ChkUnit {
+    pub units: Vec<ChkUnitIndividual>,
 }
 
 pub(crate) fn parse_unit(sec: &[u8]) -> Result<ChkUnit, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
-    let mut units = Vec::new();
+    if sec.len() % 36 != 0 {
+        Ok(ChkUnit { units: Vec::new() })
+    } else {
+        Ok(ChkUnit {
+            units: slicer.extract_rest_as_slice()?.to_vec(),
+        })
+    }
+}
 
-    for _ in 0..(sec.len() / 36) {
-        units.push(ChkUnitIndividual {
-            class_instance: slicer.extract_ref()?,
-            x: slicer.extract_ref()?,
-            y: slicer.extract_ref()?,
-            unit_id: slicer.extract_ref()?,
-            type_of_relation_to_other_building: slicer.extract_ref()?,
-            properties_that_can_be_applied: slicer.extract_ref()?,
-            properties_that_can_be_changed: slicer.extract_ref()?,
-            owner: slicer.extract_ref()?,
-            hit_points_percent: slicer.extract_ref()?,
-            shield_points_percent: slicer.extract_ref()?,
-            energy_points_percent: slicer.extract_ref()?,
-            resource_amount: slicer.extract_ref()?,
-            number_of_units_in_hangar: slicer.extract_ref()?,
-            unit_state_flags: slicer.extract_ref()?,
-            unused: slicer.extract_ref()?,
-            class_instance_related_to: slicer.extract_ref()?,
-        });
+pub(crate) fn parse_unit2(chunks: &[RiffChunk]) -> Result<ChkUnit, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut units: Vec<ChkUnitIndividual> = Vec::new();
+
+    for chunk in chunks {
+        let mut slicer = CursorSlicer::new(chunk.data);
+        units.extend_from_slice(slicer.extract_rest_as_slice_lax()?);
     }
 
     Ok(ChkUnit { units })

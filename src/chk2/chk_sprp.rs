@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -16,6 +16,17 @@ pub struct ChkSprp<'a> {
 
 pub(crate) fn parse_sprp(sec: &[u8]) -> Result<ChkSprp, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkSprp {
+        scenario_name_string_number: slicer.extract_ref()?,
+        description_string_number: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_sprp2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSprp<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkSprp {
         scenario_name_string_number: slicer.extract_ref()?,

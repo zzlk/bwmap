@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{util::CursorSlicer, riff::RiffChunk};
 use serde::Serialize;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
@@ -32,6 +32,20 @@ pub struct ChkUpgr<'a> {
 
 pub(crate) fn parse_upgr(sec: &[u8]) -> Result<ChkUpgr, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkUpgr {
+        max_upgrade_level: slicer.extract_ref()?,
+        starting_upgrade_level: slicer.extract_ref()?,
+        global_default_maximum_upgrade_level: slicer.extract_ref()?,
+        global_default_starting_upgrade_level: slicer.extract_ref()?,
+        player_uses_upgrade_defaults: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_upgr2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUpgr<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkUpgr {
         max_upgrade_level: slicer.extract_ref()?,

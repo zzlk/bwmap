@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for Vanilla and Hybrid (in Original mode). Not required for Melee.
@@ -27,6 +27,20 @@ pub struct ChkTecs<'a> {
 
 pub(crate) fn parse_tecs(sec: &[u8]) -> Result<ChkTecs, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkTecs {
+        technology_uses_default_settings: slicer.extract_ref()?,
+        mineral_cost: slicer.extract_ref()?,
+        gas_cost: slicer.extract_ref()?,
+        time: slicer.extract_ref()?,
+        energy_cost_to_cast: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_tecs2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTecs<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkTecs {
         technology_uses_default_settings: slicer.extract_ref()?,

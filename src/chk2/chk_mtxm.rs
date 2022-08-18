@@ -1,4 +1,4 @@
-use crate::util::reinterpret_slice2;
+use crate::{riff::RiffChunk, util::reinterpret_slice2};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -35,4 +35,37 @@ pub(crate) fn parse_mtxm(sec: &[u8]) -> Result<ChkMtxm, anyhow::Error> {
     };
 
     Ok(ChkMtxm { data })
+}
+
+pub(crate) fn parse_mtxm2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMtxm, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut ret = Vec::new();
+
+    for chunk in chunks {
+        let sec = chunk.data;
+
+        let data = if sec.len() % 2 == 0 {
+            Vec::from(reinterpret_slice2::<u16>(sec)?)
+        } else {
+            let mut ret = if sec.len() == 1 {
+                Vec::new()
+            } else {
+                Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
+            };
+
+            ret.push(sec[sec.len() - 1] as u16);
+            ret
+        };
+
+        if data.len() > ret.len() {
+            ret = data;
+        } else {
+            for i in 0..data.len() {
+                ret[i] = data[i];
+            }
+        }
+    }
+
+    Ok(ChkMtxm { data: ret })
 }

@@ -1,9 +1,11 @@
-use crate::util::parse_slice;
+use crate::{chunk_name::parse_chunk_name, util::parse_slice, ChunkName};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tracing::instrument;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RiffChunk<'a> {
-    pub fourcc: [u8; 4],
+    pub chunk_name: ChunkName,
     pub size: u32,
     pub offset: usize,
     pub data: &'a [u8],
@@ -15,7 +17,7 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
     let mut ret = Vec::new();
 
     while offset + 8 < chk.len() {
-        let fourcc: [u8; 4] = parse_slice(&chk[offset..offset + 4]);
+        let chunk_name: ChunkName = parse_chunk_name(&chk[offset..offset + 4]);
         let size: u32 = u32::from_le_bytes(parse_slice(&chk[offset + 4..offset + 8]));
 
         let chunk_data_start_offset = offset + 8;
@@ -30,7 +32,7 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
         if chunk_data_end_offset <= chk.len() {
             let data = &chk[chunk_data_start_offset..chunk_data_end_offset];
             ret.push(RiffChunk {
-                fourcc,
+                chunk_name,
                 size,
                 offset,
                 data,
@@ -41,49 +43,77 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
     ret
 }
 
+#[instrument(level = "trace", skip_all)]
+pub fn validate_and_group_riff_chunks<'a>(
+    chk: &[RiffChunk<'a>],
+) -> HashMap<ChunkName, Vec<RiffChunk<'a>>> {
+    let validating_iterator = chk.into_iter().filter(|chunk| match chunk.chunk_name {
+        ChunkName::VER => chunk.size == 2,
+        ChunkName::VCOD => true, // Not sure how to validate this exactly but vcod isn't really read anyway.
+        ChunkName::OWNR => chunk.size == 12,
+        ChunkName::ERA => chunk.size == 2,
+        ChunkName::DIM => chunk.size == 4,
+        ChunkName::SIDE => chunk.size == 12,
+        ChunkName::MTXM => chunk.size <= (256 * 256 * 2),
+        ChunkName::PUNI => chunk.size == 5700,
+        ChunkName::UPGR => chunk.size == 1748,
+        ChunkName::PTEC => chunk.size == 912,
+        ChunkName::UNIT => chunk.size % 36 == 0,
+        ChunkName::THG2 => chunk.size % 10 == 0,
+        ChunkName::MASK => true, // this section will always validate?
+        ChunkName::STR => chunk.size >= 1,
+        ChunkName::STRx => chunk.size >= 1, // assumed
+        ChunkName::UPRP => chunk.size >= 1280,
+        ChunkName::MRGN => chunk.size == 1280 || chunk.size == 5100,
+        ChunkName::TRIG => chunk.size % 2400 == 0,
+        ChunkName::MBRF => chunk.size % 2400 == 0,
+        ChunkName::SPRP => chunk.size == 4,
+        ChunkName::FORC => chunk.size == 20,
+        ChunkName::UNIS => chunk.size == 4048,
+        ChunkName::UPGS => chunk.size == 598,
+        ChunkName::TECS => chunk.size == 216,
+        ChunkName::COLR => chunk.size == 8,
+        ChunkName::CRGB => chunk.size == 32,
+        ChunkName::PUPx => chunk.size == 2318,
+        ChunkName::PTEx => chunk.size == 1672,
+        ChunkName::UNIx => chunk.size == 4168,
+        ChunkName::UPGx => chunk.size == 794,
+        ChunkName::TECx => chunk.size == 396,
+        ChunkName::UNKNOWN(_) => false,
+        _ => true,
+    });
+
+    let mut ret = HashMap::new();
+
+    for riff_chunk in validating_iterator {
+        ret.entry(riff_chunk.chunk_name.clone())
+            .or_insert(Vec::new())
+            .push(riff_chunk.clone());
+    }
+
+    ret
+}
+
 #[cfg(test)]
 mod test {
-    use crate::riff::parse_riff;
-    use anyhow::Result;
-    use walkdir::{DirEntry, WalkDir};
-
-    fn for_all_test_maps<F: Fn(DirEntry)>(func: F) {
-        let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
-            .into_iter()
-            .filter_map(Result::ok)
-            .filter(
-                |e| match e.file_name().to_string_lossy().to_string().as_str() {
-                    "[EUD]컴디 파이널.scx" => false,
-                    "마인의 폭피 1.scm" => false,
-                    _ => {
-                        !e.file_type().is_dir()
-                            && (e.file_name().to_string_lossy().ends_with(".scx")
-                                || e.file_name().to_string_lossy().ends_with(".scm"))
-                    }
-                },
-            )
-            .map(|e| {
-                func(e);
-            })
-            .count();
-
-        assert_eq!(processed_maps, 185);
-    }
+    use crate::{riff::parse_riff, test::get_all_test_maps, ChunkName};
 
     #[test]
     fn test_parse_riff() {
-        for_all_test_maps(|e| {
-            println!("file: {}", e.file_name().to_string_lossy());
+        for dir_entry in get_all_test_maps() {
+            println!("file: {}", dir_entry.file_name().to_string_lossy());
             let chk_data =
-                crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
+                crate::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
+                    .unwrap();
 
             let riff_chunks = parse_riff(&chk_data);
 
             assert!(riff_chunks.len() > 0);
             assert!(riff_chunks
                 .iter()
-                .position(|x| x.fourcc == *b"VER ")
+                .position(|x| std::mem::discriminant(&x.chunk_name)
+                    == std::mem::discriminant(&ChunkName::VER))
                 .is_some());
-        });
+        }
     }
 }

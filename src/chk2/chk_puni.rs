@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions. Not required for Melee.
@@ -28,6 +28,18 @@ pub struct ChkPuni<'a> {
 
 pub(crate) fn parse_puni(sec: &[u8]) -> Result<ChkPuni, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkPuni {
+        unit_player_availability: slicer.extract_ref()?,
+        unit_global_availability: slicer.extract_ref()?,
+        unit_player_uses_defaults: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_puni2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPuni<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkPuni {
         unit_player_availability: slicer.extract_ref()?,

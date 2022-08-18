@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions. Not required for Melee.
@@ -24,6 +24,16 @@ pub struct ChkMask<'a> {
 
 pub(crate) fn parse_mask(sec: &[u8]) -> Result<ChkMask, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkMask {
+        fog: slicer.extract_rest_as_slice()?,
+    })
+}
+
+pub(crate) fn parse_mask2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMask<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkMask {
         fog: slicer.extract_rest_as_slice()?,

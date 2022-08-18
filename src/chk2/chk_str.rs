@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -19,6 +19,11 @@ pub struct ChkStr<'a> {
     pub strings: &'a [u8],
 }
 
+#[derive(Debug, Serialize)]
+pub struct ChkStr2 {
+    pub string_data: Vec<u8>,
+}
+
 pub(crate) fn parse_str(sec: &[u8]) -> Result<ChkStr, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
@@ -31,6 +36,20 @@ pub(crate) fn parse_str(sec: &[u8]) -> Result<ChkStr, anyhow::Error> {
         string_offsets,
         strings,
     })
+}
+
+pub(crate) fn parse_str2(chunks: &[RiffChunk]) -> Result<ChkStr2, anyhow::Error> {
+    let mut data = Vec::new();
+
+    for chunk in chunks {
+        if chunk.data.len() >= data.len() {
+            data.resize(chunk.data.len(), 0);
+        }
+
+        data.as_mut_slice()[0..chunk.data.len()].copy_from_slice(chunk.data);
+    }
+
+    Ok(ChkStr2 { string_data: data })
 }
 
 // let

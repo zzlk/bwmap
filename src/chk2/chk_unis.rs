@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // u8[228]: 1 byte for each unit, in order of Unit ID
@@ -40,6 +40,25 @@ pub struct ChkUnis<'a> {
 
 pub(crate) fn parse_unis(sec: &[u8]) -> Result<ChkUnis, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkUnis {
+        config: slicer.extract_ref()?,
+        hit_points: slicer.extract_ref()?,
+        shield_points: slicer.extract_ref()?,
+        armor_points: slicer.extract_ref()?,
+        build_time: slicer.extract_ref()?,
+        mineral_cost: slicer.extract_ref()?,
+        gas_cost: slicer.extract_ref()?,
+        string_number: slicer.extract_ref()?,
+        base_weapon_damage: slicer.extract_ref()?,
+        upgrade_bonus_weapon_damage: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_unis2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUnis<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkUnis {
         config: slicer.extract_ref()?,

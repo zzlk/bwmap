@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Not Required.
@@ -14,6 +14,16 @@ pub struct ChkWav<'a> {
 
 pub(crate) fn parse_wav(sec: &[u8]) -> Result<ChkWav, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkWav {
+        wav_string_number: slicer.extract_rest_as_slice_lax()?,
+    })
+}
+
+pub(crate) fn parse_wav2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkWav<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkWav {
         wav_string_number: slicer.extract_rest_as_slice_lax()?,

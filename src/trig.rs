@@ -1574,7 +1574,7 @@ pub fn parse_mission_briefing(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Miss
     let mut ret = Vec::new();
 
     if let Some(ParsedChunk::MBRF(trig)) = map.get(&ChunkName::MBRF) {
-        for trigger in trig.triggers {
+        for trigger in &trig.triggers {
             let mut conditions = Vec::new();
             for condition in trigger.conditions {
                 match condition.condition {
@@ -1682,7 +1682,7 @@ pub fn parse_triggers(map: &HashMap<ChunkName, ParsedChunk>) -> Vec<Trigger> {
     let mut ret = Vec::new();
 
     if let Some(ParsedChunk::TRIG(trig)) = map.get(&ChunkName::TRIG) {
-        for trigger in trig.triggers {
+        for trigger in &trig.triggers {
             let mut conditions = Vec::new();
             for condition in trigger.conditions {
                 match condition.condition {

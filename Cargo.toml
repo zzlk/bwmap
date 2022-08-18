@@ -15,7 +15,7 @@ compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bi
 
 serde = { version = "*", features = ["derive"] }
 encoding_rs = "*"
-anyhow = "*"
+anyhow = { version = "*", features = ["backtrace"] }
 uuid = { version = "*", features = ["v4"], optional = true }
 
 scopeguard = "*"

@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for Brood War only and all game types.
@@ -43,6 +43,16 @@ pub struct ChkColr<'a> {
 
 pub(crate) fn parse_colr(sec: &[u8]) -> Result<ChkColr, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkColr {
+        player_color: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_colr2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkColr<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkColr {
         player_color: slicer.extract_ref()?,

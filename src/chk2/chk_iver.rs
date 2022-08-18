@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Not required.
@@ -17,6 +17,16 @@ pub struct ChkIver<'a> {
 
 pub(crate) fn parse_iver(sec: &[u8]) -> Result<ChkIver, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkIver {
+        additional_file_format_version: slicer.extract_ref_lax()?,
+    })
+}
+
+pub(crate) fn parse_iver2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIver<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkIver {
         additional_file_format_version: slicer.extract_ref_lax()?,

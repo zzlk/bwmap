@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions. Not required for Melee.
@@ -54,14 +54,27 @@ pub struct ChkMbrfIndividual {
 }
 
 #[derive(Debug, Serialize)]
-pub struct ChkMbrf<'a> {
-    pub triggers: &'a [ChkMbrfIndividual],
+pub struct ChkMbrf {
+    pub triggers: Vec<ChkMbrfIndividual>,
 }
 
-pub(crate) fn parse_mbrf<'a>(sec: &'a [u8]) -> Result<ChkMbrf<'a>, anyhow::Error> {
+pub(crate) fn parse_mbrf(sec: &[u8]) -> Result<ChkMbrf, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
 
     Ok(ChkMbrf {
-        triggers: slicer.extract_rest_as_slice_lax()?,
+        triggers: slicer.extract_rest_as_slice_lax()?.to_vec(),
     })
+}
+
+pub(crate) fn parse_mbrf2(chunks: &[RiffChunk]) -> Result<ChkMbrf, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut triggers: Vec<ChkMbrfIndividual> = Vec::new();
+
+    for chunk in chunks {
+        let mut slicer = CursorSlicer::new(chunk.data);
+        triggers.extend_from_slice(slicer.extract_rest_as_slice_lax()?);
+    }
+
+    Ok(ChkMbrf { triggers })
 }

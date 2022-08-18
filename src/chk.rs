@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::convert::TryFrom;
 
 #[cfg(feature = "full")]
@@ -10,168 +11,55 @@ use std::collections::HashMap;
 #[cfg(feature = "full")]
 use crate::util::parse_null_terminated_bytestring_unsigned;
 
-use crate::chk2::{
-    chk_colr::{parse_colr, ChkColr},
-    chk_crgb::{parse_crgb, ChkCrgb},
-    chk_dd2::{parse_dd2, ChkDd2},
-    chk_dim::{parse_dim, ChkDim},
-    chk_era::{parse_era, ChkEra},
-    chk_forc::{parse_forc, ChkForc},
-    chk_iown::{parse_iown, ChkIown},
-    chk_isom::{parse_isom, ChkIsom},
-    chk_ive2::{parse_ive2, ChkIve2},
-    chk_iver::{parse_iver, ChkIver},
-    chk_mask::{parse_mask, ChkMask},
-    chk_mbrf::{parse_mbrf, ChkMbrf},
-    chk_mrgn::{parse_mrgn, ChkMrgn},
-    chk_mtxm::{parse_mtxm, ChkMtxm},
-    chk_ownr::{parse_ownr, ChkOwnr},
-    chk_ptec::{parse_ptec, ChkPtec},
-    chk_ptex::{parse_ptex, ChkPtex},
-    chk_puni::{parse_puni, ChkPuni},
-    chk_pupx::{parse_pupx, ChkPupx},
-    chk_side::{parse_side, ChkSide},
-    chk_sprp::{parse_sprp, ChkSprp},
-    chk_str::{parse_str, ChkStr},
-    chk_strx::{parse_strx, ChkStrx},
-    chk_swnm::{parse_swnm, ChkSwnm},
-    chk_tecs::{parse_tecs, ChkTecs},
-    chk_tecx::{parse_tecx, ChkTecx},
-    chk_thg2::{parse_thg2, ChkThg2},
-    chk_tile::{parse_tile, ChkTile},
-    chk_trig::{parse_trig, ChkTrig},
-    chk_type::{parse_type, ChkType},
-    chk_unis::{parse_unis, ChkUnis},
-    chk_unit::{parse_unit, ChkUnit},
-    chk_unix::{parse_unix, ChkUnix},
-    chk_upgr::{parse_upgr, ChkUpgr},
-    chk_upgs::{parse_upgs, ChkUpgs},
-    chk_upgx::{parse_upgx, ChkUpgx},
-    chk_uprp::{parse_uprp, ChkUprp},
-    chk_upus::{parse_upus, ChkUpus},
-    chk_vcod::{parse_vcod, ChkVcod},
-    chk_ver::{parse_ver, ChkVer},
-    chk_wav::{parse_wav, ChkWav},
+use crate::{
+    chk2::{
+        chk_colr::{parse_colr, ChkColr},
+        chk_crgb::{parse_crgb, ChkCrgb},
+        chk_dd2::{parse_dd2, ChkDd2},
+        chk_dim::{parse_dim, ChkDim},
+        chk_era::{parse_era, ChkEra},
+        chk_forc::{parse_forc, ChkForc},
+        chk_iown::{parse_iown, ChkIown},
+        chk_isom::{parse_isom, ChkIsom},
+        chk_ive2::{parse_ive2, ChkIve2},
+        chk_iver::{parse_iver, ChkIver},
+        chk_mask::{parse_mask, ChkMask},
+        chk_mbrf::{parse_mbrf, ChkMbrf},
+        chk_mrgn::{parse_mrgn, ChkMrgn},
+        chk_mtxm::{parse_mtxm, ChkMtxm},
+        chk_ownr::{parse_ownr, ChkOwnr},
+        chk_ptec::{parse_ptec, ChkPtec},
+        chk_ptex::{parse_ptex, ChkPtex},
+        chk_puni::{parse_puni, ChkPuni},
+        chk_pupx::{parse_pupx, ChkPupx},
+        chk_side::{parse_side, ChkSide},
+        chk_sprp::{parse_sprp, ChkSprp},
+        chk_str::{parse_str, ChkStr},
+        chk_strx::{parse_strx, ChkStrx},
+        chk_swnm::{parse_swnm, ChkSwnm},
+        chk_tecs::{parse_tecs, ChkTecs},
+        chk_tecx::{parse_tecx, ChkTecx},
+        chk_thg2::{parse_thg2, ChkThg2},
+        chk_tile::{parse_tile, ChkTile},
+        chk_trig::{parse_trig, ChkTrig},
+        chk_type::{parse_type, ChkType},
+        chk_unis::{parse_unis, ChkUnis},
+        chk_unit::{parse_unit, ChkUnit},
+        chk_unix::{parse_unix, ChkUnix},
+        chk_upgr::{parse_upgr, ChkUpgr},
+        chk_upgs::{parse_upgs, ChkUpgs},
+        chk_upgx::{parse_upgx, ChkUpgx},
+        chk_uprp::{parse_uprp, ChkUprp},
+        chk_upus::{parse_upus, ChkUpus},
+        chk_vcod::{parse_vcod, ChkVcod},
+        chk_ver::{parse_ver, ChkVer},
+        chk_wav::{parse_wav, ChkWav},
+    },
+    chunk_name::{get_chunk_update_type, parse_chunk_name, ChunkName, ChunkNameUpdateType},
+    riff::{parse_riff, validate_and_group_riff_chunks},
 };
 use std::str;
 use tracing::instrument;
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Clone)]
-pub enum ChunkName {
-    TYPE,
-    VER,
-    IVER,
-    IVE2,
-    VCOD,
-    IOWN,
-    OWNR,
-    ERA,
-    DIM,
-    SIDE,
-    MTXM,
-    PUNI,
-    UPGR,
-    PTEC,
-    UNIT,
-    ISOM,
-    TILE,
-    DD2,
-    THG2,
-    MASK,
-    STR,
-    STRx,
-    UPRP,
-    UPUS,
-    MRGN,
-    TRIG,
-    MBRF,
-    SPRP,
-    FORC,
-    WAV,
-    UNIS,
-    UPGS,
-    TECS,
-    SWNM,
-    COLR,
-    CRGB,
-    PUPx,
-    PTEx,
-    UNIx,
-    UPGx,
-    TECx,
-    UNKNOWN(String),
-}
-
-enum ChunkNameUpdateType {
-    FullOverwrite,
-    PartialOverwrite,
-    Append,
-}
-
-#[instrument(level = "trace", skip_all)]
-fn get_update_type(name: &ChunkName) -> ChunkNameUpdateType {
-    match name {
-        ChunkName::MTXM => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::STR => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::STRx => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::TILE => ChunkNameUpdateType::PartialOverwrite,
-
-        ChunkName::UNIT => ChunkNameUpdateType::Append,
-        ChunkName::THG2 => ChunkNameUpdateType::Append,
-        ChunkName::TRIG => ChunkNameUpdateType::Append,
-        ChunkName::MBRF => ChunkNameUpdateType::Append,
-
-        _ => ChunkNameUpdateType::FullOverwrite,
-    }
-}
-
-#[instrument(level = "trace", skip_all)]
-fn parse_name(chunk_name: &[u8]) -> ChunkName {
-    match chunk_name {
-        b"TYPE" => ChunkName::TYPE,
-        b"VER " => ChunkName::VER,
-        b"IVER" => ChunkName::IVER,
-        b"IVE2" => ChunkName::IVE2,
-        b"VCOD" => ChunkName::VCOD,
-        b"IOWN" => ChunkName::IOWN,
-        b"OWNR" => ChunkName::OWNR,
-        b"ERA " => ChunkName::ERA,
-        b"DIM " => ChunkName::DIM,
-        b"SIDE" => ChunkName::SIDE,
-        b"MTXM" => ChunkName::MTXM,
-        b"PUNI" => ChunkName::PUNI,
-        b"UPGR" => ChunkName::UPGR,
-        b"PTEC" => ChunkName::PTEC,
-        b"UNIT" => ChunkName::UNIT,
-        b"ISOM" => ChunkName::ISOM,
-        b"TILE" => ChunkName::TILE,
-        b"DD2 " => ChunkName::DD2,
-        b"THG2" => ChunkName::THG2,
-        b"MASK" => ChunkName::MASK,
-        b"STR " => ChunkName::STR,
-        b"STRx" => ChunkName::STRx,
-        b"UPRP" => ChunkName::UPRP,
-        b"UPUS" => ChunkName::UPUS,
-        b"MRGN" => ChunkName::MRGN,
-        b"TRIG" => ChunkName::TRIG,
-        b"MBRF" => ChunkName::MBRF,
-        b"SPRP" => ChunkName::SPRP,
-        b"FORC" => ChunkName::FORC,
-        b"WAV " => ChunkName::WAV,
-        b"UNIS" => ChunkName::UNIS,
-        b"UPGS" => ChunkName::UPGS,
-        b"TECS" => ChunkName::TECS,
-        b"SWNM" => ChunkName::SWNM,
-        b"COLR" => ChunkName::COLR,
-        b"CRGB" => ChunkName::CRGB,
-        b"PUPx" => ChunkName::PUPx,
-        b"PTEx" => ChunkName::PTEx,
-        b"UNIx" => ChunkName::UNIx,
-        b"UPGx" => ChunkName::UPGx,
-        b"TECx" => ChunkName::TECx,
-        _ => ChunkName::UNKNOWN(encoding_rs::WINDOWS_1252.decode(chunk_name).0.to_string()),
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RawChunk<'a> {
@@ -192,7 +80,7 @@ pub fn parse_chk(chk: &[u8]) -> Vec<RawChunk> {
         if offset + 4 >= chk.len() {
             break;
         }
-        let name = parse_name(&chk[offset..offset + 4]);
+        let name = parse_chunk_name(&chk[offset..offset + 4]);
 
         offset += 4;
         if offset + 4 >= chk.len() {
@@ -239,7 +127,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
     let mut map = HashMap::new();
 
     for v in chunks {
-        match get_update_type(&v.name) {
+        match get_chunk_update_type(&v.name) {
             ChunkNameUpdateType::FullOverwrite => {
                 let merged = MergedChunk {
                     name: v.name.clone(),
@@ -303,7 +191,7 @@ pub fn merge_raw_chunks(chunks: &[RawChunk]) -> HashMap<ChunkName, MergedChunk> 
 pub enum ParsedChunk<'a> {
     COLR(ChkColr<'a>),
     CRGB(ChkCrgb<'a>),
-    DD2(ChkDd2<'a>),
+    DD2(ChkDd2),
     DIM(ChkDim<'a>),
     ERA(ChkEra<'a>),
     FORC(ChkForc<'a>),
@@ -312,7 +200,7 @@ pub enum ParsedChunk<'a> {
     IVE2(ChkIve2<'a>),
     IVER(ChkIver<'a>),
     MASK(ChkMask<'a>),
-    MBRF(ChkMbrf<'a>),
+    MBRF(ChkMbrf),
     MRGN(ChkMrgn<'a>),
     MTXM(ChkMtxm),
     OWNR(ChkOwnr<'a>),
@@ -327,12 +215,12 @@ pub enum ParsedChunk<'a> {
     SWNM(ChkSwnm<'a>),
     TECS(ChkTecs<'a>),
     TECx(ChkTecx<'a>),
-    THG2(ChkThg2<'a>),
+    THG2(ChkThg2),
     TILE(ChkTile),
-    TRIG(ChkTrig<'a>),
+    TRIG(ChkTrig),
     TYPE(ChkType<'a>),
     UNIS(ChkUnis<'a>),
-    UNIT(ChkUnit<'a>),
+    UNIT(ChkUnit),
     UNIx(ChkUnix<'a>),
     UPGR(ChkUpgr<'a>),
     UPGS(ChkUpgs<'a>),
@@ -662,7 +550,7 @@ pub fn get_all_string_references(
     }
 
     if let Some(ParsedChunk::MBRF(x)) = map.get(&ChunkName::MBRF) {
-        for trigger in x.triggers {
+        for trigger in &x.triggers {
             for action in trigger.actions {
                 ret.push(action.string_number);
             }
@@ -670,7 +558,7 @@ pub fn get_all_string_references(
     }
 
     if let Some(ParsedChunk::TRIG(x)) = map.get(&ChunkName::TRIG) {
-        for trigger in x.triggers {
+        for trigger in &x.triggers {
             for action in trigger.actions {
                 if action.string_number > 65535 {
                     println!("{action:?}");

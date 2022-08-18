@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for all versions and all game types.
@@ -30,6 +30,16 @@ pub struct ChkVer<'a> {
 
 pub(crate) fn parse_ver(sec: &[u8]) -> Result<ChkVer, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkVer {
+        file_format_version: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_ver2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkVer<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkVer {
         file_format_version: slicer.extract_ref()?,

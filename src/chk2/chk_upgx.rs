@@ -1,4 +1,4 @@
-use crate::util::CursorSlicer;
+use crate::{riff::RiffChunk, util::CursorSlicer};
 use serde::Serialize;
 
 // Required for Hybrid (in Expansion mode) and Brood War. Not required for Melee.
@@ -39,6 +39,23 @@ pub struct ChkUpgx<'a> {
 
 pub(crate) fn parse_upgx(sec: &[u8]) -> Result<ChkUpgx, anyhow::Error> {
     let mut slicer = CursorSlicer::new(sec);
+
+    Ok(ChkUpgx {
+        upgrade_uses_default_setings: slicer.extract_ref()?,
+        unused: slicer.extract_ref()?,
+        base_mineral_cost: slicer.extract_ref()?,
+        mineral_cost_factor: slicer.extract_ref()?,
+        base_gas_cost: slicer.extract_ref()?,
+        gas_cost_factor: slicer.extract_ref()?,
+        base_time: slicer.extract_ref()?,
+        time_factor: slicer.extract_ref()?,
+    })
+}
+
+pub(crate) fn parse_upgx2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUpgx<'a>, anyhow::Error> {
+    anyhow::ensure!(chunks.len() > 0);
+
+    let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkUpgx {
         upgrade_uses_default_setings: slicer.extract_ref()?,

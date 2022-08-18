@@ -1,4 +1,5 @@
 use crate::chk::verify_is_valid_chk;
+use scopeguard::defer;
 use tracing::instrument;
 
 #[instrument(level = "trace")]
@@ -23,7 +24,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
             ));
         }
 
-        scopeguard::defer! {
+        defer! {
             if stormlib_bindings::SFileCloseArchive(mpq_handle) == false {
                 println!(
                     "{:?}",
@@ -60,7 +61,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                 ));
             }
 
-            scopeguard::defer! {
+            defer! {
                 if stormlib_bindings::SFileCloseFile(archive_file_handle) == false {
                     println!(
                         "{:?}",
@@ -148,7 +149,7 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
         //         0 as *mut _,
         //     );
 
-        //     scopeguard::defer! {
+        //     defer! {
         //         if stormlib_bindings::SFileFindClose(search_handle) == false {
         //             println!(
         //                 "{:?}",
@@ -223,11 +224,157 @@ pub fn get_chk_from_mpq_in_memory(mpq: &[u8]) -> anyhow::Result<Vec<u8>, anyhow:
         path
     };
 
-    scopeguard::defer! {
+    defer! {
         if let Err(e) = std::fs::remove_file(&path) {
             println!("{:?}", e);
         }
     }
 
     get_chk_from_mpq_filename(path.to_string_lossy().to_string())
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::test::get_all_test_maps;
+    use anyhow::Result;
+
+    #[test]
+    fn can_extract_all_mpqs() {
+        for dir_entry in get_all_test_maps() {
+            println!("{}", dir_entry.path().to_string_lossy().to_string());
+            let chk_data =
+                crate::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
+                    .unwrap();
+
+            assert!(chk_data.len() > 0);
+        }
+    }
+
+    #[test]
+    fn specific_test_0c0c_bound() -> Result<()> {
+        unsafe {
+            let filename = format!(
+                "{}/test_vectors/OcOc Bound 2(p).scx",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            let cstr = std::ffi::CString::new(filename.as_str())?;
+
+            let mut mpq_handle = 0 as stormlib_bindings::HANDLE;
+
+            stormlib_bindings::SFileSetLocale(0);
+
+            if stormlib_bindings::SFileOpenArchive(cstr.as_ptr(), 0, 0, &mut mpq_handle as *mut _)
+                == false
+            {
+                return Err(anyhow::anyhow!(
+                    "SFileOpenArchive. GetLastError: {}, filename: {filename}",
+                    stormlib_bindings::GetLastError()
+                ));
+            }
+
+            let mut chk_data: Vec<u8> = vec![0; 32 * 1024 * 1024];
+            let mut archive_file_handle = 0 as stormlib_bindings::HANDLE;
+            if stormlib_bindings::SFileOpenFileEx(
+                mpq_handle,
+                std::ffi::CString::new("staredit\\scenario.chk")?.as_ptr(),
+                0,
+                &mut archive_file_handle as *mut _,
+            ) == false
+            {
+                return Err(anyhow::anyhow!(
+                    "SFileOpenFileEx. GetLastError: {}",
+                    stormlib_bindings::GetLastError()
+                ));
+            }
+
+            let mut size: u32 = 0;
+            if stormlib_bindings::SFileReadFile(
+                archive_file_handle,
+                chk_data.as_mut_ptr() as *mut _,
+                chk_data.len() as u32,
+                &mut size as *mut _,
+                0 as *mut _,
+            ) == false
+            {
+                let last_error = stormlib_bindings::GetLastError();
+                if last_error != stormlib_bindings::ERROR_HANDLE_EOF
+                    || size == chk_data.len() as u32
+                {
+                    return Err(anyhow::anyhow!(
+                        "SFileReadFile. GetLastError: {}",
+                        last_error,
+                    ));
+                }
+            }
+
+            chk_data.resize(size as usize, 0);
+            anyhow::ensure!(chk_data.len() > 0);
+        }
+
+        anyhow::Ok(())
+    }
+
+    #[test]
+    fn specific_test_sniper_seed() -> Result<()> {
+        unsafe {
+            let filename = format!(
+                "{}/test_vectors/Sniper - Seed vA.scx",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            let cstr = std::ffi::CString::new(filename.as_str())?;
+
+            let mut mpq_handle = 0 as stormlib_bindings::HANDLE;
+            if stormlib_bindings::SFileOpenArchive(cstr.as_ptr(), 0, 0, &mut mpq_handle as *mut _)
+                == false
+            {
+                return Err(anyhow::anyhow!(
+                    "SFileOpenArchive. GetLastError: {}, filename: {filename}",
+                    stormlib_bindings::GetLastError()
+                ));
+            }
+
+            stormlib_bindings::SFileSetLocale(0);
+
+            let mut chk_data: Vec<u8> = vec![0; 32 * 1024 * 1024];
+            let mut archive_file_handle = 0 as stormlib_bindings::HANDLE;
+            if stormlib_bindings::SFileOpenFileEx(
+                mpq_handle,
+                std::ffi::CString::new("staredit\\scenario.chk")?.as_ptr(),
+                0,
+                &mut archive_file_handle as *mut _,
+            ) == false
+            {
+                return Err(anyhow::anyhow!(
+                    "SFileOpenFileEx. GetLastError: {}",
+                    stormlib_bindings::GetLastError()
+                ));
+            }
+
+            let mut size: u32 = 0;
+            if stormlib_bindings::SFileReadFile(
+                archive_file_handle,
+                chk_data.as_mut_ptr() as *mut _,
+                chk_data.len() as u32,
+                &mut size as *mut _,
+                0 as *mut _,
+            ) == false
+            {
+                let last_error = stormlib_bindings::GetLastError();
+                if last_error != stormlib_bindings::ERROR_HANDLE_EOF
+                    || size == chk_data.len() as u32
+                {
+                    return Err(anyhow::anyhow!(
+                        "SFileReadFile. GetLastError: {}",
+                        last_error,
+                    ));
+                }
+            }
+
+            chk_data.resize(size as usize, 0);
+            anyhow::ensure!(chk_data.len() > 0);
+        }
+
+        anyhow::Ok(())
+    }
 }
