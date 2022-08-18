@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::convert::TryFrom;
 
 #[cfg(feature = "full")]
 use std::ffi::CStr;
@@ -56,7 +55,6 @@ use crate::{
         chk_wav::{parse_wav, ChkWav},
     },
     chunk_name::{get_chunk_update_type, parse_chunk_name, ChunkName, ChunkNameUpdateType},
-    riff::{parse_riff, validate_and_group_riff_chunks},
 };
 use std::str;
 use tracing::instrument;

@@ -33,7 +33,7 @@ pub(crate) fn parse_tecx(sec: &[u8]) -> Result<ChkTecx, anyhow::Error> {
     })
 }
 
-pub(crate) fn parse_tecs2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTecx<'a>, anyhow::Error> {
+pub(crate) fn parse_tecx2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTecx<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

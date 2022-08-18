@@ -21,7 +21,8 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
         let size: u32 = u32::from_le_bytes(parse_slice(&chk[offset + 4..offset + 8]));
 
         let chunk_data_start_offset = offset + 8;
-        let chunk_data_end_offset = (chunk_data_start_offset + size as usize) % u32::MAX as usize;
+        let chunk_data_end_offset =
+            (chunk_data_start_offset + size as usize) % (u32::MAX as usize + 1);
         offset = chunk_data_end_offset;
 
         if chunk_data_end_offset < chunk_data_start_offset {
@@ -68,7 +69,7 @@ pub fn validate_and_group_riff_chunks<'a>(
         ChunkName::TRIG => chunk.size % 2400 == 0,
         ChunkName::MBRF => chunk.size % 2400 == 0,
         ChunkName::SPRP => chunk.size == 4,
-        ChunkName::FORC => chunk.size == 20,
+        ChunkName::FORC => chunk.size <= 20,
         ChunkName::UNIS => chunk.size == 4048,
         ChunkName::UPGS => chunk.size == 598,
         ChunkName::TECS => chunk.size == 216,

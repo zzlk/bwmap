@@ -21,6 +21,10 @@ pub use chk::parse_merged_chunks;
 pub use chk::ParsedChunk;
 pub use chunk_name::ChunkName;
 
+pub use parsed_chk::ParsedChk;
+
+pub use parsed_chk::parse_chk_full;
+
 #[cfg(feature = "full")]
 pub use trig::*;
 
