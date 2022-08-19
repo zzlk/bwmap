@@ -42,7 +42,6 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
             let cstr = std::ffi::CString::new(filename)?;
 
             stormlib_bindings::SFileSetLocale(locale); // Set locale, this function never fails.
-            let mut chk_data: Vec<u8> = vec![0; 32 * 1024 * 1024];
             let mut archive_file_handle = 0 as stormlib_bindings::HANDLE;
             if stormlib_bindings::SFileOpenFileEx(
                 mpq_handle,
@@ -72,6 +71,29 @@ pub fn get_chk_from_mpq_filename(filename: String) -> anyhow::Result<Vec<u8>, an
                     );
                 }
             };
+
+            let file_size_low;
+            let mut file_size_high: u32 = 0;
+
+            file_size_low = stormlib_bindings::SFileGetFileSize(
+                archive_file_handle,
+                &mut file_size_high as *mut _,
+            );
+
+            if file_size_low == stormlib_bindings::SFILE_INVALID_SIZE {
+                return Err(anyhow::anyhow!(
+                    "SFileGetFileSize. GetLastError: {}, filename: {filename}, locale: {locale}",
+                    stormlib_bindings::GetLastError()
+                ));
+            }
+
+            if file_size_high != 0 {
+                return Err(anyhow::anyhow!(
+                    "SFileGetFileSize. File size too big. file_size_high: {file_size_high}, file_size_low: {file_size_low}",
+                ));
+            }
+
+            let mut chk_data: Vec<u8> = vec![0; file_size_low as usize];
 
             let mut size: u32 = 0;
             if stormlib_bindings::SFileReadFile(

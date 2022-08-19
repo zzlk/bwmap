@@ -8,6 +8,7 @@ pub struct RiffChunk<'a> {
     pub chunk_name: ChunkName,
     pub size: u32,
     pub offset: usize,
+    #[serde(skip)]
     pub data: &'a [u8],
 }
 
@@ -116,5 +117,22 @@ mod test {
                     == std::mem::discriminant(&ChunkName::VER))
                 .is_some());
         }
+    }
+
+    #[test]
+    fn specific_test_planet_shakuras() {
+        let filename = format!(
+            "{}/test_vectors/Strategy UnLimited SCBW-Planet Shakura v1.1.scx",
+            env!("CARGO_MANIFEST_DIR")
+        );
+
+        let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
+        let riff_chunks = parse_riff(&chk_data);
+
+        assert!(riff_chunks
+            .iter()
+            .position(|x| std::mem::discriminant(&x.chunk_name)
+                == std::mem::discriminant(&ChunkName::TRIG))
+            .is_some());
     }
 }

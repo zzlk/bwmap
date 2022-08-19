@@ -7,35 +7,36 @@ use crate::{
 use anyhow::Result;
 use futures::FutureExt;
 use std::fs::read;
-use walkdir::{DirEntry, WalkDir};
 
-fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
-    let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
-        .into_iter()
-        //.par_bridge()
-        .filter_map(Result::ok)
-        .filter(
-            |e| match e.file_name().to_string_lossy().to_string().as_str() {
-                "[EUD]컴디 파이널.scx" => false,
-                "마인의 폭피 1.scm" => false,
-                _ => {
-                    !e.file_type().is_dir()
-                        && (e.file_name().to_string_lossy().ends_with(".scx")
-                            || e.file_name().to_string_lossy().ends_with(".scm"))
-                }
-            },
-        )
-        .map(|e| {
-            func(e);
-        })
-        .count();
+use crate::test::get_all_test_maps;
 
-    assert_eq!(processed_maps, 185);
-}
+// fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
+//     let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
+//         .into_iter()
+//         //.par_bridge()
+//         .filter_map(Result::ok)
+//         .filter(
+//             |e| match e.file_name().to_string_lossy().to_string().as_str() {
+//                 "[EUD]컴디 파이널.scx" => false,
+//                 "마인의 폭피 1.scm" => false,
+//                 _ => {
+//                     !e.file_type().is_dir()
+//                         && (e.file_name().to_string_lossy().ends_with(".scx")
+//                             || e.file_name().to_string_lossy().ends_with(".scm"))
+//                 }
+//             },
+//         )
+//         .map(|e| {
+//             func(e);
+//         })
+//         .count();
+
+//     assert_eq!(processed_maps, 185);
+// }
 
 #[test]
 fn test_parse_merged_chunks() {
-    for_all_test_maps(|e| {
+    for e in get_all_test_maps() {
         println!("file: {}", e.file_name().to_string_lossy());
         let chk_data =
             crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
@@ -60,7 +61,7 @@ fn test_parse_merged_chunks() {
             chk_data.len(),
             parsed_chunks
         );
-    });
+    }
 }
 
 #[test]
@@ -262,29 +263,29 @@ where
 
 #[test]
 fn test_get_chk_from_mpq_filename() {
-    for_all_test_maps(|e| {
+    for e in get_all_test_maps() {
         assert!(
             get_chk_from_mpq_filename(e.path().to_string_lossy().to_string())
                 .unwrap()
                 .len()
                 > 0
         );
-    });
+    }
 }
 
 #[test]
 fn test_get_chk_from_mpq_in_memory() {
-    for_all_test_maps(|e| {
+    for e in get_all_test_maps() {
         assert_eq!(
             get_chk_from_mpq_in_memory(read(e.path()).unwrap().as_slice()).unwrap(),
             get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap()
         );
-    });
+    }
 }
 
 #[test]
 fn test_get_string_on_all_maps() {
-    for_all_test_maps(|e| {
+    for e in get_all_test_maps() {
         let chk = crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
         let raw_chunks = crate::parse_chk(chk.as_slice());
         let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
@@ -295,7 +296,7 @@ fn test_get_string_on_all_maps() {
         for string_ref in string_refs {
             get_string(&map, string_ref as usize).unwrap();
         }
-    });
+    }
 }
 
 #[test]

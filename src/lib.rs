@@ -24,6 +24,7 @@ pub use chunk_name::ChunkName;
 pub use parsed_chk::ParsedChk;
 
 pub use parsed_chk::parse_chk_full;
+pub use riff::parse_riff;
 
 #[cfg(feature = "full")]
 pub use trig::*;

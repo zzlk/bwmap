@@ -18,7 +18,7 @@ pub(crate) fn get_all_test_maps() -> impl Iterator<Item = DirEntry> {
         )
         .collect::<Vec<_>>();
 
-    assert_eq!(vec.len(), 185);
+    assert_eq!(vec.len(), 186);
 
     vec.into_iter()
 }
