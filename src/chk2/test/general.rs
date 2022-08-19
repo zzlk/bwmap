@@ -1,5 +1,5 @@
 use crate::{
-    chk::{get_all_string_references, get_string, ParsedChunk},
+    chk::{get_string, ParsedChunk},
     merge_raw_chunks,
     mpq::{get_chk_from_mpq_filename, get_chk_from_mpq_in_memory},
     parse_chk, parse_merged_chunks, ChunkName,
@@ -287,14 +287,11 @@ fn test_get_chk_from_mpq_in_memory() {
 fn test_get_string_on_all_maps() {
     for e in get_all_test_maps() {
         let chk = crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
-        let raw_chunks = crate::parse_chk(chk.as_slice());
-        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
-        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
-
-        let string_refs = get_all_string_references(&map).unwrap();
+        let parsed_chk = crate::parse_chk_full(chk.as_slice());
+        let string_refs = parsed_chk.get_all_string_references().unwrap();
 
         for string_ref in string_refs {
-            get_string(&map, string_ref as usize).unwrap();
+            parsed_chk.get_string(string_ref as usize).unwrap();
         }
     }
 }

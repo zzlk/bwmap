@@ -1,3 +1,4 @@
+use crate::util::parse_null_terminated_bytestring_unsigned;
 use crate::{
     chk2::{
         chk_colr::{parse_colr2, ChkColr},
@@ -46,8 +47,11 @@ use crate::{
     ChunkName,
 };
 use anyhow::Result;
+use serde::ser::SerializeMap;
+use serde::{Serialize, Serializer};
 use tracing::instrument;
 
+#[derive(Debug)]
 pub struct ParsedChk<'a> {
     pub colr: Result<ChkColr<'a>>,
     pub crgb: Result<ChkCrgb<'a>>,
@@ -90,6 +94,20 @@ pub struct ParsedChk<'a> {
     pub vcod: Result<ChkVcod<'a>>,
     pub ver: Result<ChkVer<'a>>,
     pub wav: Result<ChkWav<'a>>,
+}
+
+impl<'a> Serialize for ParsedChk<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        if let Ok(x) = &self.unit {
+            map.serialize_entry("UNIT", &x)?;
+        }
+
+        map.end()
+    }
 }
 
 #[instrument(level = "trace", skip_all)]
@@ -143,6 +161,363 @@ pub fn parse_chk_full<'a>(chk: &'a [u8]) -> ParsedChk<'a> {
     };
 
     ret
+}
+
+impl<'a> ParsedChk<'a> {
+    #[cfg(feature = "full")]
+    #[instrument(level = "trace", skip(self))]
+    pub fn get_string(
+        &self,
+        // encoding_order: &Vec<&'static encoding_rs::Encoding>,
+        index: usize,
+    ) -> Result<String> {
+        if index == 0 {
+            return Ok("Zero index provided to 'get_string'".to_owned());
+        }
+
+        let index = index - 1;
+
+        let bytes = if let Ok(x) = &self.strx {
+            let mut offset = 4;
+            offset += index * 4;
+
+            if offset + 4 >= x.string_data.len() {
+                return Ok(format!(
+                    "Out of bounds access STRx offset table. index: {index}, offset+4: {}, string_data.len(): {}",
+                    offset + 4,
+                    x.string_data.len()
+                ));
+            }
+
+            let str_offset: usize =
+                u32::from_le_bytes(x.string_data[offset..offset + 4].try_into()?).try_into()?;
+
+            if str_offset >= x.string_data.len() {
+                return Ok(format!(
+                    "Out of bounds access STRx. index: {index}, offset: {offset}, string_data.len(): {}, str_offset: {str_offset}",
+                    x.string_data.len(),
+                ));
+            }
+
+            parse_null_terminated_bytestring_unsigned(&x.string_data[str_offset..])
+        } else if let Ok(x) = &self.str {
+            let mut offset = 2;
+            offset += index * 2;
+
+            if offset + 2 >= x.string_data.len() {
+                return Ok(format!(
+                    "Out of bounds access STR offset table. index: {index}, offset+4: {}, string_data.len(): {}",
+                    offset + 2,
+                    x.string_data.len()
+                ));
+            }
+
+            let str_offset: usize =
+                u16::from_le_bytes(x.string_data[offset..offset + 2].try_into()?).try_into()?;
+
+            if str_offset >= x.string_data.len() {
+                return Ok(format!(
+                    "Out of bounds access STR. index: {index}, offset: {offset}, string_data.len(): {}, str_offset: {str_offset}",
+                    x.string_data.len(),
+                ));
+            }
+
+            parse_null_terminated_bytestring_unsigned(&x.string_data[str_offset..])
+        } else {
+            anyhow::bail!("No STR or STRx section")
+        };
+
+        if bytes.len() == 0 {
+            return Ok("".to_owned());
+        }
+
+        let mut euc_kr_failed = false;
+        let mut euc_kr_characters_decoded_successfully: i64 = 0;
+        let euc_kr_characters_len: usize;
+        let mut utf8_failed = false;
+        let mut utf8_characters_decoded_successfully: i64 = 0;
+        let utf8_characters_len: usize;
+
+        let mut win1252_characters_7f_or_above: i64 = 0;
+
+        {
+            let conversion = encoding_rs::EUC_KR.decode(bytes);
+            // println!("EUC_KR: {}", conversion.0);
+            euc_kr_characters_len = conversion.0.chars().count();
+
+            if conversion.2 {
+                euc_kr_failed = true;
+            } else {
+                euc_kr_characters_decoded_successfully += conversion
+                    .0
+                    .chars()
+                    .filter(|&c| c >= '가' && c <= '힣')
+                    .count() as i64;
+            }
+        }
+
+        {
+            let conversion = encoding_rs::UTF_8.decode(bytes);
+            // println!("UTF-8: {}", conversion.0);
+            utf8_characters_len = conversion.0.chars().count();
+
+            if conversion.2 {
+                utf8_failed = true;
+            } else {
+                utf8_characters_decoded_successfully +=
+                    conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+            }
+        }
+
+        {
+            let conversion = encoding_rs::WINDOWS_1252.decode(bytes);
+            // println!("WIN1252: {}", conversion.0);
+            win1252_characters_7f_or_above +=
+                conversion.0.chars().filter(|&c| c >= '\u{7f}').count() as i64;
+        }
+
+        let uchardet_guessed_encoding = unsafe {
+            let handle = uchardet_bindings::uchardet_new();
+            scopeguard::defer! {
+                uchardet_bindings::uchardet_delete(handle);
+            }
+
+            // filter out color codes because it might be breaking uchardet.
+            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+
+            if uchardet_bindings::uchardet_handle_data(
+                handle,
+                vec.as_ptr() as *const i8,
+                vec.len() as uchardet_bindings::size_t,
+            ) != 0
+            {
+                panic!();
+            }
+
+            uchardet_bindings::uchardet_data_end(handle);
+
+            let charset = std::ffi::CStr::from_ptr(uchardet_bindings::uchardet_get_charset(handle))
+                .to_str()?
+                .to_string();
+
+            match charset.as_str() {
+                "UTF-8" => anyhow::Ok(Some(encoding_rs::UTF_8)),
+                "UHC" => anyhow::Ok(Some(encoding_rs::EUC_KR)),
+                "ASCII" | "ISO-8859-7" | "ISO-8859-2" | "WINDOWS-1252" | "WINDOWS-1250"
+                | "MAC-CENTRALEUROPE" | "WINDOWS-1257" | "ISO-8859-10" | "ISO-8859-1" => {
+                    anyhow::Ok(Some(encoding_rs::WINDOWS_1252))
+                }
+                "" | "IBM852" | "VISCII" | "ISO-8859-13" | "ISO-8859-9" | "ISO-8859-3" => {
+                    anyhow::Ok(None)
+                }
+                _ => {
+                    anyhow::Ok(None)
+                    //panic!("{charset}")
+                }
+            }
+        }?;
+
+        let (compact_enc_det_encoding_guess, compact_enc_det_encoding_guess_is_reliable) = unsafe {
+            // filter out color codes because it might be breaking uchardet.
+            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+
+            let mut bytes_consumed = 0;
+            let mut is_reliable = false;
+
+            let encoding = compact_enc_det_bindings::CompactEncDet_DetectEncoding(
+                vec.as_ptr() as *const i8,
+                vec.len() as i32,
+                0 as *const i8,
+                0 as *const i8,
+                0 as *const i8,
+                compact_enc_det_bindings::Encoding_UNKNOWN_ENCODING as i32,
+                compact_enc_det_bindings::Language_UNKNOWN_LANGUAGE,
+                compact_enc_det_bindings::CompactEncDet_TextCorpusType_WEB_CORPUS,
+                true,
+                &mut bytes_consumed,
+                &mut is_reliable,
+            );
+
+            // println!("is_reliable: {is_reliable}, bytes_consumed: {bytes_consumed}");
+
+            (
+                match encoding {
+                    compact_enc_det_bindings::Encoding_UTF8 => Some(encoding_rs::UTF_8),
+                    compact_enc_det_bindings::Encoding_KOREAN_EUC_KR => Some(encoding_rs::EUC_KR),
+                    compact_enc_det_bindings::Encoding_ISO_8859_1
+                    | compact_enc_det_bindings::Encoding_MSFT_CP1252
+                    | compact_enc_det_bindings::Encoding_ASCII_7BIT => {
+                        Some(encoding_rs::WINDOWS_1252)
+                    }
+                    compact_enc_det_bindings::Encoding_CHINESE_GB
+                    | compact_enc_det_bindings::Encoding_CHINESE_BIG5
+                    | compact_enc_det_bindings::Encoding_JAPANESE_EUC_JP => None,
+                    _ => {
+                        None
+                        //panic!("encoding panic'd on: {encoding}")
+                    }
+                },
+                is_reliable,
+            )
+        };
+
+        let mut encoding_map = std::collections::HashMap::new();
+
+        encoding_map.insert(encoding_rs::UTF_8, 0.0);
+        encoding_map.insert(encoding_rs::EUC_KR, 0.0);
+        encoding_map.insert(encoding_rs::WINDOWS_1252, 0.0);
+
+        if let Some(uchardet_guessed_encoding) = uchardet_guessed_encoding {
+            *encoding_map.get_mut(uchardet_guessed_encoding).unwrap() += 0.7;
+        }
+
+        if let Some(compact_enc_det_encoding_guess) = compact_enc_det_encoding_guess {
+            *encoding_map
+                .get_mut(compact_enc_det_encoding_guess)
+                .unwrap() += if compact_enc_det_encoding_guess_is_reliable {
+                0.7
+            } else {
+                0.2
+            };
+        }
+
+        *encoding_map.get_mut(encoding_rs::EUC_KR).unwrap() +=
+            (euc_kr_characters_decoded_successfully as f64) / (euc_kr_characters_len as f64);
+
+        *encoding_map.get_mut(encoding_rs::WINDOWS_1252).unwrap() -=
+            (win1252_characters_7f_or_above as f64) / (bytes.len() as f64);
+
+        *encoding_map.get_mut(encoding_rs::UTF_8).unwrap() +=
+            (utf8_characters_decoded_successfully as f64) / (utf8_characters_len as f64);
+
+        // println!(
+        //     "\n\
+        //     euc_kr_failed: {euc_kr_failed}, \
+        //     euc_kr_characters_decoded_successfully: {euc_kr_characters_decoded_successfully}, \
+        //     euc_kr_characters_len: {euc_kr_characters_len}, \
+        //     utf8_failed: {utf8_failed}, \
+        //     utf8_characters_decoded_successfully: {utf8_characters_decoded_successfully}, \
+        //     utf8_characters_len: {utf8_characters_len}, \
+        //     win1252_characters_7f_or_above: {win1252_characters_7f_or_above}, \
+        //     win1252_total_characters: {win1252_total_characters}, \
+        //     \n\
+        //     uchardet_guess: {uchardet_guessed_encoding:?}, \
+        //     \n\
+        //     compact_enc_det_encoding_guess: {compact_enc_det_encoding_guess:?}, \
+        //     \n\
+        //     encoding_map: {encoding_map:?}, str: {}\n\
+        //     ------------------------------------------------------------------------------------",
+        //     encoding_rs::WINDOWS_1252.decode(bytes).0
+        // );
+
+        if euc_kr_failed {
+            encoding_map.remove(encoding_rs::EUC_KR);
+        }
+
+        if utf8_failed {
+            encoding_map.remove(encoding_rs::UTF_8);
+        }
+
+        let mut encodings: Vec<_> = encoding_map.drain().collect();
+
+        encodings.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap().reverse());
+
+        Ok(encodings[0].0.decode(bytes).0.to_string())
+
+        // TODO: Implement voting idea.
+        // decoding failure = complete veto.
+        // udetchar can vote with some weight.
+        // number of chars successfully decoded specifically in that range can also vote as some weight.
+        // Other strings in the map can also vote with some weight but not sure how to implement that exactly.
+        // Table of exceptions can also make a vote.
+    }
+
+    #[instrument(level = "trace", skip(self))]
+    pub fn get_all_string_references(&self) -> Result<Vec<u32>, anyhow::Error> {
+        let mut ret = Vec::new();
+
+        if let Ok(x) = &self.sprp {
+            ret.push(*x.scenario_name_string_number as u32);
+            ret.push(*x.description_string_number as u32);
+        }
+
+        if let Ok(x) = &self.forc {
+            for string_number in x.force_name {
+                ret.push(*string_number as u32);
+            }
+        }
+
+        if let Ok(x) = &self.unix {
+            for i in 0..x.string_number.len() {
+                if x.config[i] == 0 {
+                    ret.push(x.string_number[i] as u32);
+                }
+            }
+        } else if let Ok(x) = &self.unis {
+            for i in 0..x.string_number.len() {
+                if x.config[i] == 0 {
+                    ret.push(x.string_number[i] as u32);
+                }
+            }
+        }
+
+        if let Ok(x) = &self.wav {
+            for string_number in x.wav_string_number {
+                ret.push(*string_number as u32);
+            }
+        }
+
+        if let Ok(x) = &self.swnm {
+            for switch_name_string_number in x.switch_name_string_number {
+                ret.push(*switch_name_string_number);
+            }
+        }
+
+        if let Ok(x) = &self.mrgn {
+            for location in x.locations {
+                ret.push(location.name_string_number as u32);
+            }
+        }
+
+        if let Ok(x) = &self.mbrf {
+            for trigger in &x.triggers {
+                for action in trigger.actions {
+                    ret.push(action.string_number);
+                }
+            }
+        }
+
+        if let Ok(x) = &self.trig {
+            for trigger in &x.triggers {
+                for action in trigger.actions {
+                    if action.string_number > 65535 {
+                        println!("{action:?}");
+                    }
+                    ret.push(action.string_number);
+                }
+            }
+        }
+
+        Ok(ret.into_iter().filter(|&x| x != 0).collect())
+    }
+
+    #[cfg(feature = "full")]
+    #[instrument(level = "trace", skip(self))]
+    pub fn get_location_name(&self, index: usize) -> Result<String> {
+        if index == 0 {
+            return Ok("No Location".to_owned());
+        }
+
+        if let Ok(mrgn) = &self.mrgn {
+            if mrgn.locations.len() <= index {
+                return Ok("Location index out of bounds".to_owned());
+            }
+
+            self.get_string(mrgn.locations[index - 1].name_string_number as usize)
+        } else {
+            Ok("No Location".to_owned())
+        }
+    }
 }
 
 #[cfg(test)]
