@@ -1,4 +1,4 @@
-use crate::{chunk_name::parse_chunk_name, util::parse_slice, ChunkName};
+use crate::{chunk_name::parse_chunk_name, chunk_name::ChunkName, util::parse_slice};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::instrument;
@@ -98,7 +98,7 @@ pub fn validate_and_group_riff_chunks<'a>(
 
 #[cfg(test)]
 mod test {
-    use crate::{riff::parse_riff, test::get_all_test_maps, ChunkName};
+    use crate::{chunk_name::ChunkName, riff::parse_riff, test::get_all_test_maps};
 
     #[test]
     fn test_parse_riff() {

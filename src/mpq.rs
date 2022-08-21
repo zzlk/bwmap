@@ -1,4 +1,4 @@
-use crate::chk::verify_is_valid_chk;
+use crate::parsed_chk::verify_is_valid_chk;
 use scopeguard::defer;
 use tracing::instrument;
 

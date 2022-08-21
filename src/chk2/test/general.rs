@@ -1,38 +1,11 @@
 use crate::{
-    chk::{get_string, ParsedChunk},
-    merge_raw_chunks,
     mpq::{get_chk_from_mpq_filename, get_chk_from_mpq_in_memory},
-    parse_chk, parse_merged_chunks, ChunkName,
+    ParsedChk,
 };
-use anyhow::Result;
 use futures::FutureExt;
 use std::fs::read;
 
 use crate::test::get_all_test_maps;
-
-// fn for_all_test_maps<F: Fn(DirEntry) + Sync>(func: F) {
-//     let processed_maps = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
-//         .into_iter()
-//         //.par_bridge()
-//         .filter_map(Result::ok)
-//         .filter(
-//             |e| match e.file_name().to_string_lossy().to_string().as_str() {
-//                 "[EUD]컴디 파이널.scx" => false,
-//                 "마인의 폭피 1.scm" => false,
-//                 _ => {
-//                     !e.file_type().is_dir()
-//                         && (e.file_name().to_string_lossy().ends_with(".scx")
-//                             || e.file_name().to_string_lossy().ends_with(".scm"))
-//                 }
-//             },
-//         )
-//         .map(|e| {
-//             func(e);
-//         })
-//         .count();
-
-//     assert_eq!(processed_maps, 185);
-// }
 
 #[test]
 fn test_parse_merged_chunks() {
@@ -41,25 +14,14 @@ fn test_parse_merged_chunks() {
         let chk_data =
             crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
 
-        let raw_chunks = parse_chk(&chk_data);
-        let merged_chunks = merge_raw_chunks(&raw_chunks);
-        let parsed_chunks = parse_merged_chunks(&merged_chunks);
+        let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
         assert!(
-            parsed_chunks.is_ok(),
-            "filename: {}, {:?}",
-            e.file_name().to_string_lossy(),
-            parsed_chunks
-        );
-
-        let parsed_chunks = parsed_chunks.unwrap();
-
-        assert!(
-            parsed_chunks.get(&ChunkName::VCOD).is_some(),
+            parsed_chk.vcod.is_ok(),
             "filename: {}, chk_data.len(): {}, {:?}",
             e.file_name().to_string_lossy(),
             chk_data.len(),
-            parsed_chunks
+            parsed_chk
         );
     }
 }
@@ -73,11 +35,9 @@ fn test_specific_map_0c0c_bound_protected_by_acmp_version_1_dot_74() {
     ))
     .unwrap();
 
-    let raw_chunks = parse_chk(&chk);
-    let merged_chunks = merge_raw_chunks(&raw_chunks);
-    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+    let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
-    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+    assert!(parsed_chk.vcod.is_ok());
 }
 
 #[test]
@@ -89,11 +49,9 @@ fn test_specific_map_sniper_seed_protected_by_smc_version_2_dot_9() {
     ))
     .unwrap();
 
-    let raw_chunks = parse_chk(&chk);
-    let merged_chunks = merge_raw_chunks(&raw_chunks);
-    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+    let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
-    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+    assert!(parsed_chk.vcod.is_ok());
 }
 
 #[test]
@@ -105,11 +63,9 @@ fn test_specific_map_protected_by_smlp_version_2_dot_5_dot_00() {
     ))
     .unwrap();
 
-    let raw_chunks = parse_chk(&chk);
-    let merged_chunks = merge_raw_chunks(&raw_chunks);
-    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+    let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
-    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+    assert!(parsed_chk.vcod.is_ok());
 }
 
 #[test]
@@ -121,11 +77,9 @@ fn test_specific_map_protected_by_unknown_protector() {
     ))
     .unwrap();
 
-    let raw_chunks = parse_chk(&chk);
-    let merged_chunks = merge_raw_chunks(&raw_chunks);
-    let parsed_chunks = parse_merged_chunks(&merged_chunks).unwrap();
+    let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
-    assert!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+    assert!(parsed_chk.vcod.is_ok());
 }
 
 #[test]
@@ -185,11 +139,9 @@ fn test_a_lot_of_maps_from_bounding_dot_net() {
 
             tokio::task::spawn_blocking(move || {
                 let chk_data = get_chk_from_mpq_in_memory(bytes.as_ref())?;
-                let raw_chunks = parse_chk(&chk_data);
-                let merged_chunks = merge_raw_chunks(&raw_chunks);
-                let parsed_chunks = parse_merged_chunks(&merged_chunks)?;
+                let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
-                anyhow::ensure!(parsed_chunks.get(&ChunkName::VCOD).is_some());
+                anyhow::ensure!(parsed_chk.vcod.is_ok());
 
                 anyhow::Ok(())
             })
@@ -287,7 +239,7 @@ fn test_get_chk_from_mpq_in_memory() {
 fn test_get_string_on_all_maps() {
     for e in get_all_test_maps() {
         let chk = crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
-        let parsed_chk = crate::parse_chk_full(chk.as_slice());
+        let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
         let string_refs = parsed_chk.get_all_string_references().unwrap();
 
         for string_ref in string_refs {
@@ -304,19 +256,17 @@ fn test_constrain_encoding_detection_algorithm() {
 
         let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
         let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
-        let raw_chunks = crate::parse_chk(chk.as_slice());
-        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
-        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+        let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
         //let encoding_order = guess_encoding_order(&map).unwrap();
 
-        let sprp_scenario_index = if let Some(ParsedChunk::SPRP(x)) = map.get(&ChunkName::SPRP) {
+        let sprp_scenario_index = if let Ok(x) = &parsed_chk.sprp {
             *x.scenario_name_string_number
         } else {
             unreachable!();
         };
 
-        get_string(&map, sprp_scenario_index as usize).unwrap()
+        parsed_chk.get_string(sprp_scenario_index as usize).unwrap()
         // get_string(&map, &encoding_order, sprp_scenario_index as usize).unwrap()
     };
 
@@ -364,11 +314,9 @@ fn test_constrain_encoding_detection_algorithm2() {
 
         let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
         let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
-        let raw_chunks = crate::parse_chk(chk.as_slice());
-        let merged_chunks = crate::merge_raw_chunks(raw_chunks.as_slice());
-        let map = crate::parse_merged_chunks(&merged_chunks).unwrap();
+        let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
-        get_string(&map, index).unwrap()
+        parsed_chk.get_string(index).unwrap()
     };
 
     let test_vectors = [
@@ -437,21 +385,4 @@ fn test_constrain_encoding_detection_algorithm2() {
     for (a, b, c) in test_vectors.into_iter() {
         assert_eq!(a, f(b, c));
     }
-}
-
-#[test]
-fn specific_test_rise_of_empires() -> Result<()> {
-    let filename = format!(
-        "{}/test_vectors/[6]Rise of Empires v6.07e.scx",
-        env!("CARGO_MANIFEST_DIR")
-    );
-
-    let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
-    let raw_chunks = parse_chk(&chk_data);
-    let merged_chunks = merge_raw_chunks(&raw_chunks);
-    let parsed_chunks = parse_merged_chunks(&merged_chunks)?;
-
-    assert!(parsed_chunks.get(&ChunkName::SPRP).is_some());
-
-    anyhow::Ok(())
 }

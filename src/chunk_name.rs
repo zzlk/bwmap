@@ -94,26 +94,3 @@ pub(crate) fn parse_chunk_name(chunk_name: &[u8]) -> ChunkName {
         _ => ChunkName::UNKNOWN(encoding_rs::WINDOWS_1252.decode(chunk_name).0.to_string()),
     }
 }
-
-pub(crate) enum ChunkNameUpdateType {
-    FullOverwrite,
-    PartialOverwrite,
-    Append,
-}
-
-#[instrument(level = "trace", skip_all)]
-pub(crate) fn get_chunk_update_type(name: &ChunkName) -> ChunkNameUpdateType {
-    match name {
-        ChunkName::MTXM => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::STR => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::STRx => ChunkNameUpdateType::PartialOverwrite,
-        ChunkName::TILE => ChunkNameUpdateType::PartialOverwrite,
-
-        ChunkName::UNIT => ChunkNameUpdateType::Append,
-        ChunkName::THG2 => ChunkNameUpdateType::Append,
-        ChunkName::TRIG => ChunkNameUpdateType::Append,
-        ChunkName::MBRF => ChunkNameUpdateType::Append,
-
-        _ => ChunkNameUpdateType::FullOverwrite,
-    }
-}

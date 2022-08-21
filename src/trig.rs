@@ -40,15 +40,13 @@
 
 use serde::Serialize;
 
-use std::collections::HashMap;
-
 use crate::{
     chk2::{
         chk_mbrf::{ChkMbrfAction, ChkMbrfCondition},
         chk_trig::{ChkTrigAction, ChkTrigCondition},
     },
     util::reinterpret_as_slice,
-    ChunkName, ParsedChk, ParsedChunk,
+    ParsedChk,
 };
 use tracing::instrument;
 
