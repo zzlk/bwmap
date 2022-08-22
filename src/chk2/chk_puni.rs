@@ -26,17 +26,7 @@ pub struct ChkPuni<'a> {
     pub unit_player_uses_defaults: &'a [[u8; 228]; 12],
 }
 
-pub(crate) fn parse_puni(sec: &[u8]) -> Result<ChkPuni, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkPuni {
-        unit_player_availability: slicer.extract_ref()?,
-        unit_global_availability: slicer.extract_ref()?,
-        unit_player_uses_defaults: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_puni2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPuni<'a>, anyhow::Error> {
+pub(crate) fn parse_puni<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPuni<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

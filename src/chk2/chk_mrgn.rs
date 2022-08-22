@@ -39,15 +39,7 @@ pub struct ChkMrgn<'a> {
     pub locations: &'a [ChkMrgnIndividual],
 }
 
-pub(crate) fn parse_mrgn(sec: &[u8]) -> Result<ChkMrgn, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkMrgn {
-        locations: slicer.extract_rest_as_slice_lax()?,
-    })
-}
-
-pub(crate) fn parse_mrgn2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMrgn<'a>, anyhow::Error> {
+pub(crate) fn parse_mrgn<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMrgn<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

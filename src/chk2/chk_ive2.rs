@@ -14,15 +14,7 @@ pub struct ChkIve2<'a> {
     pub additional_file_format_version: &'a u16,
 }
 
-pub(crate) fn parse_ive2(sec: &[u8]) -> Result<ChkIve2, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkIve2 {
-        additional_file_format_version: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_ive22<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIve2<'a>, anyhow::Error> {
+pub(crate) fn parse_ive2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIve2<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

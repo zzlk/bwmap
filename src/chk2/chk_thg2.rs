@@ -37,15 +37,7 @@ pub struct ChkThg2 {
     pub sprites: Vec<ChkThg2Individual>,
 }
 
-pub(crate) fn parse_thg2(sec: &[u8]) -> Result<ChkThg2, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkThg2 {
-        sprites: slicer.extract_rest_as_slice_lax()?.to_vec(),
-    })
-}
-
-pub(crate) fn parse_thg22(chunks: &[RiffChunk]) -> Result<ChkThg2, anyhow::Error> {
+pub(crate) fn parse_thg2(chunks: &[RiffChunk]) -> Result<ChkThg2, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut sprites: Vec<ChkThg2Individual> = Vec::new();

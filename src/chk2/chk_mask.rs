@@ -22,15 +22,7 @@ pub struct ChkMask<'a> {
     pub fog: &'a [u8],
 }
 
-pub(crate) fn parse_mask(sec: &[u8]) -> Result<ChkMask, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkMask {
-        fog: slicer.extract_rest_as_slice()?,
-    })
-}
-
-pub(crate) fn parse_mask2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMask<'a>, anyhow::Error> {
+pub(crate) fn parse_mask<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMask<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

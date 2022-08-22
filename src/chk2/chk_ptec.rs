@@ -33,19 +33,7 @@ pub struct ChkPtec<'a> {
     pub player_uses_default: &'a [[u8; 24]; 12],
 }
 
-pub(crate) fn parse_ptec(sec: &[u8]) -> Result<ChkPtec, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkPtec {
-        player_availability: slicer.extract_ref()?,
-        already_researched: slicer.extract_ref()?,
-        global_availability_defaults: slicer.extract_ref()?,
-        global_already_researched_defaults: slicer.extract_ref()?,
-        player_uses_default: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_ptec2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPtec<'a>, anyhow::Error> {
+pub(crate) fn parse_ptec<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPtec<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

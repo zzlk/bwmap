@@ -23,15 +23,7 @@ pub struct ChkEra<'a> {
     pub tileset: &'a u16,
 }
 
-pub(crate) fn parse_era(sec: &[u8]) -> Result<ChkEra, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkEra {
-        tileset: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_era2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkEra<'a>, anyhow::Error> {
+pub(crate) fn parse_era<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkEra<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

@@ -17,16 +17,7 @@ pub struct ChkDim<'a> {
     pub height: &'a u16,
 }
 
-pub(crate) fn parse_dim(sec: &[u8]) -> Result<ChkDim, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkDim {
-        width: slicer.extract_ref()?,
-        height: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_dim2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkDim<'a>, anyhow::Error> {
+pub(crate) fn parse_dim<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkDim<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

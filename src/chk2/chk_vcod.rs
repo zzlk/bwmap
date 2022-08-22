@@ -27,16 +27,7 @@ pub struct ChkVcod<'a> {
     pub hash: &'a [u8; 16],
 }
 
-pub(crate) fn parse_vcod(sec: &[u8]) -> Result<ChkVcod, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkVcod {
-        seed_values: slicer.extract_ref()?,
-        hash: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_vcod2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkVcod<'a>, anyhow::Error> {
+pub(crate) fn parse_vcod<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkVcod<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

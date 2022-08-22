@@ -20,24 +20,7 @@ pub struct ChkMtxm {
     pub data: Vec<u16>, // PROTECTION: some map protectors make MTXM sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
-pub(crate) fn parse_mtxm(sec: &[u8]) -> Result<ChkMtxm, anyhow::Error> {
-    let data = if sec.len() % 2 == 0 {
-        Vec::from(reinterpret_slice2::<u16>(sec)?)
-    } else {
-        let mut ret = if sec.len() == 1 {
-            Vec::new()
-        } else {
-            Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
-        };
-
-        ret.push(sec[sec.len() - 1] as u16);
-        ret
-    };
-
-    Ok(ChkMtxm { data })
-}
-
-pub(crate) fn parse_mtxm2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMtxm, anyhow::Error> {
+pub(crate) fn parse_mtxm<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkMtxm, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut ret = Vec::new();

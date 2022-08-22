@@ -27,17 +27,7 @@ pub struct ChkForc<'a> {
     pub force_properties: &'a [u8],
 }
 
-pub(crate) fn parse_forc(sec: &[u8]) -> Result<ChkForc, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkForc {
-        player_forces: slicer.extract_slice_lax(8)?,
-        force_name: slicer.extract_slice_lax(4)?,
-        force_properties: slicer.extract_slice_lax(4)?,
-    })
-}
-
-pub(crate) fn parse_forc2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc<'a>, anyhow::Error> {
+pub(crate) fn parse_forc<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

@@ -13,15 +13,7 @@ pub struct ChkSwnm<'a> {
     pub switch_name_string_number: &'a [u32; 256],
 }
 
-pub(crate) fn parse_swnm(sec: &[u8]) -> Result<ChkSwnm, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkSwnm {
-        switch_name_string_number: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_swnm2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSwnm<'a>, anyhow::Error> {
+pub(crate) fn parse_swnm<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSwnm<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

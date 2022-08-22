@@ -58,15 +58,7 @@ pub struct ChkMbrf {
     pub triggers: Vec<ChkMbrfIndividual>,
 }
 
-pub(crate) fn parse_mbrf(sec: &[u8]) -> Result<ChkMbrf, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkMbrf {
-        triggers: slicer.extract_rest_as_slice_lax()?.to_vec(),
-    })
-}
-
-pub(crate) fn parse_mbrf2(chunks: &[RiffChunk]) -> Result<ChkMbrf, anyhow::Error> {
+pub(crate) fn parse_mbrf(chunks: &[RiffChunk]) -> Result<ChkMbrf, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut triggers: Vec<ChkMbrfIndividual> = Vec::new();

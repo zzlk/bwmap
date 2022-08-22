@@ -13,24 +13,7 @@ pub struct ChkIsom {
     pub data: Vec<u16>, // PROTECTION: some map protectors make ISOM sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
-pub(crate) fn parse_isom(sec: &[u8]) -> Result<ChkIsom, anyhow::Error> {
-    let data = if sec.len() % 2 == 0 {
-        Vec::from(reinterpret_slice2::<u16>(sec)?)
-    } else {
-        let mut ret = if sec.len() == 1 {
-            Vec::new()
-        } else {
-            Vec::from(reinterpret_slice2::<u16>(&sec[0..sec.len() - 1])?)
-        };
-
-        ret.push(sec[sec.len() - 1] as u16);
-        ret
-    };
-
-    Ok(ChkIsom { data })
-}
-
-pub(crate) fn parse_isom2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIsom, anyhow::Error> {
+pub(crate) fn parse_isom<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIsom, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let sec = chunks[chunks.len() - 1].data;

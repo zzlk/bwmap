@@ -30,15 +30,7 @@ pub struct ChkDd2 {
     pub doodads: Vec<ChkDd2Individual>,
 }
 
-pub(crate) fn parse_dd2(sec: &[u8]) -> Result<ChkDd2, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkDd2 {
-        doodads: slicer.extract_rest_as_slice_lax()?.to_vec(),
-    })
-}
-
-pub(crate) fn parse_dd22(chunks: &[RiffChunk]) -> Result<ChkDd2, anyhow::Error> {
+pub(crate) fn parse_dd2(chunks: &[RiffChunk]) -> Result<ChkDd2, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

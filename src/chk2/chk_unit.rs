@@ -76,19 +76,7 @@ pub struct ChkUnit {
     pub units: Vec<ChkUnitIndividual>,
 }
 
-pub(crate) fn parse_unit(sec: &[u8]) -> Result<ChkUnit, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    if sec.len() % 36 != 0 {
-        Ok(ChkUnit { units: Vec::new() })
-    } else {
-        Ok(ChkUnit {
-            units: slicer.extract_rest_as_slice()?.to_vec(),
-        })
-    }
-}
-
-pub(crate) fn parse_unit2(chunks: &[RiffChunk]) -> Result<ChkUnit, anyhow::Error> {
+pub(crate) fn parse_unit(chunks: &[RiffChunk]) -> Result<ChkUnit, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut units: Vec<ChkUnitIndividual> = Vec::new();

@@ -21,19 +21,7 @@ pub struct ChkPupx<'a> {
     pub player_uses_upgrade_defaults: &'a [[u8; 61]; 12],
 }
 
-pub(crate) fn parse_pupx(sec: &[u8]) -> Result<ChkPupx, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkPupx {
-        max_upgrade_level: slicer.extract_ref()?,
-        starting_upgrade_level: slicer.extract_ref()?,
-        global_default_maximum_upgrade_level: slicer.extract_ref()?,
-        global_default_starting_upgrade_level: slicer.extract_ref()?,
-        player_uses_upgrade_defaults: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_pupx2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPupx<'a>, anyhow::Error> {
+pub(crate) fn parse_pupx<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPupx<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

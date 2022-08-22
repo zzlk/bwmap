@@ -21,19 +21,7 @@ pub struct ChkPtex<'a> {
     pub player_uses_default: &'a [[u8; 44]; 12],
 }
 
-pub(crate) fn parse_ptex(sec: &[u8]) -> Result<ChkPtex, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkPtex {
-        player_availability: slicer.extract_ref()?,
-        already_researched: slicer.extract_ref()?,
-        global_availability_defaults: slicer.extract_ref()?,
-        global_already_researched_defaults: slicer.extract_ref()?,
-        player_uses_default: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_ptex2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPtex<'a>, anyhow::Error> {
+pub(crate) fn parse_ptex<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkPtex<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

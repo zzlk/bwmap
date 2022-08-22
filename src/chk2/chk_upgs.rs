@@ -36,21 +36,7 @@ pub struct ChkUpgs<'a> {
     pub time_factor: &'a [u16; 46],
 }
 
-pub(crate) fn parse_upgs(sec: &[u8]) -> Result<ChkUpgs, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkUpgs {
-        upgrade_uses_default_setings: slicer.extract_ref()?,
-        base_mineral_cost: slicer.extract_ref()?,
-        mineral_cost_factor: slicer.extract_ref()?,
-        base_gas_cost: slicer.extract_ref()?,
-        gas_cost_factor: slicer.extract_ref()?,
-        base_time: slicer.extract_ref()?,
-        time_factor: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_upgs2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUpgs<'a>, anyhow::Error> {
+pub(crate) fn parse_upgs<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUpgs<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

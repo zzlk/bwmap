@@ -22,15 +22,7 @@ pub struct ChkSide<'a> {
     pub player_side: &'a [u8; 12],
 }
 
-pub(crate) fn parse_side(sec: &[u8]) -> Result<ChkSide, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkSide {
-        player_side: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_side2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSide<'a>, anyhow::Error> {
+pub(crate) fn parse_side<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSide<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

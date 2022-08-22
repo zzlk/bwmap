@@ -14,16 +14,7 @@ pub struct ChkSprp<'a> {
     pub description_string_number: &'a u16,
 }
 
-pub(crate) fn parse_sprp(sec: &[u8]) -> Result<ChkSprp, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkSprp {
-        scenario_name_string_number: slicer.extract_ref()?,
-        description_string_number: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_sprp2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSprp<'a>, anyhow::Error> {
+pub(crate) fn parse_sprp<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSprp<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

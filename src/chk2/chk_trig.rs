@@ -108,15 +108,7 @@ pub struct ChkTrig {
     pub triggers: Vec<ChkTrigIndividual>,
 }
 
-pub(crate) fn parse_trig(sec: &[u8]) -> Result<ChkTrig, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkTrig {
-        triggers: slicer.extract_rest_as_slice_lax()?.to_vec(),
-    })
-}
-
-pub(crate) fn parse_trig2(chunks: &[RiffChunk]) -> Result<ChkTrig, anyhow::Error> {
+pub(crate) fn parse_trig(chunks: &[RiffChunk]) -> Result<ChkTrig, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut triggers: Vec<ChkTrigIndividual> = Vec::new();

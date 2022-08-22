@@ -21,19 +21,7 @@ pub struct ChkTecx<'a> {
     pub energy_cost_to_cast: &'a [u16; 44],
 }
 
-pub(crate) fn parse_tecx(sec: &[u8]) -> Result<ChkTecx, anyhow::Error> {
-    let mut slicer = CursorSlicer::new(sec);
-
-    Ok(ChkTecx {
-        technology_uses_default_settings: slicer.extract_ref()?,
-        mineral_cost: slicer.extract_ref()?,
-        gas_cost: slicer.extract_ref()?,
-        time: slicer.extract_ref()?,
-        energy_cost_to_cast: slicer.extract_ref()?,
-    })
-}
-
-pub(crate) fn parse_tecx2<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTecx<'a>, anyhow::Error> {
+pub(crate) fn parse_tecx<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTecx<'a>, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
