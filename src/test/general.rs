@@ -1,11 +1,10 @@
+use super::util::get_all_test_maps;
 use crate::{
     mpq::{get_chk_from_mpq_filename, get_chk_from_mpq_in_memory},
     ParsedChk,
 };
 use futures::FutureExt;
 use std::fs::read;
-
-use crate::test::get_all_test_maps;
 
 #[test]
 fn test_parse_merged_chunks() {

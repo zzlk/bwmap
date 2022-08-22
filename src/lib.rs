@@ -1,4 +1,4 @@
-mod chk2;
+mod chk;
 mod chunk_name;
 mod parsed_chk;
 mod riff;

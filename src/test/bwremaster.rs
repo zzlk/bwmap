@@ -1,4 +1,4 @@
-use crate::{chk2::{
+use crate::{chk::{
     chk_mbrf::{ChkMbrfAction, ChkMbrfCondition, ChkMbrfIndividual},
     chk_trig::{ChkTrigAction, ChkTrigCondition, ChkTrigIndividual},
 }, ParsedChk};
@@ -104,7 +104,7 @@ fn test_specific_map_files_for_known_values() {
         assert_eq!(x.units.len(), 8, "{x:?}");
         assert_eq!(
             x.units[0],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 1,
                 x: 3872,
                 y: 162,
@@ -126,7 +126,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[1],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 2,
                 x: 3744,
                 y: 80,
@@ -148,7 +148,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[2],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 3,
                 x: 3680,
                 y: 80,
@@ -170,7 +170,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[3],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 4,
                 x: 3712,
                 y: 80,
@@ -192,7 +192,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[4],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 5,
                 x: 3808,
                 y: 80,
@@ -214,7 +214,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[5],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 6,
                 x: 3840,
                 y: 80,
@@ -236,7 +236,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[6],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 7,
                 x: 3872,
                 y: 80,
@@ -258,7 +258,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.units[7],
-            crate::chk2::chk_unit::ChkUnitIndividual {
+            crate::chk::chk_unit::ChkUnitIndividual {
                 class_instance: 8,
                 x: 3872,
                 y: 80,
@@ -343,7 +343,7 @@ fn test_specific_map_files_for_known_values() {
         assert_eq!(x.doodads.len(), 1, "{x:?}");
         assert_eq!(
             x.doodads[0],
-            crate::chk2::chk_dd2::ChkDd2Individual {
+            crate::chk::chk_dd2::ChkDd2Individual {
                 doodad_number: 0,
                 x: 3968,
                 y: 96,
@@ -360,7 +360,7 @@ fn test_specific_map_files_for_known_values() {
         assert_eq!(x.sprites.len(), 3, "{x:?}");
         assert_eq!(
             x.sprites[0],
-            crate::chk2::chk_thg2::ChkThg2Individual {
+            crate::chk::chk_thg2::ChkThg2Individual {
                 sprite_number: 59,
                 x: 3968,
                 y: 96,
@@ -372,7 +372,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.sprites[1],
-            crate::chk2::chk_thg2::ChkThg2Individual {
+            crate::chk::chk_thg2::ChkThg2Individual {
                 sprite_number: 0,
                 x: 3970,
                 y: 163,
@@ -384,7 +384,7 @@ fn test_specific_map_files_for_known_values() {
         );
         assert_eq!(
             x.sprites[2],
-            crate::chk2::chk_thg2::ChkThg2Individual {
+            crate::chk::chk_thg2::ChkThg2Individual {
                 sprite_number: 287,
                 x: 3872,
                 y: 61,
@@ -549,7 +549,7 @@ fn test_specific_map_files_for_known_values() {
             match i {
                 0 => assert_eq!(
                     x.cuwp_slots[i],
-                    crate::chk2::chk_uprp::ChkUprpIndividual {
+                    crate::chk::chk_uprp::ChkUprpIndividual {
                         flag_of_special_properties: 31,
                         which_elements_of_unit_data_are_valid: 63,
                         owner: 0,
@@ -565,7 +565,7 @@ fn test_specific_map_files_for_known_values() {
                 ),
                 _ => assert_eq!(
                     x.cuwp_slots[i],
-                    crate::chk2::chk_uprp::ChkUprpIndividual {
+                    crate::chk::chk_uprp::ChkUprpIndividual {
                         flag_of_special_properties: 0,
                         which_elements_of_unit_data_are_valid: 63,
                         owner: 0,
@@ -627,7 +627,7 @@ fn test_specific_map_files_for_known_values() {
             match i {
                 0 => assert_eq!(
                     x.locations[0],
-                    crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                    crate::chk::chk_mrgn::ChkMrgnIndividual {
                         left: 3744,
                         top: 32,
                         right: 3808,
@@ -639,7 +639,7 @@ fn test_specific_map_files_for_known_values() {
                 ),
                 63 => assert_eq!(
                     x.locations[i],
-                    crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                    crate::chk::chk_mrgn::ChkMrgnIndividual {
                         left: 0,
                         top: 0,
                         right: 4096,
@@ -651,7 +651,7 @@ fn test_specific_map_files_for_known_values() {
                 ),
                 _ => assert_eq!(
                     x.locations[i],
-                    crate::chk2::chk_mrgn::ChkMrgnIndividual {
+                    crate::chk::chk_mrgn::ChkMrgnIndividual {
                         left: 0,
                         top: 0,
                         right: 0,

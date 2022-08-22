@@ -41,7 +41,7 @@
 use serde::Serialize;
 
 use crate::{
-    chk2::{
+    chk::{
         chk_mbrf::{ChkMbrfAction, ChkMbrfCondition},
         chk_trig::{ChkTrigAction, ChkTrigCondition},
     },

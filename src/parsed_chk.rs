@@ -1,6 +1,6 @@
 use crate::util::parse_null_terminated_bytestring_unsigned;
 use crate::{
-    chk2::{
+    chk::{
         chk_colr::{parse_colr, ChkColr},
         chk_crgb::{parse_crgb, ChkCrgb},
         chk_dd2::{parse_dd2, ChkDd2},
