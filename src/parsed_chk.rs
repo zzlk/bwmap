@@ -285,11 +285,8 @@ impl<'a> ParsedChk<'a> {
             // filter out color codes because it might be breaking uchardet.
             let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
 
-            if uchardet_bindings::uchardet_handle_data(
-                handle,
-                vec.as_ptr() as *const i8,
-                vec.len() as uchardet_bindings::size_t,
-            ) != 0
+            if uchardet_bindings::uchardet_handle_data(handle, vec.as_ptr() as *const i8, vec.len())
+                != 0
             {
                 panic!();
             }
