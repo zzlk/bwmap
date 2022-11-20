@@ -23,7 +23,7 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
 
         let chunk_data_start_offset = offset + 8;
         let chunk_data_end_offset =
-            (chunk_data_start_offset + size as usize) % (u32::MAX as usize + 1);
+            ((chunk_data_start_offset as u64 + size as u64) % (u32::MAX as u64 + 1)) as usize;
         offset = chunk_data_end_offset;
 
         if chunk_data_end_offset < chunk_data_start_offset {
