@@ -508,7 +508,7 @@ impl<'a> ParsedChk<'a> {
             }
 
             if mrgn.locations[index - 1].name_string_number == 0 {
-                Ok(format!("Location {} has 0 string name", index - 1))
+                Ok(format!("Location {} has a string name index of 0", index))
             } else {
                 self.get_string(mrgn.locations[index - 1].name_string_number as usize)
             }
