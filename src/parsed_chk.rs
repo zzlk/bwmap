@@ -49,6 +49,7 @@ use crate::{
 use anyhow::Result;
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
+use std::fmt::{Display, Formatter};
 use tracing::instrument;
 
 #[derive(Debug)]
@@ -100,11 +101,51 @@ impl<'a> Serialize for ParsedChk<'a> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
+        S::Error: std::error::Error,
     {
         let mut map = serializer.serialize_map(None)?;
-        if let Ok(x) = &self.unit {
-            map.serialize_entry("UNIT", &x)?;
-        }
+
+        let _ = self.colr.as_ref().map(|x| map.serialize_entry("COLR", &x));
+        let _ = self.crgb.as_ref().map(|x| map.serialize_entry("CRGB", &x));
+        let _ = self.dd2.as_ref().map(|x| map.serialize_entry("DD2", &x));
+        let _ = self.dim.as_ref().map(|x| map.serialize_entry("DIM", &x));
+        let _ = self.era.as_ref().map(|x| map.serialize_entry("ERA", &x));
+        let _ = self.forc.as_ref().map(|x| map.serialize_entry("FORC", &x));
+        let _ = self.iown.as_ref().map(|x| map.serialize_entry("IOWN", &x));
+        // let _ = self.isom.as_ref().map(|x| map.serialize_entry("ISOM", &x));
+        let _ = self.ive2.as_ref().map(|x| map.serialize_entry("IVE2", &x));
+        let _ = self.iver.as_ref().map(|x| map.serialize_entry("IVER", &x));
+        let _ = self.mask.as_ref().map(|x| map.serialize_entry("MASK", &x));
+        let _ = self.mbrf.as_ref().map(|x| map.serialize_entry("MBRF", &x));
+        let _ = self.mrgn.as_ref().map(|x| map.serialize_entry("MRGN", &x));
+        // let _ = self.mtxm.as_ref().map(|x| map.serialize_entry("MTXM", &x));
+        let _ = self.ownr.as_ref().map(|x| map.serialize_entry("OWNR", &x));
+        let _ = self.ptec.as_ref().map(|x| map.serialize_entry("PTEC", &x));
+        let _ = self.ptex.as_ref().map(|x| map.serialize_entry("PTEx", &x));
+        let _ = self.puni.as_ref().map(|x| map.serialize_entry("PUNI", &x));
+        let _ = self.pupx.as_ref().map(|x| map.serialize_entry("PUPx", &x));
+        let _ = self.side.as_ref().map(|x| map.serialize_entry("SIDE", &x));
+        let _ = self.sprp.as_ref().map(|x| map.serialize_entry("SPRP", &x));
+        let _ = self.str.as_ref().map(|x| map.serialize_entry("STR", &x));
+        let _ = self.strx.as_ref().map(|x| map.serialize_entry("STRx", &x));
+        let _ = self.swnm.as_ref().map(|x| map.serialize_entry("SWNM", &x));
+        let _ = self.tecs.as_ref().map(|x| map.serialize_entry("TECS", &x));
+        let _ = self.tecx.as_ref().map(|x| map.serialize_entry("TECx", &x));
+        let _ = self.thg2.as_ref().map(|x| map.serialize_entry("THG2", &x));
+        // let _ = self.tile.as_ref().map(|x| map.serialize_entry("TILE", &x));
+        // let _ = self.trig.as_ref().map(|x| map.serialize_entry("TRIG", &x));
+        let _ = self.type_.as_ref().map(|x| map.serialize_entry("TYPE", &x));
+        let _ = self.unis.as_ref().map(|x| map.serialize_entry("UNIS", &x));
+        let _ = self.unit.as_ref().map(|x| map.serialize_entry("UNIT", &x));
+        let _ = self.unix.as_ref().map(|x| map.serialize_entry("UNIx", &x));
+        let _ = self.upgr.as_ref().map(|x| map.serialize_entry("UPGR", &x));
+        let _ = self.upgs.as_ref().map(|x| map.serialize_entry("UPGS", &x));
+        let _ = self.upgx.as_ref().map(|x| map.serialize_entry("UPGx", &x));
+        let _ = self.uprp.as_ref().map(|x| map.serialize_entry("UPRP", &x));
+        let _ = self.upus.as_ref().map(|x| map.serialize_entry("UPUS", &x));
+        let _ = self.vcod.as_ref().map(|x| map.serialize_entry("VCOD", &x));
+        let _ = self.ver.as_ref().map(|x| map.serialize_entry("VER", &x));
+        let _ = self.wav.as_ref().map(|x| map.serialize_entry("WAV", &x));
 
         map.end()
     }
