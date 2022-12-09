@@ -507,7 +507,11 @@ impl<'a> ParsedChk<'a> {
                 return Ok("Location index out of bounds".to_owned());
             }
 
-            self.get_string(mrgn.locations[index - 1].name_string_number as usize)
+            if mrgn.locations[index - 1].name_string_number == 0 {
+                Ok(format!("Location {} has 0 string name", index - 1))
+            } else {
+                self.get_string(mrgn.locations[index - 1].name_string_number as usize)
+            }
         } else {
             Ok("No Location".to_owned())
         }
