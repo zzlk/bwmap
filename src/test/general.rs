@@ -100,7 +100,7 @@ fn test_a_lot_of_maps_from_bounding_dot_net() {
                 client
                     .request(
                         reqwest::Method::GET,
-                        "https://bounding.net/api/tests/all_maps",
+                        "https://scmscx.com/api/tests/all_maps",
                     )
                     .header("cookie", "dontratelimitmebro=true")
                     .send(),
@@ -128,7 +128,7 @@ fn test_a_lot_of_maps_from_bounding_dot_net() {
             let bytes = client
                 .request(
                     reqwest::Method::GET,
-                    format!("https://bounding.net/api/maps/{hash}"),
+                    format!("https://scmscx.com/api/maps/{hash}"),
                 )
                 .header("cookie", "dontratelimitmebro=true")
                 .send()
