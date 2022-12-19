@@ -5,18 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = ["full", "stormlib-bindings", "uchardet-bindings", "compact_enc_det-bindings", "uuid"]
+default = ["full", "uchardet-bindings", "compact_enc_det-bindings"]
 full = []
 
 [dependencies]
-stormlib-bindings = { git = "ssh://git@github.com/zzlk/stormlib-bindings.git", optional = true }
 uchardet-bindings = { git = "ssh://git@github.com/zzlk/uchardet-bindings.git", optional = true }
 compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bindings.git", optional = true }
 
 serde = { version = "*", features = ["derive"] }
 encoding_rs = "*"
 anyhow = { version = "*", features = ["backtrace"] }
-uuid = { version = "*", features = ["v4"], optional = true }
 
 scopeguard = "*"
 lazy_static = "*"
