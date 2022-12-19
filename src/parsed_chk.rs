@@ -49,7 +49,6 @@ use crate::{
 use anyhow::Result;
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
-use std::fmt::{Display, Formatter};
 use tracing::instrument;
 
 #[derive(Debug)]
@@ -576,7 +575,7 @@ mod test {
         for dir_entry in get_all_test_maps() {
             println!("{}", dir_entry.path().to_string_lossy().to_string());
             let chk_data =
-                crate::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
+                bwmpq::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
                     .unwrap();
 
             let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
@@ -603,7 +602,7 @@ mod test {
             env!("CARGO_MANIFEST_DIR")
         );
 
-        let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
+        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
         assert!(parsed_chk.sprp.is_ok());
@@ -616,7 +615,7 @@ mod test {
             env!("CARGO_MANIFEST_DIR")
         );
 
-        let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
+        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
         assert!(parsed_chk.forc.is_ok());

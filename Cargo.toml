@@ -27,6 +27,8 @@ tracing = "*"
 serde-big-array = "*"
 
 [dev-dependencies]
+bwmpq = { git = "https://github.com/zzlk/bwmpq.git" }
+
 reqwest = { version = "*", default-features = false, features = ["json", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 walkdir = { version = "*" }
@@ -34,3 +36,4 @@ rayon = { version = "*" }
 futures = { version = "*" }
 rand = { version = "*" }
 tempfile = { version = "*" }
+sha2 = "*"

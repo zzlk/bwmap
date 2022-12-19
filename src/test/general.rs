@@ -1,8 +1,7 @@
 use super::util::get_all_test_maps;
-use crate::{
-    mpq::{get_chk_from_mpq_filename, get_chk_from_mpq_in_memory},
-    ParsedChk,
-};
+use crate::ParsedChk;
+use bwmpq::get_chk_from_mpq_filename;
+use bwmpq::get_chk_from_mpq_in_memory;
 use futures::FutureExt;
 use std::fs::read;
 
@@ -10,8 +9,7 @@ use std::fs::read;
 fn test_parse_merged_chunks() {
     for e in get_all_test_maps() {
         println!("file: {}", e.file_name().to_string_lossy());
-        let chk_data =
-            crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
+        let chk_data = get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
 
         let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
@@ -28,7 +26,7 @@ fn test_parse_merged_chunks() {
 #[test]
 fn test_specific_map_0c0c_bound_protected_by_acmp_version_1_dot_74() {
     // Unknown protector with a bunch of MPQ hacks?
-    let chk = crate::get_chk_from_mpq_filename(format!(
+    let chk = get_chk_from_mpq_filename(format!(
         "{}/test_vectors/OcOc Bound 2(p).scx",
         env!("CARGO_MANIFEST_DIR")
     ))
@@ -42,7 +40,7 @@ fn test_specific_map_0c0c_bound_protected_by_acmp_version_1_dot_74() {
 #[test]
 fn test_specific_map_sniper_seed_protected_by_smc_version_2_dot_9() {
     // SMC V2.9
-    let chk = crate::get_chk_from_mpq_filename(format!(
+    let chk = get_chk_from_mpq_filename(format!(
         "{}/test_vectors/Sniper - Seed vA.scx",
         env!("CARGO_MANIFEST_DIR")
     ))
@@ -56,7 +54,7 @@ fn test_specific_map_sniper_seed_protected_by_smc_version_2_dot_9() {
 #[test]
 fn test_specific_map_protected_by_smlp_version_2_dot_5_dot_00() {
     // SMLP 2.5.00
-    let chk = crate::get_chk_from_mpq_filename(format!(
+    let chk = get_chk_from_mpq_filename(format!(
         "{}/test_vectors/Lnm Series Bound 12(p).scx",
         env!("CARGO_MANIFEST_DIR")
     ))
@@ -70,7 +68,7 @@ fn test_specific_map_protected_by_smlp_version_2_dot_5_dot_00() {
 #[test]
 fn test_specific_map_protected_by_unknown_protector() {
     // Unknown protector with a bunch of MPQ hacks?
-    let chk = crate::get_chk_from_mpq_filename(format!(
+    let chk = get_chk_from_mpq_filename(format!(
         "{}/test_vectors/______4VZ015__.scx",
         env!("CARGO_MANIFEST_DIR")
     ))
@@ -237,7 +235,7 @@ fn test_get_chk_from_mpq_in_memory() {
 #[test]
 fn test_get_string_on_all_maps() {
     for e in get_all_test_maps() {
-        let chk = crate::get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
+        let chk = get_chk_from_mpq_filename(e.path().to_string_lossy().to_string()).unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
         let string_refs = parsed_chk.get_all_string_references().unwrap();
 
@@ -254,7 +252,7 @@ fn test_constrain_encoding_detection_algorithm() {
         root.push_str(format!("/test_vectors/{s}").as_str());
 
         let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
-        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
+        let chk = get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
         //let encoding_order = guess_encoding_order(&map).unwrap();
@@ -312,7 +310,7 @@ fn test_constrain_encoding_detection_algorithm2() {
         root.push_str(format!("/test_vectors/{s}").as_str());
 
         let mpq = std::fs::read(std::path::Path::new(root.as_str())).unwrap();
-        let chk = crate::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
+        let chk = bwmpq::get_chk_from_mpq_in_memory(mpq.as_slice()).unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
         parsed_chk.get_string(index).unwrap()

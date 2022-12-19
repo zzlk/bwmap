@@ -105,7 +105,7 @@ mod test {
         for dir_entry in get_all_test_maps() {
             println!("file: {}", dir_entry.file_name().to_string_lossy());
             let chk_data =
-                crate::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
+                bwmpq::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
                     .unwrap();
 
             let riff_chunks = parse_riff(&chk_data);
@@ -126,7 +126,7 @@ mod test {
             env!("CARGO_MANIFEST_DIR")
         );
 
-        let chk_data = crate::get_chk_from_mpq_filename(filename).unwrap();
+        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
         let riff_chunks = parse_riff(&chk_data);
 
         assert!(riff_chunks

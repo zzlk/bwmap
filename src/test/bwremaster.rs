@@ -1,7 +1,10 @@
-use crate::{chk::{
-    chk_mbrf::{ChkMbrfAction, ChkMbrfCondition, ChkMbrfIndividual},
-    chk_trig::{ChkTrigAction, ChkTrigCondition, ChkTrigIndividual},
-}, ParsedChk};
+use crate::{
+    chk::{
+        chk_mbrf::{ChkMbrfAction, ChkMbrfCondition, ChkMbrfIndividual},
+        chk_trig::{ChkTrigAction, ChkTrigCondition, ChkTrigIndividual},
+    },
+    ParsedChk,
+};
 
 #[test]
 fn test_specific_map_files_for_known_values() {
@@ -10,7 +13,7 @@ fn test_specific_map_files_for_known_values() {
         env!("CARGO_MANIFEST_DIR")
     );
 
-    let chk = crate::get_chk_from_mpq_filename(path).unwrap();
+    let chk = bwmpq::get_chk_from_mpq_filename(path).unwrap();
     let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
     if let Ok(x) = parsed_chk.ver {
