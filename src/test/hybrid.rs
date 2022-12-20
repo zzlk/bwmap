@@ -1,3 +1,4 @@
+use super::get_chk;
 use crate::{
     chk::{
         chk_mbrf::{ChkMbrfAction, ChkMbrfCondition, ChkMbrfIndividual},
@@ -6,14 +7,11 @@ use crate::{
     ParsedChk,
 };
 
-#[test]
-fn test_specific_map_files_for_known_values() {
-    let path = format!(
-        "{}/test_vectors/custom_cases/hybrid.scm",
-        env!("CARGO_MANIFEST_DIR")
-    );
-
-    let chk = bwmpq::get_chk_from_mpq_filename(path).unwrap();
+#[tokio::test]
+async fn test_specific_map_files_for_known_values() {
+    let chk = get_chk("0c9f00fa65fb2977b1e5df4e160d90d5f26946f39bce66122d441b2d6ee59467")
+        .await
+        .unwrap();
     let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
     if let Ok(x) = parsed_chk.ver {

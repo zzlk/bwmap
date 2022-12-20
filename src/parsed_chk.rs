@@ -568,16 +568,19 @@ pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
 #[cfg(test)]
 mod test {
 
-    use crate::{test::get_all_test_maps, ParsedChk};
+    use crate::{
+        test::{get_all_test_chks, get_chk},
+        ParsedChk,
+    };
+    use futures::{pin_mut, TryStreamExt};
 
-    #[test]
-    fn can_parse_all_maps() {
-        for dir_entry in get_all_test_maps() {
-            println!("{}", dir_entry.path().to_string_lossy().to_string());
-            let chk_data =
-                bwmpq::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
-                    .unwrap();
+    #[tokio::test]
+    async fn can_parse_all_maps() {
+        let stream = get_all_test_chks();
 
+        pin_mut!(stream);
+
+        while let Some(chk_data) = stream.try_next().await.unwrap() {
             let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
             assert!(parsed_chk.ver.is_ok());
@@ -595,27 +598,21 @@ mod test {
         }
     }
 
-    #[test]
-    fn specific_test_rise_of_empires() {
-        let filename = format!(
-            "{}/test_vectors/[6]Rise of Empires v6.07e.scx",
-            env!("CARGO_MANIFEST_DIR")
-        );
-
-        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
+    #[tokio::test]
+    async fn specific_test_rise_of_empires() {
+        let chk_data = get_chk("ef32c5707243bccb588a92d6180274f09597bfdae7b0aec1316f5b22f7b5bd74")
+            .await
+            .unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
         assert!(parsed_chk.sprp.is_ok());
     }
 
-    #[test]
-    fn specific_test_achievementpyth() {
-        let filename = format!(
-            "{}/test_vectors/AchievementPyth.scx",
-            env!("CARGO_MANIFEST_DIR")
-        );
-
-        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
+    #[tokio::test]
+    async fn specific_test_achievementpyth() {
+        let chk_data = get_chk("9b3b7e3c62b84021008be15626001c4da3b8c13c5118037861bfa4c94566b468")
+            .await
+            .unwrap();
         let parsed_chk = ParsedChk::from_bytes(chk_data.as_slice());
 
         assert!(parsed_chk.forc.is_ok());

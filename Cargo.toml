@@ -35,3 +35,5 @@ futures = { version = "*" }
 rand = { version = "*" }
 tempfile = { version = "*" }
 sha2 = "*"
+
+async-stream = "*"

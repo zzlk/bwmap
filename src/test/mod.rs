@@ -24,4 +24,5 @@ mod remasterhybrid;
 #[cfg(feature = "full")]
 mod general;
 
-pub(crate) use util::get_all_test_maps;
+pub(crate) use util::get_all_test_chks;
+pub(crate) use util::get_chk;

@@ -3,17 +3,15 @@ use crate::{
         chk_mbrf::{ChkMbrfAction, ChkMbrfCondition, ChkMbrfIndividual},
         chk_trig::{ChkTrigAction, ChkTrigCondition, ChkTrigIndividual},
     },
+    test::get_chk,
     ParsedChk,
 };
 
-#[test]
-fn test_specific_map_files_for_known_values() {
-    let path = format!(
-        "{}/test_vectors/custom_cases/bw.scx",
-        env!("CARGO_MANIFEST_DIR")
-    );
-
-    let chk = bwmpq::get_chk_from_mpq_filename(path).unwrap();
+#[tokio::test]
+async fn test_specific_map_files_for_known_values() {
+    let chk = get_chk("5b4fbab16da0018765c3f5b1120171d1f8c4145f14792af51bbfd27290f1cf38")
+        .await
+        .unwrap();
     let parsed_chk = ParsedChk::from_bytes(chk.as_slice());
 
     if let Ok(x) = parsed_chk.ver {

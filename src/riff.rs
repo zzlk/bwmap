@@ -98,17 +98,17 @@ pub fn validate_and_group_riff_chunks<'a>(
 
 #[cfg(test)]
 mod test {
-    use crate::{chunk_name::ChunkName, riff::parse_riff, test::get_all_test_maps};
+    use crate::{chunk_name::ChunkName, riff::parse_riff, test::get_all_test_chks};
+    use futures::{pin_mut, TryStreamExt};
 
-    #[test]
-    fn test_parse_riff() {
-        for dir_entry in get_all_test_maps() {
-            println!("file: {}", dir_entry.file_name().to_string_lossy());
-            let chk_data =
-                bwmpq::get_chk_from_mpq_filename(dir_entry.path().to_string_lossy().to_string())
-                    .unwrap();
+    #[tokio::test]
+    async fn test_parse_riff() {
+        let stream = get_all_test_chks();
 
-            let riff_chunks = parse_riff(&chk_data);
+        pin_mut!(stream);
+
+        while let Some(chk) = stream.try_next().await.unwrap() {
+            let riff_chunks = parse_riff(&chk);
 
             assert!(riff_chunks.len() > 0);
             assert!(riff_chunks
@@ -117,22 +117,5 @@ mod test {
                     == std::mem::discriminant(&ChunkName::VER))
                 .is_some());
         }
-    }
-
-    #[test]
-    fn specific_test_planet_shakuras() {
-        let filename = format!(
-            "{}/test_vectors/Strategy UnLimited SCBW-Planet Shakura v1.1.scx",
-            env!("CARGO_MANIFEST_DIR")
-        );
-
-        let chk_data = bwmpq::get_chk_from_mpq_filename(filename).unwrap();
-        let riff_chunks = parse_riff(&chk_data);
-
-        assert!(riff_chunks
-            .iter()
-            .position(|x| std::mem::discriminant(&x.chunk_name)
-                == std::mem::discriminant(&ChunkName::TRIG))
-            .is_some());
     }
 }
