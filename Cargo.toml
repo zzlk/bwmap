@@ -9,8 +9,8 @@ default = ["full", "uchardet-bindings", "compact_enc_det-bindings"]
 full = []
 
 [dependencies]
-uchardet-bindings = { git = "ssh://git@github.com/zzlk/uchardet-bindings.git", optional = true }
-compact_enc_det-bindings = { git = "ssh://git@github.com/zzlk/compact_enc_det-bindings.git", optional = true }
+uchardet-bindings = { git = "https://github.com/zzlk/uchardet-bindings", optional = true }
+compact_enc_det-bindings = { git = "https://github.com/zzlk/compact_enc_det-bindings", optional = true }
 
 serde = { version = "*", features = ["derive"] }
 encoding_rs = "*"
