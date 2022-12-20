@@ -1,12 +1,8 @@
 use crate::test::get_all_test_chks;
 use crate::test::get_chk;
 use crate::ParsedChk;
-use bwmpq::get_chk_from_mpq_filename;
-use bwmpq::get_chk_from_mpq_in_memory;
 use futures::pin_mut;
-use futures::FutureExt;
 use futures::TryStreamExt;
-use std::fs::read;
 
 #[tokio::test]
 async fn test_parse_merged_chunks() {

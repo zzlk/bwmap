@@ -1,9 +1,8 @@
 use anyhow::Result;
 use async_stream::stream;
-use futures::{future::select_all, Future, FutureExt, Stream};
+use futures::Stream;
 use sha2::Digest;
-use std::path::{Path, PathBuf};
-use walkdir::{DirEntry, WalkDir};
+use std::path::PathBuf;
 
 // pub(crate) fn get_all_test_maps() -> impl Iterator<Item = DirEntry> {
 //     let vec = WalkDir::new(format!("{}/test_vectors", env!("CARGO_MANIFEST_DIR")))
