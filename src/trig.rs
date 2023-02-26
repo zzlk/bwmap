@@ -1642,6 +1642,22 @@ pub fn parse_mission_briefing<'a>(parsed_chk: &ParsedChk<'a>) -> Vec<MissionBrie
                         });
                     }
                     8 => {
+                        actions.push(MissionBriefingAction::DisplayTransmission {
+                            slot: action.first_or_only_group_or_player_affected as i64,
+                            text: parsed_chk
+                                .get_string(action.string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
+                            time: action.seconds_or_milliseconds as i64,
+                            modifier: parse_number_modifier(
+                                action.number_of_units_or_action_state_or_unit_order_or_number_modifier,
+                            ),
+                            wave: parsed_chk
+                                .get_string(action.wav_string_number as usize)
+                                .unwrap_or("couldn't get string".to_owned()),
+                            wave_time: action.seconds_or_milliseconds as i64,
+                        });
+                    }
+                    9 => {
                         actions.push(MissionBriefingAction::SkipTutorialEnabled);
                     }
                     _ => {
