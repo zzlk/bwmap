@@ -27,7 +27,9 @@ use std::path::PathBuf;
 // }
 
 pub async fn get_chk(chk_hash: &str) -> Result<Vec<u8>> {
-    let path = PathBuf::from("/tmp/artifacts").join(chk_hash);
+    let dir = PathBuf::from("/tmp/artifacts");
+    tokio::fs::create_dir_all(&dir).await.unwrap();
+    let path = dir.join(chk_hash);
 
     match tokio::fs::read(&path).await {
         Ok(data) => {
