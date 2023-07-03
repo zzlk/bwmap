@@ -558,13 +558,6 @@ impl<'a> ParsedChk<'a> {
     }
 }
 
-#[instrument(level = "trace", skip_all)]
-pub(crate) fn verify_is_valid_chk(chk: &[u8]) -> bool {
-    let parsed_chk = ParsedChk::from_bytes(chk);
-
-    parsed_chk.vcod.is_ok()
-}
-
 #[cfg(test)]
 mod test {
 
