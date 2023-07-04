@@ -42,6 +42,7 @@ pub(crate) fn parse_slice<T: Copy>(s: &[u8]) -> T {
 // }
 
 #[instrument(level = "trace", skip_all)]
+#[cfg(feature = "full")]
 pub(crate) fn reinterpret_as_slice<T: Sized + Copy>(s: &T) -> Result<&[u8], anyhow::Error> {
     anyhow::Ok(unsafe {
         std::slice::from_raw_parts((s as *const T) as *const u8, std::mem::size_of::<T>())
@@ -155,6 +156,7 @@ impl<'a> CursorSlicer<'a> {
 }
 
 #[instrument(level = "trace", skip_all)]
+#[cfg(feature = "full")]
 pub(crate) fn parse_null_terminated_bytestring_unsigned(s: &[u8]) -> &[u8] {
     let mut index = 0;
     for &c in s {

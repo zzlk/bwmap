@@ -1,4 +1,3 @@
-use crate::util::parse_null_terminated_bytestring_unsigned;
 use crate::{
     chk::{
         chk_colr::{parse_colr, ChkColr},
@@ -211,6 +210,8 @@ impl<'a> ParsedChk<'a> {
         // encoding_order: &Vec<&'static encoding_rs::Encoding>,
         index: usize,
     ) -> Result<String> {
+        use crate::util::parse_null_terminated_bytestring_unsigned;
+
         if index == 0 {
             return Ok("Zero index provided to 'get_string'".to_owned());
         }
