@@ -427,7 +427,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[2051..(2051 + 26)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "test case scenario string\0".to_owned(),
             "{x:?}"
         );
@@ -435,7 +435,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 26)..(2051 + 54)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "test case scenario string 3\0".to_owned(),
             "{x:?}"
         );
@@ -443,7 +443,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 63)..(2051 + 76)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "test force 1\0".to_owned(),
             "{x:?}"
         );
@@ -451,7 +451,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 76)..(2051 + 89)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "test force 2\0".to_owned(),
             "{x:?}"
         );
@@ -459,7 +459,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 89)..(2051 + 97)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "Force 3\0".to_owned(),
             "{x:?}"
         );
@@ -467,7 +467,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 97)..(2051 + 105)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "Force 4\0".to_owned(),
             "{x:?}"
         );
@@ -475,7 +475,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 105)..(2051 + 117)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "Test Case 1\0".to_owned(),
             "{x:?}"
         );
@@ -483,7 +483,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 117)..(2051 + 147)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "sound\\Zerg\\Drone\\ZDrErr00.WAV\0".to_owned(),
             "{x:?}"
         );
@@ -491,7 +491,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 147)..(2051 + 168)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "location test string\0".to_owned(),
             "{x:?}"
         );
@@ -499,7 +499,7 @@ async fn test_specific_map_files_for_known_values() {
             encoding_rs::WINDOWS_1252
                 .decode(&x.string_data[(2051 + 168)..(2051 + 185)],)
                 .0
-                .to_owned(),
+                .into_owned(),
             "test switch name\0".to_owned(),
             "{x:?}"
         );
