@@ -13,7 +13,7 @@ pub struct ChkTile {
     pub data: Vec<u16>, // PROTECTION: some map protectors make TILE sections that are not a multiple of 2 bytes long. So, need to copy them and pad with 0.
 }
 
-pub(crate) fn parse_tile<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkTile, anyhow::Error> {
+pub(crate) fn parse_tile(chunks: &[RiffChunk<'_>]) -> Result<ChkTile, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let sec = chunks[chunks.len() - 1].data;
