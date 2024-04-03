@@ -55,7 +55,7 @@ pub async fn get_chk(chk_hash: &str) -> Result<Vec<u8>> {
 pub(crate) fn get_all_test_chks() -> impl Stream<Item = Result<Vec<u8>>> {
     stream! {
         for chk in CHKS {
-            yield anyhow::Ok(get_chk(*chk).await?);
+            yield anyhow::Ok(get_chk(chk).await?);
         }
     }
 }

@@ -75,7 +75,7 @@ async fn test_specific_map_files_for_known_values() {
 
     if let Ok(x) = parsed_chk.mtxm {
         assert_eq!(x.data.len(), 128 * 128, "{x:?}");
-        assert_eq!(x.data[(126) + 128 * (1)], 16, "{x:?}"); // 1 pink creep tile
+        assert_eq!(x.data[(126) + 128], 16, "{x:?}"); // 1 pink creep tile
         assert_eq!(x.data[(124) + 128 * (2)], 16385, "{x:?}"); // 2x2 doodad
         assert_eq!(x.data[(124) + 128 * (3)], 16401, "{x:?}"); // 2x2 doodad
         assert_eq!(x.data[(123) + 128 * (2)], 16384, "{x:?}"); // 2x2 doodad
@@ -86,7 +86,7 @@ async fn test_specific_map_files_for_known_values() {
 
     if let Ok(x) = parsed_chk.tile {
         assert_eq!(x.data.len(), 128 * 128, "{x:?}");
-        assert_eq!(x.data[(126) + 128 * (1)], 16, "{x:?}"); // 1 pink creep tile
+        assert_eq!(x.data[(126) + 128], 16, "{x:?}"); // 1 pink creep tile
         assert_eq!(x.data[(124) + 128 * (2)], 64, "{x:?}"); // 2x2 doodad is not in TILE, so regular space platform
         assert_eq!(x.data[(124) + 128 * (3)], 67, "{x:?}"); // 2x2 doodad is not in TILE, so regular space platform
         assert_eq!(x.data[(123) + 128 * (2)], 81, "{x:?}"); // 2x2 doodad is not in TILE, so regular space platform
