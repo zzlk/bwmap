@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Clone)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum ChunkName {
     TYPE,
     VER,

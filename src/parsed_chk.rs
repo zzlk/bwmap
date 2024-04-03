@@ -254,8 +254,8 @@ impl<'a> ParsedChk<'a> {
             }
 
             let str_offset: usize =
-                u16::from_le_bytes(x.string_data[offset..offset + 2].try_into()?).try_into()?;
-
+            u16::from_le_bytes(x.string_data[offset..offset + 2].try_into()?).try_into()?;
+            
             if str_offset >= x.string_data.len() {
                 return Ok(format!(
                     "Out of bounds access STR. index: {index}, offset: {offset}, string_data.len(): {}, str_offset: {str_offset}",
@@ -268,7 +268,7 @@ impl<'a> ParsedChk<'a> {
             anyhow::bail!("No STR or STRx section")
         };
 
-        if bytes.len() == 0 {
+        if bytes.is_empty() {
             return Ok("".to_owned());
         }
 
@@ -292,7 +292,7 @@ impl<'a> ParsedChk<'a> {
                 euc_kr_characters_decoded_successfully += conversion
                     .0
                     .chars()
-                    .filter(|&c| c >= '가' && c <= '힣')
+                    .filter(|&c| ('가'..='힣').contains(&c))
                     .count() as i64;
             }
         }
@@ -324,7 +324,7 @@ impl<'a> ParsedChk<'a> {
             }
 
             // filter out color codes because it might be breaking uchardet.
-            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).copied().collect();
 
             if uchardet_bindings::uchardet_handle_data(handle, vec.as_ptr() as *const i8, vec.len())
                 != 0
@@ -357,7 +357,7 @@ impl<'a> ParsedChk<'a> {
 
         let (compact_enc_det_encoding_guess, compact_enc_det_encoding_guess_is_reliable) = unsafe {
             // filter out color codes because it might be breaking uchardet.
-            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).map(|x| *x).collect();
+            let vec: Vec<_> = bytes.iter().filter(|&&x| x >= 0x20).copied().collect();
 
             let mut bytes_consumed = 0;
             let mut is_reliable = false;
@@ -365,9 +365,9 @@ impl<'a> ParsedChk<'a> {
             let encoding = compact_enc_det_bindings::CompactEncDet_DetectEncoding(
                 vec.as_ptr() as *const i8,
                 vec.len() as i32,
-                0 as *const i8,
-                0 as *const i8,
-                0 as *const i8,
+                std::ptr::null::<i8>(),
+                std::ptr::null::<i8>(),
+                std::ptr::null::<i8>(),
                 compact_enc_det_bindings::Encoding_UNKNOWN_ENCODING as i32,
                 compact_enc_det_bindings::Language_UNKNOWN_LANGUAGE,
                 compact_enc_det_bindings::CompactEncDet_TextCorpusType_WEB_CORPUS,
@@ -501,7 +501,7 @@ impl<'a> ParsedChk<'a> {
 
         if let Ok(x) = &self.wav {
             for string_number in x.wav_string_number {
-                ret.push(*string_number as u32);
+                ret.push(*string_number);
             }
         }
 

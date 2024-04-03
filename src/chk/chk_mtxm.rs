@@ -44,9 +44,7 @@ pub(crate) fn parse_mtxm(chunks: &[RiffChunk]) -> Result<ChkMtxm, anyhow::Error>
         if data.len() > ret.len() {
             ret = data;
         } else {
-            for i in 0..data.len() {
-                ret[i] = data[i];
-            }
+            ret[..data.len()].copy_from_slice(&data[..]);
         }
     }
 

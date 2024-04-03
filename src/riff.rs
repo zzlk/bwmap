@@ -49,7 +49,7 @@ pub fn parse_riff(chk: &[u8]) -> Vec<RiffChunk> {
 pub fn validate_and_group_riff_chunks<'a>(
     chk: &[RiffChunk<'a>],
 ) -> HashMap<ChunkName, Vec<RiffChunk<'a>>> {
-    let validating_iterator = chk.into_iter().filter(|chunk| match chunk.chunk_name {
+    let validating_iterator = chk.iter().filter(|chunk| match chunk.chunk_name {
         ChunkName::VER => chunk.size == 2,
         ChunkName::VCOD => true, // Not sure how to validate this exactly but vcod isn't really read anyway.
         ChunkName::OWNR => chunk.size == 12,

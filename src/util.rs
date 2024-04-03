@@ -85,7 +85,7 @@ impl<'a> CursorSlicer<'a> {
             &self.s[self.current_offset..self.current_offset + elements * std::mem::size_of::<T>()],
         )?;
 
-        self.current_offset += ret.len() * std::mem::size_of::<T>();
+        self.current_offset += std::mem::size_of_val(ret);
 
         Ok(ret)
     }
@@ -106,7 +106,7 @@ impl<'a> CursorSlicer<'a> {
             &self.s[self.current_offset..self.current_offset + elements * std::mem::size_of::<T>()],
         )?;
 
-        self.current_offset += ret.len() * std::mem::size_of::<T>();
+        self.current_offset += std::mem::size_of_val(ret);
 
         Ok(ret)
     }
