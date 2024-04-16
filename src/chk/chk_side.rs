@@ -18,16 +18,16 @@ use serde::Serialize;
 // Italicized settings denote invalid map options. Note Players 9-11 are defaultly Inactive and Player 12 is defaultly Neutral.
 
 #[derive(Debug, Serialize)]
-pub struct ChkSide<'a> {
-    pub player_side: &'a [u8; 12],
+pub struct ChkSide {
+    pub player_side: [u8; 12],
 }
 
-pub(crate) fn parse_side<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSide<'a>, anyhow::Error> {
+pub(crate) fn parse_side<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkSide, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkSide {
-        player_side: slicer.extract_ref()?,
+        player_side: slicer.extract_u8_array_lax(),
     })
 }

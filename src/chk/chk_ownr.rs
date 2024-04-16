@@ -19,16 +19,16 @@ use serde::Serialize;
 // Italicized settings denote invalid map options, which may involve a buffer overflow.
 
 #[derive(Debug, Serialize)]
-pub struct ChkOwnr<'a> {
-    pub player_owner: &'a [u8; 12],
+pub struct ChkOwnr {
+    pub player_owner: [u8; 12],
 }
 
-pub(crate) fn parse_ownr<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkOwnr<'a>, anyhow::Error> {
+pub(crate) fn parse_ownr<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkOwnr, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkOwnr {
-        player_owner: slicer.extract_ref()?,
+        player_owner: slicer.extract_u8_array_lax(),
     })
 }

@@ -57,8 +57,8 @@ pub struct ParsedChk<'a> {
     pub dd2: Result<ChkDd2>,
     pub dim: Result<ChkDim<'a>>,
     pub era: Result<ChkEra<'a>>,
-    pub forc: Result<ChkForc<'a>>,
-    pub iown: Result<ChkIown<'a>>,
+    pub forc: Result<ChkForc>,
+    pub iown: Result<ChkIown>,
     pub isom: Result<ChkIsom>,
     pub ive2: Result<ChkIve2<'a>>,
     pub iver: Result<ChkIver<'a>>,
@@ -66,12 +66,12 @@ pub struct ParsedChk<'a> {
     pub mbrf: Result<ChkMbrf>,
     pub mrgn: Result<ChkMrgn<'a>>,
     pub mtxm: Result<ChkMtxm>,
-    pub ownr: Result<ChkOwnr<'a>>,
+    pub ownr: Result<ChkOwnr>,
     pub ptec: Result<ChkPtec<'a>>,
     pub ptex: Result<ChkPtex<'a>>,
     pub puni: Result<ChkPuni<'a>>,
     pub pupx: Result<ChkPupx<'a>>,
-    pub side: Result<ChkSide<'a>>,
+    pub side: Result<ChkSide>,
     pub sprp: Result<ChkSprp<'a>>,
     pub str: Result<ChkStr2>,
     pub strx: Result<ChkStrx2>,
@@ -254,8 +254,8 @@ impl<'a> ParsedChk<'a> {
             }
 
             let str_offset: usize =
-            u16::from_le_bytes(x.string_data[offset..offset + 2].try_into()?).try_into()?;
-            
+                u16::from_le_bytes(x.string_data[offset..offset + 2].try_into()?).try_into()?;
+
             if str_offset >= x.string_data.len() {
                 return Ok(format!(
                     "Out of bounds access STR. index: {index}, offset: {offset}, string_data.len(): {}, str_offset: {str_offset}",
@@ -481,7 +481,7 @@ impl<'a> ParsedChk<'a> {
 
         if let Ok(x) = &self.forc {
             for string_number in x.force_name {
-                ret.push(*string_number as u32);
+                ret.push(string_number as u32);
             }
         }
 

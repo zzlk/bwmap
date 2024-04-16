@@ -18,16 +18,16 @@ use serde::Serialize;
 // This section is separate from OWNR as a staredit value. Staredit does not display "inactive" as a valid option. Italicized settings denote invalid map options, which may involve a buffer overflow.
 
 #[derive(Debug, Serialize)]
-pub struct ChkIown<'a> {
-    pub player_owner: &'a [u8; 12],
+pub struct ChkIown {
+    pub player_owner: [u8; 12],
 }
 
-pub(crate) fn parse_iown<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIown<'a>, anyhow::Error> {
+pub(crate) fn parse_iown<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkIown, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkIown {
-        player_owner: slicer.extract_ref()?,
+        player_owner: slicer.extract_u8_array_lax(),
     })
 }

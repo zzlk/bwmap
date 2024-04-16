@@ -21,20 +21,20 @@ use serde::Serialize;
 // Players can be on a force greater than 4, however they will not appear in the game lobby.
 
 #[derive(Debug, Serialize)]
-pub struct ChkForc<'a> {
-    pub player_forces: &'a [u8],
-    pub force_name: &'a [u16],
-    pub force_properties: &'a [u8],
+pub struct ChkForc {
+    pub player_forces: [u8; 8],
+    pub force_name: [u16; 4],
+    pub force_properties: [u8; 4],
 }
 
-pub(crate) fn parse_forc<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc<'a>, anyhow::Error> {
+pub(crate) fn parse_forc<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkForc {
-        player_forces: slicer.extract_slice_lax(8)?,
-        force_name: slicer.extract_slice_lax(4)?,
-        force_properties: slicer.extract_slice_lax(4)?,
+        player_forces: slicer.extract_u8_array_lax(),
+        force_name: slicer.extract_u16_array_lax(),
+        force_properties: slicer.extract_u8_array_lax(),
     })
 }
