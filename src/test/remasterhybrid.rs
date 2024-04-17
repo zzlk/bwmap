@@ -32,7 +32,7 @@ async fn test_specific_map_files_for_known_values() {
 
     if let Ok(x) = parsed_chk.iown {
         assert_eq!(
-            *x.player_owner,
+            x.player_owner,
             [6, 5, 3, 6, 7, 6, 6, 6, 0, 0, 0, 0],
             "{x:?}"
         );
@@ -42,7 +42,7 @@ async fn test_specific_map_files_for_known_values() {
 
     if let Ok(x) = parsed_chk.ownr {
         assert_eq!(
-            *x.player_owner,
+            x.player_owner,
             [6, 5, 3, 6, 7, 6, 6, 0, 0, 0, 0, 0],
             "{x:?}"
         );
@@ -51,11 +51,7 @@ async fn test_specific_map_files_for_known_values() {
     }
 
     if let Ok(x) = parsed_chk.side {
-        assert_eq!(
-            *x.player_side,
-            [5, 5, 1, 5, 5, 5, 5, 5, 7, 7, 7, 7],
-            "{x:?}"
-        );
+        assert_eq!(x.player_side, [5, 5, 1, 5, 5, 5, 5, 5, 7, 7, 7, 7], "{x:?}");
     } else {
         unreachable!();
     }
@@ -515,9 +511,9 @@ async fn test_specific_map_files_for_known_values() {
     }
 
     if let Ok(x) = parsed_chk.forc {
-        assert_eq!(*x.force_name, [4, 5, 6, 7], "{x:?}");
-        assert_eq!(*x.force_properties, [15, 9, 15, 15], "{x:?}");
-        assert_eq!(*x.player_forces, [0, 1, 2, 3, 0, 0, 0, 0], "{x:?}");
+        assert_eq!(x.force_name, [4, 5, 6, 7], "{x:?}");
+        assert_eq!(x.force_properties, [15, 9, 15, 15], "{x:?}");
+        assert_eq!(x.player_forces, [0, 1, 2, 3, 0, 0, 0, 0], "{x:?}");
     } else {
         unreachable!();
     }
@@ -1125,7 +1121,7 @@ async fn test_specific_map_files_for_known_values() {
     }
 
     if let Ok(x) = parsed_chk.colr {
-        assert_eq!(*x.player_color, [16, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
+        assert_eq!(x.player_color, [16, 1, 2, 3, 4, 5, 6, 7], "{x:?}");
     }
 
     if let Ok(x) = parsed_chk.ive2 {
@@ -1137,9 +1133,9 @@ async fn test_specific_map_files_for_known_values() {
     }
 
     if let Ok(x) = parsed_chk.crgb {
-        assert_eq!(*x.player_color_option, [3, 2, 3, 3, 3, 3, 3, 3], "{x:?}");
+        assert_eq!(x.player_color_option, [3, 2, 3, 3, 3, 3, 3, 3], "{x:?}");
         assert_eq!(
-            *x.rgb,
+            x.rgb,
             [
                 [0, 0, 15],
                 [91, 46, 226],

@@ -52,8 +52,8 @@ use tracing::instrument;
 
 #[derive(Debug)]
 pub struct ParsedChk<'a> {
-    pub colr: Result<ChkColr<'a>>,
-    pub crgb: Result<ChkCrgb<'a>>,
+    pub colr: Result<ChkColr>,
+    pub crgb: Result<ChkCrgb>,
     pub dd2: Result<ChkDd2>,
     pub dim: Result<ChkDim<'a>>,
     pub era: Result<ChkEra<'a>>,

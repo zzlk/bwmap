@@ -1,3 +1,4 @@
+use std::mem::MaybeUninit;
 use tracing::instrument;
 
 #[instrument(level = "trace", skip_all)]
@@ -73,6 +74,79 @@ pub(crate) fn reinterpret_slice3<T: Copy + Sized>(s: &[u8]) -> Result<T, anyhow:
     );
 
     Ok(unsafe { std::ptr::read_unaligned(s.as_ptr() as *const T) })
+}
+
+trait Extract: Sized + Copy {
+    fn extract(data: &[u8]) -> anyhow::Result<(Self, &[u8])>;
+}
+
+trait ExtractLaxZeroPad: Sized + Copy {
+    fn extract_lax_zero_pad(data: &[u8]) -> (Self, &[u8]);
+}
+
+impl<T: Extract> ExtractLaxZeroPad for T {
+    fn extract_lax_zero_pad(data: &[u8]) -> (Self, &[u8]) {
+        // I suppose it's not technically correct that if the data length is std::mem::size_of::<T>() then you can extract a T out of it.
+        // Probably for at least two reasons, it might be that the representation is illegal, or it might be that the sizes don't match.
+        // Because there is only a convenient matching between the rust types and what need to be extracted from the data.
+        // TODO: there should be a way how to do this without dynamic memory allocation but I can't figure out the right rust way.
+        if data.len() >= std::mem::size_of::<Self>() {
+            return T::extract(data).unwrap();
+        }
+
+        // Need to zero pad.
+        let mut data2: Vec<u8> = Vec::with_capacity(std::mem::size_of::<Self>());
+        data2[0..data.len()].copy_from_slice(data);
+
+        (T::extract(&data2).unwrap().0, &[])
+    }
+}
+
+impl Extract for u8 {
+    fn extract(data: &[u8]) -> anyhow::Result<(Self, &[u8])> {
+        Ok((
+            Self::from_le_bytes(data[0..std::mem::size_of::<Self>()].try_into()?),
+            &data[std::mem::size_of::<Self>()..],
+        ))
+    }
+}
+
+impl Extract for u16 {
+    fn extract(data: &[u8]) -> anyhow::Result<(Self, &[u8])> {
+        Ok((
+            Self::from_le_bytes(data[0..std::mem::size_of::<Self>()].try_into()?),
+            &data[std::mem::size_of::<Self>()..],
+        ))
+    }
+}
+
+impl Extract for u32 {
+    fn extract(data: &[u8]) -> anyhow::Result<(Self, &[u8])> {
+        Ok((
+            Self::from_le_bytes(data[0..std::mem::size_of::<Self>()].try_into()?),
+            &data[std::mem::size_of::<Self>()..],
+        ))
+    }
+}
+
+impl<T: Extract, const N: usize> Extract for [T; N] {
+    fn extract(data: &[u8]) -> anyhow::Result<(Self, &[u8])> {
+        let mut ret: [MaybeUninit<T>; N] = unsafe { MaybeUninit::uninit().assume_init() };
+
+        let mut remainder = data;
+        for i in 0..N {
+            let (v, r) = T::extract(remainder)?;
+            remainder = r;
+            ret[i].write(v);
+        }
+
+        // TODO: change this to std::mem::transmute when this issue is resolved:
+        // https://github.com/rust-lang/rust/issues/61956
+        let ret2 = unsafe { std::mem::transmute_copy::<_, [T; N]>(&ret) };
+        let _ = std::mem::forget(ret);
+
+        Ok((ret2, remainder))
+    }
 }
 
 pub(crate) struct CursorSlicer<'a> {
@@ -221,6 +295,33 @@ impl<'a> CursorSlicer<'a> {
 
         ret
     }
+
+    #[instrument(level = "trace", skip_all)]
+    pub(crate) fn extract<T: Extract>(&mut self) -> anyhow::Result<T> {
+        let (ret, s) = T::extract(self.s)?;
+        self.s = s;
+        Ok(ret)
+    }
+
+    #[instrument(level = "trace", skip_all)]
+    pub(crate) fn extract_lax_zero_pad<T: Extract>(&mut self) -> T {
+        let (ret, s) = T::extract_lax_zero_pad(self.s);
+        self.s = s;
+        ret
+    }
+
+    // #[instrument(level = "trace", skip_all)]
+    // pub(crate) fn extract_array_lax<T: Extract, const N: usize>(&mut self) -> [T; N] {
+    //     let mut data: [MaybeUninit<T>; N] = unsafe { MaybeUninit::uninit().assume_init() };
+
+    //     for i in 0..N {
+    //         data[i].write(self.extract_T());
+    //     }
+
+    //     // Everything is initialized. Transmute the array to the
+    //     // initialized type.
+    //     unsafe { std::mem::transmute::<_, [T; N]>(data) }
+    // }
 }
 
 #[instrument(level = "trace", skip_all)]

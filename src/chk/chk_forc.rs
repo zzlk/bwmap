@@ -33,8 +33,8 @@ pub(crate) fn parse_forc<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc, anyhow
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkForc {
-        player_forces: slicer.extract_u8_array_lax(),
-        force_name: slicer.extract_u16_array_lax(),
-        force_properties: slicer.extract_u8_array_lax(),
+        player_forces: slicer.extract_lax_zero_pad(),
+        force_name: slicer.extract_lax_zero_pad(),
+        force_properties: slicer.extract_lax_zero_pad(),
     })
 }

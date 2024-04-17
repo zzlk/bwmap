@@ -14,18 +14,18 @@ use serde::Serialize;
 // 3 - Use "COLR" selection
 
 #[derive(Debug, Serialize)]
-pub struct ChkCrgb<'a> {
-    pub rgb: &'a [[u8; 3]; 8],
-    pub player_color_option: &'a [u8; 8],
+pub struct ChkCrgb {
+    pub rgb: [[u8; 3]; 8],
+    pub player_color_option: [u8; 8],
 }
 
-pub(crate) fn parse_crgb<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkCrgb<'a>, anyhow::Error> {
+pub(crate) fn parse_crgb<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkCrgb, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkCrgb {
-        rgb: slicer.extract_ref()?,
-        player_color_option: slicer.extract_ref()?,
+        rgb: slicer.extract()?,
+        player_color_option: slicer.extract()?,
     })
 }
