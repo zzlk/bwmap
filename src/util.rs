@@ -95,7 +95,7 @@ impl<T: Extract> ExtractLaxZeroPad for T {
         }
 
         // Need to zero pad.
-        let mut data2: Vec<u8> = Vec::with_capacity(std::mem::size_of::<Self>());
+        let mut data2: Vec<u8> = vec![0u8; std::mem::size_of::<Self>()];
         data2[0..data.len()].copy_from_slice(data);
 
         (T::extract(&data2).unwrap().0, &[])
@@ -143,7 +143,8 @@ impl<T: Extract, const N: usize> Extract for [T; N] {
         // TODO: change this to std::mem::transmute when this issue is resolved:
         // https://github.com/rust-lang/rust/issues/61956
         let ret2 = unsafe { std::mem::transmute_copy::<_, [T; N]>(&ret) };
-        let _ = std::mem::forget(ret);
+        #[allow(forgetting_copy_types)]
+        std::mem::forget(ret);
 
         Ok((ret2, remainder))
     }
