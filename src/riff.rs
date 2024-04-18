@@ -113,7 +113,7 @@ mod test {
             assert!(riff_chunks.len() > 0);
             assert!(riff_chunks
                 .iter()
-                .any(|x| std::mem::discriminant(&x.chunk_name) 
+                .any(|x| std::mem::discriminant(&x.chunk_name)
                     == std::mem::discriminant(&ChunkName::VER)));
         }
     }
