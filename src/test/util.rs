@@ -49,7 +49,7 @@ pub async fn get_chk(chk_hash: &str) -> Result<Vec<u8>> {
 
     tokio::fs::write(&path, &bytes[..]).await.unwrap();
 
-    anyhow::Ok(tokio::fs::read(&path).await?)
+    anyhow::Ok(bytes.to_vec())
 }
 
 pub(crate) fn get_all_test_chks() -> impl Stream<Item = Result<Vec<u8>>> {
