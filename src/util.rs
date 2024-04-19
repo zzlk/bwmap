@@ -243,7 +243,7 @@ impl<'a> CursorSlicer<'a> {
 
     #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_u8_lax(&mut self) -> u8 {
-        let ret = if self.s.len() >= self.current_offset + 1 {
+        let ret = if self.s.len() > self.current_offset {
             let ret = self.s[self.current_offset];
             self.current_offset += 1;
 
@@ -258,13 +258,13 @@ impl<'a> CursorSlicer<'a> {
     #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_u16_lax(&mut self) -> u16 {
         if self.s.len() <= self.current_offset {
-            let lower_16_bits = 0 as u16;
-            let upper_16_bits = 0 as u16;
+            let lower_16_bits = 0_u16;
+            let upper_16_bits = 0_u16;
             self.current_offset += 0;
             upper_16_bits << 8 | lower_16_bits
         } else if self.s.len() <= self.current_offset + 1 {
             let lower_16_bits = self.s[self.current_offset] as u16;
-            let upper_16_bits = 0 as u16;
+            let upper_16_bits = 0_u16;
             self.current_offset += 1;
             upper_16_bits << 8 | lower_16_bits
         } else {

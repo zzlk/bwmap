@@ -19,7 +19,7 @@ pub struct ChkCrgb {
     pub player_color_option: [u8; 8],
 }
 
-pub(crate) fn parse_crgb<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkCrgb, anyhow::Error> {
+pub(crate) fn parse_crgb(chunks: &[RiffChunk<'_>]) -> Result<ChkCrgb, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

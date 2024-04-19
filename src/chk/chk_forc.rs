@@ -27,7 +27,7 @@ pub struct ChkForc {
     pub force_properties: [u8; 4],
 }
 
-pub(crate) fn parse_forc<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkForc, anyhow::Error> {
+pub(crate) fn parse_forc(chunks: &[RiffChunk<'_>]) -> Result<ChkForc, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

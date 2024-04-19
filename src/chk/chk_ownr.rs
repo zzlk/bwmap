@@ -23,7 +23,7 @@ pub struct ChkOwnr {
     pub player_owner: [u8; 12],
 }
 
-pub(crate) fn parse_ownr<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkOwnr, anyhow::Error> {
+pub(crate) fn parse_ownr(chunks: &[RiffChunk<'_>]) -> Result<ChkOwnr, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);

@@ -41,7 +41,7 @@ pub struct ChkColr {
     pub player_color: [u8; 8],
 }
 
-pub(crate) fn parse_colr<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkColr, anyhow::Error> {
+pub(crate) fn parse_colr(chunks: &[RiffChunk<'_>]) -> Result<ChkColr, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
