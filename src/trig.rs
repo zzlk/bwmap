@@ -1145,6 +1145,7 @@ pub enum Condition {
         comparison: NumericComparison,
         unit_type: UnitType,
         number: i64,
+        eud_offset: u32,
     },
     // 16
     CommandsTheLeast {
@@ -1414,6 +1415,7 @@ pub enum Action {
         unit_type: UnitType,
         number: i64,
         modifier: NumberModifier,
+        eud_offset: u32,
     },
     // 46
     Order {
@@ -1825,6 +1827,11 @@ pub fn parse_triggers<'a>(parsed_chk: &ParsedChk<'a>) -> Vec<Trigger> {
                             ),
                             unit_type: parse_unit_type(condition.unit_id),
                             number: condition.qualified_number as i64,
+                            eud_offset: (condition.unit_id as u32)
+                                .wrapping_mul(12)
+                                .wrapping_add(condition.group)
+                                .wrapping_mul(4)
+                                .wrapping_add(0x58A364),
                         });
                     }
                     16 => {
@@ -2249,6 +2256,9 @@ pub fn parse_triggers<'a>(parsed_chk: &ParsedChk<'a>) -> Vec<Trigger> {
                                 .unit_type_or_score_type_or_resource_type_or_alliance_status),
                             number: action.second_group_affected_or_secondary_location_or_cuwp_number_or_number_or_ai_script_or_switch_number as i64,
                             modifier: parse_number_modifier(action.number_of_units_or_action_state_or_unit_order_or_number_modifier),
+                            eud_offset: 
+                            (action
+                                .unit_type_or_score_type_or_resource_type_or_alliance_status as u32).wrapping_mul(12).wrapping_add(action.first_or_only_group_or_player_affected).wrapping_mul(4).wrapping_add(0x58A364)
                         });
                     }
                     46 => {
