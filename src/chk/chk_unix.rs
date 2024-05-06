@@ -8,44 +8,44 @@ use serde::Serialize;
 // This section is indentical to UNIS section except it uses the Brood War set of 130 weapons instead of the original 100.
 
 #[derive(Debug, Serialize)]
-pub struct ChkUnix<'a> {
+pub struct ChkUnix {
     #[serde(skip_serializing)]
-    pub config: &'a [u8; 228],
+    pub config: [u8; 228],
     #[serde(skip_serializing)]
-    pub hit_points: &'a [u32; 228],
+    pub hit_points: [u32; 228],
     #[serde(skip_serializing)]
-    pub shield_points: &'a [u16; 228],
+    pub shield_points: [u16; 228],
     #[serde(skip_serializing)]
-    pub armor_points: &'a [u8; 228],
+    pub armor_points: [u8; 228],
     #[serde(skip_serializing)]
-    pub build_time: &'a [u16; 228],
+    pub build_time: [u16; 228],
     #[serde(skip_serializing)]
-    pub mineral_cost: &'a [u16; 228],
+    pub mineral_cost: [u16; 228],
     #[serde(skip_serializing)]
-    pub gas_cost: &'a [u16; 228],
+    pub gas_cost: [u16; 228],
     #[serde(skip_serializing)]
-    pub string_number: &'a [u16; 228],
+    pub string_number: [u16; 228],
     #[serde(skip_serializing)]
-    pub base_weapon_damage: &'a [u16; 130],
+    pub base_weapon_damage: [u16; 130],
     #[serde(skip_serializing)]
-    pub upgrade_bonus_weapon_damage: &'a [u16; 130],
+    pub upgrade_bonus_weapon_damage: [u16; 130],
 }
 
-pub(crate) fn parse_unix<'a>(chunks: &[RiffChunk<'a>]) -> Result<ChkUnix<'a>, anyhow::Error> {
+pub(crate) fn parse_unix(chunks: &[RiffChunk]) -> Result<ChkUnix, anyhow::Error> {
     anyhow::ensure!(chunks.len() > 0);
 
     let mut slicer = CursorSlicer::new(chunks[chunks.len() - 1].data);
 
     Ok(ChkUnix {
-        config: slicer.extract_ref()?,
-        hit_points: slicer.extract_ref()?,
-        shield_points: slicer.extract_ref()?,
-        armor_points: slicer.extract_ref()?,
-        build_time: slicer.extract_ref()?,
-        mineral_cost: slicer.extract_ref()?,
-        gas_cost: slicer.extract_ref()?,
-        string_number: slicer.extract_ref()?,
-        base_weapon_damage: slicer.extract_ref()?,
-        upgrade_bonus_weapon_damage: slicer.extract_ref()?,
+        config: slicer.extract()?,
+        hit_points: slicer.extract()?,
+        shield_points: slicer.extract()?,
+        armor_points: slicer.extract()?,
+        build_time: slicer.extract()?,
+        mineral_cost: slicer.extract()?,
+        gas_cost: slicer.extract()?,
+        string_number: slicer.extract()?,
+        base_weapon_damage: slicer.extract()?,
+        upgrade_bonus_weapon_damage: slicer.extract()?,
     })
 }

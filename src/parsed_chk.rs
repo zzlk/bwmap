@@ -84,7 +84,7 @@ pub struct ParsedChk<'a> {
     pub type_: Result<ChkType<'a>>,
     pub unis: Result<ChkUnis<'a>>,
     pub unit: Result<ChkUnit>,
-    pub unix: Result<ChkUnix<'a>>,
+    pub unix: Result<ChkUnix>,
     pub upgr: Result<ChkUpgr<'a>>,
     pub upgs: Result<ChkUpgs<'a>>,
     pub upgx: Result<ChkUpgx<'a>>,

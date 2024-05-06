@@ -304,6 +304,23 @@ impl<'a> CursorSlicer<'a> {
         Ok(ret)
     }
 
+    // #[instrument(level = "trace", skip_all)]
+    // pub(crate) fn extract_vec<T: Extract>(&mut self) -> anyhow::Result<Vec<T>> {
+    //     let mut ret = Vec::new();
+
+    //     loop {
+    //         if self.s.len() == 0 {
+    //             break;
+    //         }
+
+    //         let (v, s) = T::extract(self.s)?;
+    //         ret.push(v);
+    //         self.s = s;
+    //     }
+
+    //     ret
+    // }
+
     #[instrument(level = "trace", skip_all)]
     pub(crate) fn extract_lax_zero_pad<T: Extract>(&mut self) -> T {
         let (ret, s) = T::extract_lax_zero_pad(self.s);
