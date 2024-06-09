@@ -17,20 +17,16 @@ encoding_rs = "*"
 anyhow = { version = "*", features = ["backtrace"] }
 
 scopeguard = "*"
-lazy_static = "*"
 phf = { version = "0.10", features = ["macros"] }
 
 tracing = "*"
 
-serde-big-array = "*"
 
 [dev-dependencies]
 
 reqwest = { version = "*", default-features = false, features = ["json", "http2", "rustls-tls"] }
 tokio = { version = "1", features = ["full"] }
 futures = { version = "*" }
-rand = { version = "*" }
-tempfile = { version = "*" }
 sha2 = "*"
 
 async-stream = "*"
