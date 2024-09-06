@@ -484,11 +484,10 @@ fn parse_action_state(action_state: u8) -> ActionState {
 #[instrument(level = "trace")]
 fn parse_ai_script(aiscript_id: u32) -> &'static str {
     if let Ok(x) = reinterpret_as_slice(&aiscript_id) {
-        if let Some(script) = AI_SCRIPT_MAP.get(x).cloned() {
-            script // TODO, turn this into a String. How can this ever fail...?
-        } else {
-            "Failed to find ai script"
-        }
+        AI_SCRIPT_MAP
+            .get(x)
+            .cloned()
+            .unwrap_or("Failed to find ai script")
     } else {
         ""
     }
