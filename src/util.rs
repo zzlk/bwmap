@@ -157,7 +157,7 @@ pub(crate) struct CursorSlicer<'a> {
 
 impl<'a> CursorSlicer<'a> {
     #[instrument(level = "trace", skip_all)]
-    pub(crate) fn new(s: &'a [u8]) -> CursorSlicer {
+    pub(crate) fn new(s: &'a [u8]) -> CursorSlicer<'a> {
         CursorSlicer {
             s,
             current_offset: 0,
